@@ -1,0 +1,126 @@
+.page {
+  min-height: 100vh;
+}
+
+.header {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.headerInner {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  font-size: var(--font-size-base);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius);
+  transition: background 0.2s, color 0.2s;
+  text-decoration: none;
+}
+
+.backButton:hover {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.content {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+}
+
+.title {
+  margin-bottom: var(--spacing-lg);
+}
+
+.section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-md);
+  color: var(--color-primary);
+}
+
+.paragraph {
+  color: var(--color-text);
+  margin-bottom: var(--spacing-md);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.listItem {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.listItem:last-child {
+  border-bottom: none;
+}
+
+.listIcon {
+  font-size: var(--font-size-xl);
+  flex-shrink: 0;
+}
+
+.listContent {
+  flex: 1;
+}
+
+.listTitle {
+  font-weight: 600;
+  margin-bottom: var(--spacing-xs);
+}
+
+.listDescription {
+  color: var(--color-text-muted);
+  font-size: 16px;
+}
+
+.cta {
+  background: var(--color-primary-light);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  text-align: center;
+  margin-top: var(--spacing-xl);
+}
+
+.ctaTitle {
+  margin-bottom: var(--spacing-md);
+}
+
+.ctaButton {
+  display: inline-block;
+  background: var(--color-primary);
+  color: white;
+  text-decoration: none;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  font-size: var(--font-size-lg);
+  transition: background 0.2s;
+}
+
+.ctaButton:hover {
+  background: var(--color-primary-hover);
+  color: white;
+}
