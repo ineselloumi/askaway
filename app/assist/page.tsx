@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import styles from './page.module.css';
@@ -55,7 +55,7 @@ const recipeFaqQuestions = [
   'Dairy free mashed potato recipe',
 ];
 
-export default function AssistPage() {
+function AssistPageContent() {
   const searchParams = useSearchParams();
   const situation = searchParams.get('situation') || 'write';
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -638,5 +638,13 @@ export default function AssistPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AssistPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AssistPageContent />
+    </Suspense>
   );
 }
