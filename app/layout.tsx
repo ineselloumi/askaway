@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Lora } from 'next/font/google';
 import './globals.css';
+import { PostHogProvider } from './providers';
 
 const lora = Lora({
   subsets: ['latin'],
@@ -22,12 +23,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={lora.variable}>
       <body>
-        <a href="#main-content" className="skip-link">
-          Skip to main content
-        </a>
-        <main id="main-content">
-          {children}
-        </main>
+        <PostHogProvider>
+          <a href="#main-content" className="skip-link">
+            Skip to main content
+          </a>
+          <main id="main-content">
+            {children}
+          </main>
+        </PostHogProvider>
       </body>
     </html>
   );
