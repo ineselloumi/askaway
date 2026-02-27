@@ -19,7 +19,7 @@ function getProvider() {
 
 function getAnthropicKey() {
   // Use custom env var name to avoid conflict with shell env
-  return process.env.GENTLE_CHAT_ANTHROPIC_KEY || process.env.ANTHROPIC_API_KEY;
+  return process.env.ASK_AWAY_ANTHROPIC_KEY || process.env.ANTHROPIC_API_KEY;
 }
 
 function getOpenAIKey() {
@@ -40,22 +40,22 @@ function getFirstQuestion(situation: string): { question: string; suggestions: s
   const firstQuestions: Record<string, { question: string; suggestions: string[]; isContentQuestion: boolean }> = {
     'write': {
       question: "What do you need to write? Tell me who it's for and what you want to say.",
-      suggestions: ["I'll type it out", "Let me explain"],
+      suggestions: [],
       isContentQuestion: true,
     },
     'explain': {
       question: "Paste or describe what you'd like me to explain.",
-      suggestions: ["I'll paste it", "Let me describe it"],
+      suggestions: [],
       isContentQuestion: true,
     },
     'summarize': {
-      question: "Paste the text you'd like me to summarize.",
-      suggestions: ["I'll paste it"],
+      question: "Paste a text you'd like me to summarize. You can also paste website links directly.",
+      suggestions: [],
       isContentQuestion: true,
     },
     'other': {
       question: "What can I help you with?",
-      suggestions: ["I have a question", "I need advice"],
+      suggestions: [],
       isContentQuestion: true,
     },
   };
@@ -174,30 +174,37 @@ function buildCheckReadyPrompt(situation: string, answers: { question: string; a
 
   const context = situationContext[situation] || situationContext['write'];
   const answersText = answers.map(a => `Q: ${a.question}\nA: ${a.answer}`).join('\n\n');
+  const isFirstAnswer = answers.length === 1;
 
-  // For "explain" situations, be much more eager to just explain
-  const situationReadinessHint = situation === 'explain'
-    ? `\n\nIMPORTANT: For explanations, if you know the topic AND the user has indicated what angle/aspect they care about, you're READY. Don't ask more questions - just explain it! The user can always ask follow-up questions after.`
-    : '';
+  const firstAnswerGuidance = isFirstAnswer ? `
+This is the user's FIRST message. Decide: is this specific enough to answer directly?
+
+DEFAULT TO READY (ready: true) for:
+- Any factual question ("Who is in the Epstein files?", "How old is X?", "When is Y?")
+- Any request with a named topic, person, place, or event
+- Any recipe, explanation, or summary request with a clear subject
+- Anything you could give a useful answer to right now
+
+ONLY ask for clarification (ready: false) when the request is so vague you truly cannot help:
+- "Help me write something" (no topic, no recipient, no context)
+- "Give me recommendations" (no category at all)
+- "I need advice" (no subject whatsoever)
+
+CRITICAL: Do NOT ask for clarification just because multiple interpretations exist. Pick the most obvious one and answer it. The user can always follow up.
+` : `
+This is a follow-up answer. Answer directly — do not ask more questions.
+`;
 
   return `You are helping someone ${context}. Here's what you know so far:
 
 ${answersText}
-
-Do you have enough information to provide a helpful response?${situationReadinessHint}
-
-For "explain" requests: If you know the topic and they've given ANY indication of what they want to know, you're ready.
-For "write" requests: You need to know what to write and the basic tone.
-For "summarize" requests: You need the text to summarize.
-
-BIAS TOWARD READY: It's better to start helping and let them ask follow-ups than to keep asking questions.
-
+${firstAnswerGuidance}
 Respond in this exact JSON format:
 {
   "ready": true
 }
 
-OR if you absolutely need more info (very rare):
+OR if you genuinely need more info:
 {
   "ready": false,
   "question": "Your clarifying question here?",
@@ -205,7 +212,7 @@ OR if you absolutely need more info (very rare):
 }`;
 }
 
-function buildDraftPrompt(message: string, situation: string, answers: { question: string; answer: string }[]): string {
+function buildDraftPrompt(message: string, situation: string, answers: { question: string; answer: string }[], hasImage?: boolean): string {
   const answersText = answers.map(a => `Q: ${a.question}\nA: ${a.answer}`).join('\n\n');
 
   // Get the user's most recent answer to emphasize what they specifically want
@@ -216,24 +223,27 @@ function buildDraftPrompt(message: string, situation: string, answers: { questio
     'write': 'Write what they asked for based on their preferences',
     'explain': 'Explain this in simple, easy-to-understand terms. Be SPECIFIC and give concrete details, names, examples, etc.',
     'summarize': 'Summarize this concisely while keeping the key points',
+    'image': 'Carefully examine the image provided and answer the user\'s question about it with specific details about what you actually see.',
     'other': 'Help them with what they asked for',
   };
 
   const instruction = situationInstructions[situation] || situationInstructions['write'];
 
-  return `You are helping someone who shared this:
+  const imageNote = hasImage
+    ? `The user has uploaded an image (included above). Base your answer on what you actually see in that image.\n\n`
+    : `You are helping someone who shared this:\n\n"""\n${message}\n"""\n\nThey answered these questions:\n${answersText}\n`;
 
-"""
-${message}
-"""
+  const context = hasImage
+    ? `The user's question about the image:\n${answersText}\n`
+    : '';
 
-They answered these questions:
-${answersText}
-${userFocus}
+  return `${imageNote}${context}${userFocus}
 
 ${instruction}. Use simple, accessible language that anyone can understand. Avoid jargon and technical terms unless necessary.
 
-Write ONE helpful response that DIRECTLY answers what they asked for. If they asked for specific information (like names, dates, examples), include those specifics! Keep it 2-4 short paragraphs.
+Write ONE helpful response that DIRECTLY answers what they asked for. Keep it 2-4 short paragraphs.
+
+If you use lists, always use bullet points (•) instead of dashes (-).
 
 Respond with just the text, no JSON or formatting.`;
 }
@@ -286,7 +296,7 @@ ${previousDraft}
 
 They now have a follow-up question: "${followUpQuestion}"
 
-Answer their follow-up question helpfully. Keep the same friendly, simple tone. Use simple, accessible language that anyone can understand.
+Answer their follow-up question helpfully. Keep the same friendly, simple tone. Use simple, accessible language that anyone can understand. If you use lists, always use bullet points (•) instead of dashes (-).
 
 Respond with just the answer text, no JSON or formatting.`;
 }
@@ -310,7 +320,26 @@ Write the improved version. Keep the same meaning. Use simple, accessible langua
 Respond with just the improved text.`;
 }
 
-async function callAnthropic(prompt: string): Promise<string> {
+async function callAnthropic(prompt: string, imageData?: string): Promise<string> {
+  // Build message content — include the image as a vision block when provided
+  let messageContent: unknown = prompt;
+
+  if (imageData) {
+    // imageData is a data URL like "data:image/jpeg;base64,..."
+    const match = imageData.match(/^data:([^;]+);base64,(.+)$/);
+    if (match) {
+      const mediaType = match[1] as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+      const base64Data = match[2];
+      messageContent = [
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: mediaType, data: base64Data },
+        },
+        { type: 'text', text: prompt },
+      ];
+    }
+  }
+
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -321,7 +350,7 @@ async function callAnthropic(prompt: string): Promise<string> {
     body: JSON.stringify({
       model: 'claude-3-haiku-20240307',
       max_tokens: 1024,
-      messages: [{ role: 'user', content: prompt }],
+      messages: [{ role: 'user', content: messageContent }],
     }),
   });
 
@@ -357,11 +386,11 @@ async function callOpenAI(prompt: string): Promise<string> {
   return data.choices[0].message.content;
 }
 
-async function callLLM(prompt: string): Promise<string> {
+async function callLLM(prompt: string, imageData?: string): Promise<string> {
   if (getProvider() === 'anthropic') {
-    return callAnthropic(prompt);
+    return callAnthropic(prompt, imageData);
   } else {
-    return callOpenAI(prompt);
+    return callOpenAI(prompt); // OpenAI vision would require a separate implementation
   }
 }
 
@@ -414,7 +443,7 @@ export async function POST(request: NextRequest) {
         const jsonMatch = response.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
-          return NextResponse.json(parsed);
+          return NextResponse.json({ ...parsed, _prompt: prompt });
         }
       }
 
@@ -424,7 +453,7 @@ export async function POST(request: NextRequest) {
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        return NextResponse.json(parsed);
+        return NextResponse.json({ ...parsed, _prompt: prompt });
       }
 
       // Fallback
@@ -442,8 +471,8 @@ export async function POST(request: NextRequest) {
       }
 
       if (!hasApiKey()) {
-        // Mock: ready after 2 questions
-        return NextResponse.json({ ready: questionCount >= 2 });
+        // Mock: ready after 1 question
+        return NextResponse.json({ ready: questionCount >= 1 });
       }
 
       const prompt = buildCheckReadyPrompt(body.situation, answers);
@@ -451,7 +480,7 @@ export async function POST(request: NextRequest) {
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        return NextResponse.json(parsed);
+        return NextResponse.json({ ...parsed, _prompt: prompt });
       }
 
       // Fallback: ready after 2 questions
@@ -500,7 +529,7 @@ export async function POST(request: NextRequest) {
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        return NextResponse.json(parsed);
+        return NextResponse.json({ ...parsed, _prompt: prompt });
       }
 
       // Fallback
@@ -521,7 +550,7 @@ export async function POST(request: NextRequest) {
 
       const prompt = buildFollowUpAnswerPrompt(body.situation, answers, previousDraft, body.followUpQuestion);
       const response = await callLLM(prompt);
-      return NextResponse.json({ refined: response.trim(), isFollowUp: true });
+      return NextResponse.json({ refined: response.trim(), isFollowUp: true, _prompt: prompt });
     }
 
     // Refine existing draft
@@ -550,9 +579,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(result);
       }
 
-      const prompt = buildDraftPrompt(body.message, body.situation, body.answers || []);
-      const draft = await callLLM(prompt);
-      return NextResponse.json({ draft: draft.trim() });
+      const imageData = body.image;
+      const prompt = buildDraftPrompt(body.message, body.situation, body.answers || [], !!imageData);
+      const draft = await callLLM(prompt, imageData);
+      return NextResponse.json({ draft: draft.trim(), _prompt: prompt });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

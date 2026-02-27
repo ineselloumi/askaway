@@ -42,22 +42,85 @@ const situationTitles: Record<string, string> = {
   'other': 'Something else',
 };
 
-const recipeFaqQuestions = [
-  'Easy soup recipes for winter',
-  'I have lentils in my pantry, what meal can I cook',
-  'How to make lasagna',
-  'Ideas for hosting a brunch at home',
-  'Low sugar breakfast ideas',
-  'High protein snack ideas',
-  'Avocado toast variations',
-  '20 minute air fryer recipes',
-  'Easy pancake recipe',
-  'Dairy free mashed potato recipe',
-];
+const situationFaqQuestions: Record<string, string[]> = {
+  write: [
+    'Rewrite this to sound more concise',
+    'Make my email sound more formal',
+    'Help me write a birthday note to my friend',
+    'Rewrite this to sound more assertive',
+    'Help me write a cover letter for a job',
+    'Turn my notes into a clear message',
+    'Help me write a polite follow-up',
+    'Make this message sound more professional',
+    'Help me write a thoughtful thank-you note',
+    'Help me answer this diplomatically',
+  ],
+  explain: [
+    'What is Bitcoin and why does it matter?',
+    'Explain inflation to me like I\'m 10',
+    'What do we know about longevity?',
+    'Why is AI advancing so quickly?',
+    'What\'s happening with the Epstein files?',
+    'How do interest rates affect markets?',
+  ],
+  summarize: [
+    'Top insights in this article',
+    'Summarize this email',
+    'Give me the high level learnings from a book',
+  ],
+  translate: [
+    'Translate this paragraph from Spanish',
+    'What are some basic French sentences to know when visiting?',
+  ],
+  health: [
+    'How can I improve sleep quality?',
+    'What are some remedies for the common cold?',
+    'Foods to avoid for people with insulin resistance',
+    'Help me understand a symptom',
+  ],
+  image: [
+    'Explain this letter from the IRS',
+    'Sum up these receipts for me',
+    'How should I use this device?',
+    'Interpret my blood test results',
+  ],
+  trip: [
+    'Help me find nice dinner restaurants in Chicago',
+    'Plan a 3-day trip to Paris in June',
+    'Affordable honeymoon ideas',
+    'Date night ideas within 15 minutes of my home',
+  ],
+  decide: [
+    'How much should I be saving each month?',
+    'Should I switch jobs?',
+    'What mattress brand should I buy',
+  ],
+  recipe: [
+    'Easy soup recipes for winter',
+    'I have lentils in my pantry, what meal can I cook',
+    'How to make lasagna',
+    'Ideas for hosting a brunch at home',
+    'Low sugar breakfast ideas',
+    'High protein snack ideas',
+    'Avocado toast variations',
+    '20 minute air fryer recipes',
+    'Easy pancake recipe',
+    'Dairy free mashed potato recipe',
+  ],
+};
+
+function logPrompt(action: string, data: Record<string, unknown>) {
+  if (data._prompt) {
+    console.group(`%c[AskAway] LLM prompt — ${action}`, 'color: #6C63FF; font-weight: bold;');
+    console.log(data._prompt);
+    console.groupEnd();
+  }
+}
 
 function AssistPageContent() {
   const searchParams = useSearchParams();
   const situation = searchParams.get('situation') || 'write';
+  const initialQuery = searchParams.get('query') || '';
   const chatEndRef = useRef<HTMLDivElement>(null);
   const messageCounterRef = useRef(0);
 
@@ -102,6 +165,55 @@ function AssistPageContent() {
     hasInitialized.current = true;
 
     const initConversation = async () => {
+      // If a pre-filled query came from the home page, skip the greeting and
+      // first question — show the user's query immediately and check if we
+      // have enough info to draft an answer right away.
+      if (initialQuery) {
+        const userMsgId = nextMessageId();
+        setMessages([{ id: userMsgId, type: 'user', text: initialQuery }]);
+
+        const firstAnswer = { question: 'What would you like help with?', answer: initialQuery };
+        const newAnswers = [firstAnswer];
+        setAnswers(newAnswers);
+        setQuestionNumber(1);
+
+        setTypingLabel('Thinking...');
+        setIsTyping(true);
+
+        try {
+          const checkResponse = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'check-ready',
+              situation,
+              answers: newAnswers,
+            }),
+          });
+
+          const checkData = await checkResponse.json();
+          logPrompt('check-ready', checkData);
+
+          if (checkData.ready) {
+            await generateDraft(newAnswers);
+          } else if (checkData.question) {
+            setIsTyping(false);
+            setCurrentQuestion({ question: checkData.question, suggestions: checkData.suggestions || [] });
+            setQuestionNumber(2);
+            addMessage('assistant', checkData.question);
+          } else {
+            // Fallback: generate draft anyway
+            await generateDraft(newAnswers);
+          }
+        } catch (error) {
+          console.error('Error checking readiness for initial query:', error);
+          setIsTyping(false);
+          await generateDraft(newAnswers);
+        }
+        return;
+      }
+
+      // Normal flow: show greeting + first question
       const greeting = situationGreetings[situation] || situationGreetings['write'];
       setMessages([{ id: nextMessageId(), type: 'assistant', text: greeting }]);
 
@@ -122,6 +234,7 @@ function AssistPageContent() {
         });
 
         const data = await response.json();
+        logPrompt('next-question (Q1)', data);
         setIsTyping(false);
 
         if (data.question) {
@@ -136,6 +249,7 @@ function AssistPageContent() {
     };
 
     initConversation();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [situation]);
 
   const addMessage = (type: MessageType, text: string) => {
@@ -194,8 +308,8 @@ function AssistPageContent() {
       return;
     }
 
-    // After 2nd answer, check if we have enough info
-    if (questionNumber >= 2) {
+    // After 1st answer, check if we have enough info
+    if (questionNumber >= 1) {
       setTypingLabel('Thinking...');
       setIsTyping(true);
 
@@ -211,6 +325,7 @@ function AssistPageContent() {
         });
 
         const checkData = await checkResponse.json();
+        logPrompt('check-ready', checkData);
 
         if (checkData.ready) {
           // Generate the draft
@@ -246,6 +361,7 @@ function AssistPageContent() {
       });
 
       const data = await response.json();
+      logPrompt('next-question', data);
       setIsTyping(false);
 
       if (data.question) {
@@ -289,6 +405,7 @@ function AssistPageContent() {
       });
 
       const data = await response.json();
+      logPrompt('draft', data);
       setIsTyping(false);
 
       if (data.draft) {
@@ -334,6 +451,7 @@ function AssistPageContent() {
       });
 
       const data = await response.json();
+      logPrompt('follow-ups', data);
       if (data.followUps) {
         setFollowUpSuggestions(data.followUps);
       }
@@ -375,6 +493,7 @@ function AssistPageContent() {
       });
 
       const data = await response.json();
+      logPrompt('refine', data);
       setIsTyping(false);
 
       if (data.refined) {
@@ -407,8 +526,12 @@ function AssistPageContent() {
 
   // Determine what to show
   const showQuestionInput = currentQuestion && !isTyping && !showResult;
-  const showRecipeFaqPanel = situation === 'recipe';
-  const canUseRecipeFaq = Boolean(showQuestionInput);
+  const faqQuestions = situationFaqQuestions[situation] ?? [];
+  const showFaqPanel = faqQuestions.length > 0;
+  const canUseFaq = Boolean(showQuestionInput);
+
+  // Mobile FAQ drawer state
+  const [faqDrawerOpen, setFaqDrawerOpen] = useState(false);
 
   return (
     <div className={styles.page}>
@@ -420,6 +543,15 @@ function AssistPageContent() {
           <h1 className={styles.headerTitle}>
             {situationTitles[situation] || 'Get help'}
           </h1>
+          {showFaqPanel && (
+            <button
+              className={styles.faqDrawerToggle}
+              onClick={() => setFaqDrawerOpen(true)}
+              aria-label="Show suggested questions"
+            >
+              💡 Ideas
+            </button>
+          )}
         </div>
       </header>
 
@@ -530,89 +662,124 @@ function AssistPageContent() {
 
             {/* Draft result */}
             {showResult && draft && !isTyping && (
-              <div className={`${styles.message} ${styles.assistantMessage}`}>
-                <div className={styles.draftResponse}>
-                  <div className={styles.draftText}>{draft}</div>
+              <>
+                {/* Draft bubble */}
+                <div className={`${styles.message} ${styles.assistantMessage}`}>
+                  <div className={styles.draftResponse}>
+                    <div className={styles.draftText}>{draft}</div>
+                    <div className={styles.draftFooter}>
+                      <p className={styles.responseDisclaimer}>
+                        AI can make mistakes, double check important information.
+                      </p>
+                      <button className={styles.copyButtonSmall} onClick={handleCopy}>
+                        {copied ? '✓ Copied' : 'Copy this answer'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-                  {/* Follow-up input */}
-                  <div className={styles.followUpSection}>
-                    <div className={styles.followUpLabel}>Have a follow-up question?</div>
-                    <div className={styles.followUpInputArea}>
-                      <textarea
-                        className={styles.followUpTextarea}
-                        value={followUpInput}
-                        onChange={(e) => setFollowUpInput(e.target.value)}
-                        placeholder="Ask anything else..."
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleFollowUpSubmit();
-                          }
-                        }}
-                      />
-                      {/* Suggestion chips */}
+                {/* Follow-up suggestions as a separate assistant message */}
+                {(isLoadingSuggestions || followUpSuggestions.length > 0) && (
+                  <div className={`${styles.message} ${styles.assistantMessage}`}>
+                    <div className={`${styles.messageBubble} ${styles.assistantBubble}`}>
                       {isLoadingSuggestions ? (
-                        <div className={styles.suggestionsLoading}>Loading suggestions...</div>
-                      ) : followUpSuggestions.length > 0 && (
-                        <div className={styles.followUpSuggestions}>
+                        <span className={styles.suggestionsLoading}>Loading suggestions...</span>
+                      ) : (
+                        <div className={styles.followUpList}>
+                          <p className={styles.followUpIntro}>If you want, I can answer these questions next:</p>
                           {followUpSuggestions.map((suggestion, idx) => (
                             <button
                               key={idx}
-                              className={styles.followUpSuggestionChip}
+                              className={styles.followUpListItem}
                               onClick={() => handleFollowUpSubmit(suggestion)}
                             >
-                              {suggestion}
+                              • {suggestion}
                             </button>
                           ))}
                         </div>
                       )}
-                      <button
-                        className={styles.followUpSendButton}
-                        onClick={() => handleFollowUpSubmit()}
-                        disabled={!followUpInput.trim()}
-                      >
-                        Send
-                      </button>
                     </div>
                   </div>
+                )}
 
-                  <p className={styles.responseDisclaimer}>
-                    AI can make mistakes, double check important information.
-                  </p>
-                </div>
-
-                {/* Success actions */}
-                <div className={styles.success}>
-                  <div className={styles.successButtons}>
-                    <button className={styles.copyButton} onClick={handleCopy}>
-                      {copied ? '✓ Copied!' : 'Copy to clipboard'}
+                {/* Follow-up input — same style as first question input */}
+                <div className={`${styles.message} ${styles.assistantMessage}`}>
+                  <div className={styles.inputArea}>
+                    <textarea
+                      className={styles.textarea}
+                      value={followUpInput}
+                      onChange={(e) => setFollowUpInput(e.target.value)}
+                      placeholder="Ask anything else..."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleFollowUpSubmit();
+                        }
+                      }}
+                    />
+                    <button
+                      className={styles.sendButton}
+                      onClick={() => handleFollowUpSubmit()}
+                      disabled={!followUpInput.trim()}
+                    >
+                      Send
                     </button>
-                    <Link href="/" className={styles.startOverButton}>
-                      Start over
-                    </Link>
                   </div>
                 </div>
-              </div>
+              </>
             )}
+
+            {/* Static Start Over — always visible */}
+            <div className={styles.startOverContainer}>
+              <Link href="/" className={styles.startOverStatic}>
+                Start over
+              </Link>
+            </div>
 
             <div ref={chatEndRef} />
           </div>
         </div>
 
-        {showRecipeFaqPanel && (
-          <aside className={styles.faqPanel} aria-label="Frequently asked questions">
-            <h2 className={styles.faqTitle}>Frequently asked questions</h2>
-            <p className={styles.faqDescription}>Try one of these recipe requests.</p>
+        {showFaqPanel && (
+          <>
+            {/* Mobile backdrop */}
+            {faqDrawerOpen && (
+              <div
+                className={styles.faqOverlay}
+                onClick={() => setFaqDrawerOpen(false)}
+                aria-hidden="true"
+              />
+            )}
+
+          <aside
+            className={`${styles.faqPanel} ${faqDrawerOpen ? styles.faqPanelOpen : ''}`}
+            aria-label="Other people asked"
+          >
+            {/* Mobile drawer handle + close */}
+            <div className={styles.faqDrawerHeader}>
+              <div className={styles.faqDrawerHandle} />
+              <button
+                className={styles.faqDrawerClose}
+                onClick={() => setFaqDrawerOpen(false)}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <h2 className={styles.faqTitle}>Other people asked</h2>
+            <p className={styles.faqDescription}>Try one of these to get started.</p>
             <div className={styles.faqList}>
-              {recipeFaqQuestions.map((question) => (
+              {faqQuestions.map((question) => (
                 <button
                   key={question}
                   className={styles.faqItem}
                   onClick={() => {
-                    if (!canUseRecipeFaq) return;
+                    if (!canUseFaq) return;
+                    setFaqDrawerOpen(false);
                     void handleAnswer(question);
                   }}
-                  disabled={!canUseRecipeFaq}
+                  disabled={!canUseFaq}
                 >
                   <span className={styles.faqIcon} aria-hidden="true">
                     <svg
@@ -635,6 +802,7 @@ function AssistPageContent() {
               ))}
             </div>
           </aside>
+          </>
         )}
       </div>
     </div>

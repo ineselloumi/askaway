@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #d4d9de 0%, rgba(212, 217, 222, 0.5) 50%, var(--color-background) 100%);
+  background: linear-gradient(160deg, #E8E6FF 0%, #F4F4FB 40%, #F4F4FB 100%);
 }
 
 .header {
@@ -34,6 +34,61 @@
   width: 100%;
 }
 
+.homeQueryBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xl);
+  width: 100%;
+}
+
+.homeQueryTextarea {
+  resize: none;
+  min-height: 64px;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  border: 2px solid var(--color-border);
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  color: var(--color-text);
+  font-family: inherit;
+  line-height: 1.6;
+  width: 100%;
+  outline: none;
+}
+
+.homeQueryTextarea:focus {
+  border-color: var(--color-primary);
+}
+
+.homeQueryButton {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #6C63FF, #8B84FF);
+  color: white;
+  border: none;
+  border-radius: 100px;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+  transition: opacity 0.2s, transform 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+
+.homeQueryButton:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.homeQueryButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .sectionTitle {
   font-size: var(--font-size-lg);
   font-weight: 400;
@@ -53,21 +108,21 @@
   background: var(--color-surface);
   border: none;
   border-radius: var(--border-radius-lg);
-  padding: var(--spacing-lg) var(--spacing-xl);
+  padding: var(--spacing-md);
   text-align: center;
   transition: box-shadow 0.2s, transform 0.2s;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 6px;
   box-shadow: var(--shadow-md);
   text-decoration: none;
 }
 
 .tile:hover {
   box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
 .tile:focus-visible {
@@ -77,6 +132,7 @@
 .tileIcon {
   font-size: var(--font-size-xl);
   margin-bottom: 0;
+  line-height: 1;
 }
 
 .tileTitle {
@@ -88,7 +144,7 @@
 }
 
 .tileDescription {
-  font-size: var(--font-size-sm);
+  font-size: 12px;
   color: var(--color-text-muted);
   margin: 0;
   text-decoration: none;

@@ -1,15 +1,8 @@
 import Link from 'next/link';
 import styles from './page.module.css';
+import HomeQueryInput from './components/HomeQueryInput';
 
 const situations = [
-  {
-    id: 'write',
-    icon: '✍️',
-    title: 'Write for me',
-    description: 'Help me write an email, a letter, a text message, etc.',
-    href: '/assist?situation=write',
-    primary: true,
-  },
   {
     id: 'explain',
     icon: '💡',
@@ -25,6 +18,14 @@ const situations = [
     description: 'Make a document, article or communication more concise.',
     href: '/assist?situation=summarize',
     primary: false,
+  },
+  {
+    id: 'write',
+    icon: '✍️',
+    title: 'Write for me',
+    description: 'Help me write an email, a letter, a text message, etc.',
+    href: '/assist?situation=write',
+    primary: true,
   },
 ];
 
@@ -59,17 +60,17 @@ const moreQuestions = [
   },
   {
     id: 'trip',
-    icon: '✈️',
-    title: 'Plan a trip',
+    icon: '📍',
+    title: 'Go somewhere',
     description: 'Ask about a city visit, an itinerary or a night out.',
     href: '/assist?situation=trip',
   },
   {
-    id: 'other',
-    icon: '💬',
-    title: 'Something else',
-    description: 'Ask anything!',
-    href: '/assist?situation=other',
+    id: 'decide',
+    icon: '⚖️',
+    title: 'Help me decide',
+    description: 'Get help with any decision in your life.',
+    href: '/assist?situation=decide',
   },
 ];
 
@@ -82,6 +83,8 @@ export default function Home() {
       </header>
 
       <div className={styles.content}>
+        <HomeQueryInput />
+
         <h2 className={styles.sectionTitle}>Frequently asked</h2>
         <div className={styles.tiles} role="list" aria-label="Choose what you need help with">
           {situations.map((situation) => (
