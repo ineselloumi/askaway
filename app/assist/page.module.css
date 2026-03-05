@@ -123,14 +123,9 @@
   transition: background 0.2s, border-color 0.2s;
 }
 
-.faqItem:hover:not(:disabled) {
+.faqItem:hover {
   background: var(--color-primary-light);
   border-color: var(--color-primary);
-}
-
-.faqItem:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
 }
 
 .faqIcon {

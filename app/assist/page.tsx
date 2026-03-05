@@ -109,6 +109,36 @@ const situationFaqQuestions: Record<string, string[]> = {
   ],
 };
 
+// FAQ items that require the user to provide content before processing.
+// Maps the FAQ query text to a personalized clarifying question.
+const faqClarifyingQuestions: Record<string, string> = {
+  // Write for me — queries that reference existing text to transform
+  'Rewrite this to sound more concise': 'Paste the text you\'d like me to rewrite.',
+  'Make my email sound more formal': 'Paste your email below.',
+  'Rewrite this to sound more assertive': 'Paste the text you\'d like to rewrite.',
+  'Turn my notes into a clear message': 'Paste your notes below.',
+  'Make this message sound more professional': 'Paste the message you\'d like me to improve.',
+  'Help me answer this diplomatically': 'Paste the message you need to respond to.',
+  // Summarize — all queries need text input
+  'Top insights in this article': 'Paste the article below.',
+  'Summarize this email': 'Paste the email you\'d like me to summarize.',
+  'Give me the high level learnings from a book': 'Which book, or paste a passage you\'d like me to summarize?',
+  // Translate — only the query that needs input text
+  'Translate this paragraph from Spanish': 'Paste the Spanish paragraph below.',
+  // Explain an image — all queries need an image upload
+  'Explain this letter from the IRS': 'Please upload the letter you\'d like me to explain.',
+  'Sum up these receipts for me': 'Please upload the receipts.',
+  'How should I use this device?': 'Please upload a photo of the device.',
+  'Interpret my blood test results': 'Please upload your blood test results.',
+};
+
+const faqImageUploadItems = new Set([
+  'Explain this letter from the IRS',
+  'Sum up these receipts for me',
+  'How should I use this device?',
+  'Interpret my blood test results',
+]);
+
 function logPrompt(action: string, data: Record<string, unknown>) {
   if (data._prompt) {
     console.group(`%c[AskAway] LLM prompt — ${action}`, 'color: #6C63FF; font-weight: bold;');
@@ -423,20 +453,100 @@ function AssistPageContent() {
     }
   };
 
+  const restartWithQuery = async (query: string) => {
+    const newAnswers = [{ question: 'What would you like help with?', answer: query }];
+    setMessages([{ id: nextMessageId(), type: 'user', text: query }]);
+    setTextInput('');
+    setCurrentQuestion(null);
+    setQuestionNumber(1);
+    setAnswers(newAnswers);
+    setDraft('');
+    setShowResult(false);
+    setCopied(false);
+    setFollowUpInput('');
+    setFollowUpSuggestions([]);
+    setIsLoadingSuggestions(false);
+    setUploadedImage(null);
+    setImageFileName('');
+    setFaqDrawerOpen(false);
+    setTypingLabel('Thinking...');
+    setIsTyping(true);
+
+    try {
+      const checkResponse = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'check-ready', situation, answers: newAnswers }),
+      });
+      const checkData = await checkResponse.json();
+      logPrompt('check-ready', checkData);
+      if (checkData.ready) {
+        await generateDraft(newAnswers, null);
+      } else if (checkData.question) {
+        setIsTyping(false);
+        setCurrentQuestion({ question: checkData.question, suggestions: checkData.suggestions || [] });
+        setQuestionNumber(2);
+        addMessage('assistant', checkData.question);
+      } else {
+        await generateDraft(newAnswers, null);
+      }
+    } catch (error) {
+      console.error('Error restarting conversation:', error);
+      setIsTyping(false);
+      await generateDraft(newAnswers, null);
+    }
+  };
+
+  const handleFaqClick = (question: string) => {
+    const clarifyingQ = faqClarifyingQuestions[question];
+    setFaqDrawerOpen(false);
+
+    if (!clarifyingQ) {
+      // No clarification needed — use existing flow
+      if (canUseFaq) {
+        void handleAnswer(question);
+      } else {
+        void restartWithQuery(question);
+      }
+      return;
+    }
+
+    const needsImageUpload = faqImageUploadItems.has(question);
+
+    // Reset all conversation state
+    setTextInput('');
+    setDraft('');
+    setShowResult(false);
+    setCopied(false);
+    setFollowUpInput('');
+    setFollowUpSuggestions([]);
+    setIsLoadingSuggestions(false);
+    setUploadedImage(null);
+    setImageFileName('');
+    setIsTyping(false);
+    setTypingLabel('');
+
+    // Show the FAQ item as user message + clarifying question as assistant message
+    setMessages([
+      { id: nextMessageId(), type: 'user', text: question },
+      { id: nextMessageId(), type: 'assistant', text: clarifyingQ },
+    ]);
+    setCurrentQuestion({ question: clarifyingQ, suggestions: [] });
+
+    if (needsImageUpload) {
+      // Keep questionNumber = 1 so handleAnswer's image-upload logic fires correctly.
+      // Pre-populate answers with the FAQ intent so the LLM knows what to do with the image.
+      setAnswers([{ question: 'What would you like me to do with the image?', answer: question }]);
+      setQuestionNumber(1);
+    } else {
+      // Q1 is pre-answered with the FAQ intent; clarifyingQ is now Q2.
+      setAnswers([{ question: 'What would you like help with?', answer: question }]);
+      setQuestionNumber(2);
+    }
+  };
+
   // Load follow-up suggestions based on situation
   const loadFollowUpSuggestions = async (finalAnswers: Answer[], generatedDraft: string) => {
-    // Static suggestions for write and summarize
-    if (situation === 'write') {
-      setFollowUpSuggestions(['Make it shorter', 'Make it more formal', 'Make it more friendly']);
-      return;
-    }
-
-    if (situation === 'summarize') {
-      setFollowUpSuggestions(['Make it shorter', 'Explain it in simpler words']);
-      return;
-    }
-
-    // For "explain" and "other", fetch LLM-generated suggestions
     setIsLoadingSuggestions(true);
     try {
       const response = await fetch('/api/generate', {
@@ -774,12 +884,7 @@ function AssistPageContent() {
                 <button
                   key={question}
                   className={styles.faqItem}
-                  onClick={() => {
-                    if (!canUseFaq) return;
-                    setFaqDrawerOpen(false);
-                    void handleAnswer(question);
-                  }}
-                  disabled={!canUseFaq}
+                  onClick={() => handleFaqClick(question)}
                 >
                   <span className={styles.faqIcon} aria-hidden="true">
                     <svg
