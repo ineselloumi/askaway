@@ -193,9 +193,12 @@ function AssistPageContent() {
 
     // Not in result state (or still typing) — reset the guard and keep the
     // bottom of the chat visible so new questions / the typing indicator show.
+    // Use scrollIntoView instead of scrollTop=scrollHeight so we only scroll
+    // as far as needed — prevents the empty-space overshoot on mobile where
+    // the flex layout makes scrollHeight larger than the actual content.
     hasScrolledToResultRef.current = false;
     if (chatEndRef.current) {
-      document.documentElement.scrollTop = document.documentElement.scrollHeight;
+      chatEndRef.current.scrollIntoView({ behavior: 'instant', block: 'end' });
     }
   }, [messages, isTyping, currentQuestion, showResult]);
 
