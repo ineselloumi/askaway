@@ -20,7 +20,7 @@ export default function HomeQueryInput() {
         className={styles.homeQueryTextarea}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Or type any question here..."
+        placeholder="Type any question here..."
         rows={2}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {

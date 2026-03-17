@@ -48,18 +48,10 @@ const situationFaqQuestions: Record<string, string[]> = {
     'Make my email sound more formal',
     'Help me write a birthday note to my friend',
     'Rewrite this to sound more assertive',
-    'Help me write a cover letter for a job',
-    'Turn my notes into a clear message',
-    'Help me write a polite follow-up',
-    'Make this message sound more professional',
-    'Help me write a thoughtful thank-you note',
-    'Help me answer this diplomatically',
   ],
   explain: [
     'What is Bitcoin and why does it matter?',
-    'Explain inflation to me like I\'m 10',
     'What do we know about longevity?',
-    'Why is AI advancing so quickly?',
     'What\'s happening with the Epstein files?',
     'How do interest rates affect markets?',
   ],
@@ -67,10 +59,13 @@ const situationFaqQuestions: Record<string, string[]> = {
     'Top insights in this article',
     'Summarize this email',
     'Give me the high level learnings from a book',
+    'What is the summary of today\'s news?',
   ],
   translate: [
-    'Translate this paragraph from Spanish',
+    'Translate this sentence from Spanish',
     'What are some basic French sentences to know when visiting?',
+    'Translate this paragraph from English to German',
+    'How do you say "Thank you" in Japanese?',
   ],
   health: [
     'How can I improve sleep quality?',
@@ -94,18 +89,13 @@ const situationFaqQuestions: Record<string, string[]> = {
     'How much should I be saving each month?',
     'Should I switch jobs?',
     'What mattress brand should I buy',
+    'I\'m hesitating between two trip destinations'
   ],
   recipe: [
     'Easy soup recipes for winter',
-    'I have lentils in my pantry, what meal can I cook',
     'How to make lasagna',
-    'Ideas for hosting a brunch at home',
     'Low sugar breakfast ideas',
-    'High protein snack ideas',
-    'Avocado toast variations',
-    '20 minute air fryer recipes',
-    'Easy pancake recipe',
-    'Dairy free mashed potato recipe',
+    'Quick air fryer recipes',
   ],
 };
 
@@ -152,7 +142,11 @@ function AssistPageContent() {
   const situation = searchParams.get('situation') || 'write';
   const initialQuery = searchParams.get('query') || '';
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const lastUserMsgRef = useRef<HTMLDivElement>(null);
   const messageCounterRef = useRef(0);
+  // Prevents the result scroll from re-firing on subsequent renders (e.g. when
+  // follow-up suggestions load and change unrelated state).
+  const hasScrolledToResultRef = useRef(false);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [textInput, setTextInput] = useState('');
@@ -177,10 +171,34 @@ function AssistPageContent() {
   const [imageFileName, setImageFileName] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Scroll to bottom when messages change
+  // Single unified scroll effect.
+  // • During the question flow and while typing → keep the bottom visible.
+  // • The first time the result appears → scroll so the draft card top is just
+  //   below the sticky header (82 px) with a little breathing room (16 px).
+  //   A ref guard prevents subsequent re-renders (follow-up suggestions loading,
+  //   Strict-Mode double-invocation, etc.) from re-firing the scroll.
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (showResult && !isTyping && lastUserMsgRef.current) {
+      if (!hasScrolledToResultRef.current) {
+        hasScrolledToResultRef.current = true;
+        const top =
+          lastUserMsgRef.current.getBoundingClientRect().top +
+          document.documentElement.scrollTop -
+          82 - // sticky header height
+          16;  // breathing room
+        document.documentElement.scrollTop = Math.max(0, top);
+      }
+      return;
+    }
+
+    // Not in result state (or still typing) — reset the guard and keep the
+    // bottom of the chat visible so new questions / the typing indicator show.
+    hasScrolledToResultRef.current = false;
+    if (chatEndRef.current) {
+      document.documentElement.scrollTop = document.documentElement.scrollHeight;
+    }
   }, [messages, isTyping, currentQuestion, showResult]);
+
 
   // Track if we've initialized to prevent double-running in Strict Mode
   const hasInitialized = useRef(false);
@@ -454,6 +472,7 @@ function AssistPageContent() {
   };
 
   const restartWithQuery = async (query: string) => {
+    hasScrolledToResultRef.current = false;
     const newAnswers = [{ question: 'What would you like help with?', answer: query }];
     setMessages([{ id: nextMessageId(), type: 'user', text: query }]);
     setTextInput('');
@@ -502,8 +521,12 @@ function AssistPageContent() {
     setFaqDrawerOpen(false);
 
     if (!clarifyingQ) {
-      // No clarification needed — use existing flow
-      if (canUseFaq) {
+      // Only feed the FAQ item as an answer to the current question if the
+      // conversation hasn't started yet (no user messages).  Once the user
+      // has already sent at least one message, clicking a new FAQ topic means
+      // they want to pivot — always restart fresh.
+      const conversationStarted = messages.some((m) => m.type === 'user');
+      if (canUseFaq && !conversationStarted) {
         void handleAnswer(question);
       } else {
         void restartWithQuery(question);
@@ -648,7 +671,7 @@ function AssistPageContent() {
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <Link href="/" className={styles.backButton}>
-            ← Back
+            ← Start over
           </Link>
           <h1 className={styles.headerTitle}>
             {situationTitles[situation] || 'Get help'}
@@ -668,9 +691,14 @@ function AssistPageContent() {
       <div className={styles.mainLayout}>
         <div className={styles.chatContainer}>
           <div className={styles.chatInner}>
-            {messages.map((message) => (
+            {messages.map((message, index) => {
+              const isLastUserMsg =
+                message.type === 'user' &&
+                !messages.slice(index + 1).some((m) => m.type === 'user');
+              return (
               <div
                 key={message.id}
+                ref={isLastUserMsg ? lastUserMsgRef : undefined}
                 className={`${styles.message} ${
                   message.type === 'assistant' ? styles.assistantMessage : styles.userMessage
                 }`}
@@ -683,7 +711,8 @@ function AssistPageContent() {
                   {message.text}
                 </div>
               </div>
-            ))}
+              );
+            })}
 
             {/* Typing indicator */}
             {isTyping && (
@@ -877,7 +906,22 @@ function AssistPageContent() {
               </button>
             </div>
 
-            <h2 className={styles.faqTitle}>Other people asked</h2>
+            <div className={styles.howToUse}>
+              <h2 className={styles.faqTitle}>How to use</h2>
+              <ul className={styles.howToUseList}>
+                <li>
+                  <strong>Say it in your own words:</strong> No special language needed, just describe what you&apos;re looking for as you naturally would to another person.
+                </li>
+                <li>
+                  <strong>A little context goes a long way:</strong> The more you share about your situation, the more helpful the answer will be.
+                </li>
+                <li>
+                  <strong>You can always ask again.</strong> If the first answer isn&apos;t quite right, just say so! You can ask to make it shorter, simpler, or try a different approach.
+                </li>
+              </ul>
+            </div>
+
+            <h2 className={styles.faqTitle}>Example questions</h2>
             <p className={styles.faqDescription}>Try one of these to get started.</p>
             <div className={styles.faqList}>
               {faqQuestions.map((question) => (

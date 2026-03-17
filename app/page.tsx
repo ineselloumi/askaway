@@ -31,11 +31,11 @@ const situations = [
 
 const moreQuestions = [
   {
-    id: 'translate',
-    icon: '🌍',
-    title: 'Translate',
-    description: 'Decode or translate languages quickly.',
-    href: '/assist?situation=translate',
+    id: 'image',
+    icon: '🖼️',
+    title: 'Explain an image',
+    description: 'Upload a letter, a receipt, a bill, etc.',
+    href: '/assist?situation=image',
   },
   {
     id: 'health',
@@ -45,18 +45,18 @@ const moreQuestions = [
     href: '/assist?situation=health',
   },
   {
-    id: 'recipe',
-    icon: '🍳',
-    title: 'Find a recipe',
-    description: 'Suggestions based on your cravings or ingredients.',
-    href: '/assist?situation=recipe',
+    id: 'decide',
+    icon: '⚖️',
+    title: 'Help me decide',
+    description: 'Get help with any decision in your life.',
+    href: '/assist?situation=decide',
   },
   {
-    id: 'image',
-    icon: '🖼️',
-    title: 'Explain an image',
-    description: 'Upload a letter, a receipt, a bill, etc.',
-    href: '/assist?situation=image',
+    id: 'translate',
+    icon: '🌍',
+    title: 'Translate',
+    description: 'Decode or translate languages quickly.',
+    href: '/assist?situation=translate',
   },
   {
     id: 'trip',
@@ -66,11 +66,11 @@ const moreQuestions = [
     href: '/assist?situation=trip',
   },
   {
-    id: 'decide',
-    icon: '⚖️',
-    title: 'Help me decide',
-    description: 'Get help with any decision in your life.',
-    href: '/assist?situation=decide',
+    id: 'recipe',
+    icon: '🍳',
+    title: 'Find a recipe',
+    description: 'Suggestions based on your cravings or ingredients.',
+    href: '/assist?situation=recipe',
   },
 ];
 
