@@ -4,28 +4,18 @@ import styles from './page.module.css';
 const principles = [
   {
     icon: '🎯',
-    title: 'Start with what you need',
+    title: 'Start where you are',
     description: 'No empty text box staring at you. Pick a situation and we guide you from there.',
   },
   {
     icon: '💬',
-    title: 'One question at a time',
+    title: 'Dive deeper, one question at a time',
     description: 'We ask simple questions in plain words. No confusing tech talk.',
   },
   {
     icon: '🤝',
     title: 'You are in control',
-    description: 'Nothing happens until you say so. We show you the result before asking for anything.',
-  },
-  {
-    icon: '👍',
-    title: 'Encouragement along the way',
-    description: 'Little messages to let you know you are doing it right. No pressure.',
-  },
-  {
-    icon: '💰',
-    title: 'Fair and clear pricing',
-    description: 'Pay only after you see the result. One-time payment, no subscription, no surprises.',
+    description: 'The tool is at your service, so nothing happens until you say so.',
   },
 ];
 
@@ -44,23 +34,21 @@ export default function AboutPage() {
         <h1 className={styles.title}>How AskAway Works</h1>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>What is this?</h2>
+          <h2 className={styles.sectionTitle}>What is it?</h2>
           <p className={styles.paragraph}>
-            AskAway helps you with everyday writing tasks. Need to reply to a
-            message? Want to understand a confusing letter? Not sure if something
-            is a scam? We can help.
+            AskAway helps you with everyday tasks and questions. Need to reply to a
+            message? Want to understand a confusing letter? Want to learn about a topic? We can help.
           </p>
           <p className={styles.paragraph}>
-            We use smart technology to write drafts for you. But we made it simple.
+            We use artificial intelligence technology, also called "AI", to write responses for you. But we made it simple.
             No confusing words. No empty boxes where you have to figure out what to type.
           </p>
         </section>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Our Design Principles</h2>
+          <h2 className={styles.sectionTitle}>Our principles</h2>
           <p className={styles.paragraph}>
-            We built this for people who find technology confusing. Everything here
-            is designed to feel calm and easy.
+            We built this for people who find artificial intelligence tools confusing and need a little extra guidance. 
           </p>
           <ul className={styles.list}>
             {principles.map((principle, index) => (
@@ -78,10 +66,10 @@ export default function AboutPage() {
         </section>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>How We Handle Your Information</h2>
+          <h2 className={styles.sectionTitle}>How we handle your information</h2>
           <p className={styles.paragraph}>
-            When you paste a message, we only use it to help you write a reply.
-            We do not save your messages. We do not share them with anyone else.
+            When you share context or paste a message, we only use it to help you get the answer you need.
+            We do not save your conversations or share them with anyone else.
           </p>
           <p className={styles.paragraph}>
             This is a simple tool. You use it, you get your result, that is it.
