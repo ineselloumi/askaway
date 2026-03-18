@@ -11,7 +11,7 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-  title: 'AskAway - Simple Help with Messages',
+  title: 'AskAway - Simple AI for Everyone',
   description: 'Get help writing messages, understanding letters, and more. No confusing tech words. Just simple, friendly help.',
 };
 
