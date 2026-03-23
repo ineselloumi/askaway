@@ -7,7 +7,7 @@
 
 .header {
   text-align: center;
-  padding: var(--spacing-2xl) var(--spacing-lg);
+  padding: var(--spacing-2xl) var(--spacing-lg) 0;
 }
 
 .title {
@@ -28,7 +28,7 @@
 
 .content {
   flex: 1;
-  padding: var(--spacing-xl) var(--spacing-lg);
+  padding: var(--spacing-lg) var(--spacing-lg);
   max-width: 900px;
   margin: 0 auto;
   width: 100%;
@@ -36,7 +36,8 @@
 
 .homeQueryBox {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-xl);
   width: 100%;
@@ -44,19 +45,21 @@
 
 .homeQueryTextarea {
   resize: none;
-  min-height: 64px;
+  min-height: 60px;
+  height: 60px;
   border-radius: var(--border-radius);
   font-size: var(--font-size-base);
   border: 2px solid var(--color-border);
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
   transition: border-color 0.2s, box-shadow 0.2s;
   color: var(--color-text);
   font-family: inherit;
-  line-height: 1.6;
-  width: 100%;
+  line-height: 1.4;
+  flex: 1;
   outline: none;
+  overflow: hidden;
 }
 
 .homeQueryTextarea:focus {
@@ -64,7 +67,8 @@
 }
 
 .homeQueryButton {
-  align-self: flex-end;
+  align-self: center;
+  flex-shrink: 0;
   background: linear-gradient(135deg, #6C63FF, #8B84FF);
   color: white;
   border: none;
@@ -90,10 +94,11 @@
 }
 
 .sectionTitle {
-  font-size: var(--font-size-lg);
+  font-family: var(--font-lora), Georgia, 'Times New Roman', Times, serif;
+  font-size: var(--font-size-xl);
   font-weight: 400;
   color: var(--color-text);
-  margin-bottom: var(--spacing-lg);
+  margin: 0 0 var(--spacing-lg) 0;
   text-align: center;
 }
 

@@ -21,7 +21,7 @@ export default function HomeQueryInput() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Type any question here..."
-        rows={2}
+        rows={1}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();

@@ -11,3 +11,6 @@ coverage/
 tsconfig.tsbuildinfo
 .vercel/
 .vercel
+
+# Eval run results (keep fixtures and runner, not outputs)
+evals/results/*.json

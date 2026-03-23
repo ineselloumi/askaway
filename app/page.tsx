@@ -9,7 +9,6 @@ const situations = [
     title: 'Explain something',
     description: 'Help me understand a topic, a document, a news article, etc.',
     href: '/assist?situation=explain',
-    primary: false,
   },
   {
     id: 'summarize',
@@ -17,7 +16,6 @@ const situations = [
     title: 'Summarize',
     description: 'Make a document, article or communication more concise.',
     href: '/assist?situation=summarize',
-    primary: false,
   },
   {
     id: 'write',
@@ -25,11 +23,7 @@ const situations = [
     title: 'Write for me',
     description: 'Help me write an email, a letter, a text message, etc.',
     href: '/assist?situation=write',
-    primary: true,
   },
-];
-
-const moreQuestions = [
   {
     id: 'image',
     icon: '🖼️',
@@ -85,7 +79,7 @@ export default function Home() {
       <div className={styles.content}>
         <HomeQueryInput />
 
-        <h2 className={styles.sectionTitle}>Frequently asked</h2>
+        <p className={styles.sectionTitle}>Or click any of these to get started</p>
         <div className={styles.tiles} role="list" aria-label="Choose what you need help with">
           {situations.map((situation) => (
             <Link
@@ -101,26 +95,6 @@ export default function Home() {
               <p className={styles.tileDescription}>{situation.description}</p>
             </Link>
           ))}
-        </div>
-
-        <div className={styles.moreSection}>
-          <h2 className={styles.moreSectionTitle}>More things you can ask</h2>
-          <div className={styles.tiles} role="list" aria-label="More question types">
-            {moreQuestions.map((question) => (
-              <Link
-                key={question.id}
-                href={question.href}
-                className={styles.tile}
-                role="listitem"
-              >
-                <span className={styles.tileIcon} aria-hidden="true">
-                  {question.icon}
-                </span>
-                <h2 className={styles.tileTitle}>{question.title}</h2>
-                <p className={styles.tileDescription}>{question.description}</p>
-              </Link>
-            ))}
-          </div>
         </div>
 
       </div>

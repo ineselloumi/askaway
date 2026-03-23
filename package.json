@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "eval": "npx tsx evals/run.ts",
+    "eval:check-ready": "SUITE=check-ready npx tsx evals/run.ts",
+    "eval:draft": "SUITE=draft npx tsx evals/run.ts",
+    "eval:next-question": "SUITE=next-question npx tsx evals/run.ts"
   },
   "dependencies": {
     "next": "^15.1.0",
