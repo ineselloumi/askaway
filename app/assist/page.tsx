@@ -673,12 +673,14 @@ function AssistPageContent() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <Link href="/" className={styles.backButton}>
-            ← Start over
-          </Link>
-          <h1 className={styles.headerTitle}>
-            {situationTitles[situation] || 'Get help'}
-          </h1>
+          <div className={styles.headerLeft}>
+            <Link href="/" className={styles.backButton}>
+              ← Start over
+            </Link>
+            <h1 className={styles.headerTitle}>
+              {situationTitles[situation] || 'Get help'}
+            </h1>
+          </div>
           {showFaqPanel && (
             <button
               className={styles.faqDrawerToggle}
