@@ -251,34 +251,91 @@ Respond with just the text, no JSON or formatting.`;
 function buildFollowUpQuestionsPrompt(situation: string, answers: { question: string; answer: string }[], draft: string): string {
   const answersText = answers.map(a => `Q: ${a.question}\nA: ${a.answer}`).join('\n\n');
 
-  return `You just helped someone with the following conversation:
-
-Conversation:
-${answersText}
-
-Your response to them:
-"""
-${draft}
-"""
-
-Generate 2-3 natural follow-up questions they might want to ask to continue learning or exploring this topic. These should help them:
-- Dig deeper into something mentioned
-- Clarify something they might not fully understand
-- Explore a related topic
-
-Rules:
-- Questions should be short and conversational (like a curious person would ask)
-- Each question should be different and explore a different angle
-- Use simple, accessible language
+  const sharedGuidelines = `Guidelines:
+- Keep each suggestion under ~8 words when possible
+- One idea per suggestion, no multi-part phrasing
+- Use simple, everyday language — no jargon
+- Friendly, natural tone — not formal or clinical
 
 Respond in this exact JSON format:
 {
-  "followUps": [
-    "What does X mean exactly?",
-    "Can you tell me more about Y?",
-    "Why is Z important?"
+  “followUps”: [
+    “Suggestion one”,
+    “Suggestion two”,
+    “Suggestion three”
   ]
 }`;
+
+  if (situation === 'write') {
+    return `You just wrote the following for someone:
+“””
+${draft}
+“””
+
+Their original request:
+${answersText}
+
+Suggest 1–3 short prompts they can click to refine this draft. Think: tone (friendlier, more formal), length (shorter, longer), structure, or polishing a specific part. If the conversation hints at something more specific, prioritize that over generic options.
+
+${sharedGuidelines}`;
+  }
+
+  if (situation === 'explain') {
+    return `You just explained something to someone who may not be familiar with the topic:
+“””
+${draft}
+“””
+
+Their original question:
+${answersText}
+
+Suggest 1–3 follow-ups to help them go further. Keep suggestions simple and curiosity-driven — avoid technical terms, academic phrasing, or anything that sounds like a textbook. Think: what would a curious friend ask next? E.g. “How does that work in real life?”, “Give me an everyday example”, “What should I do with this info?”.
+
+${sharedGuidelines}`;
+  }
+
+  if (situation === 'summarize') {
+    return `You just summarized something for someone:
+“””
+${draft}
+“””
+
+Their original request:
+${answersText}
+
+Suggest 1–3 follow-ups — e.g. making it shorter, pulling out key points, listing action items, or going deeper on a specific part. Follow what they seemed to care about most.
+
+${sharedGuidelines}`;
+  }
+
+  if (situation === 'image') {
+    return `You just answered a question about an image:
+“””
+${draft}
+“””
+
+Their question:
+${answersText}
+
+Suggest 1–3 follow-ups that help them explore further — specific details, context, implications, or related questions about what they saw.
+
+${sharedGuidelines}`;
+  }
+
+  // 'other' and fallback
+  return `You just helped someone with the following:
+
+Their request:
+${answersText}
+
+Your response:
+“””
+${draft}
+“””
+
+Suggest 1–3 follow-up prompts that would genuinely help them go one step further. Let the conversation guide you.
+
+${sharedGuidelines}`;
 }
 
 function buildFollowUpAnswerPrompt(situation: string, answers: { question: string; answer: string }[], previousDraft: string, followUpQuestion: string): string {

@@ -18,6 +18,7 @@ interface Answer {
   answer: string;
 }
 
+
 const situationGreetings: Record<string, string> = {
   'write': "Hi! I'll help you write something.",
   'explain': "Hi! I'll help you understand something.",
@@ -96,6 +97,12 @@ const situationFaqQuestions: Record<string, string[]> = {
     'How to make lasagna',
     'Low sugar breakfast ideas',
     'Quick air fryer recipes',
+  ],
+  other: [
+    'What is Bitcoin and why does it matter?',
+    'What do we know about longevity?',
+    'What\'s happening with the Epstein files?',
+    'How do interest rates affect markets?',
   ],
 };
 
@@ -780,19 +787,6 @@ function AssistPageContent() {
                       }
                     }}
                   />
-                  {currentQuestion.suggestions && currentQuestion.suggestions.length > 0 && situation !== 'image' && (
-                    <div className={styles.suggestionChips}>
-                      {currentQuestion.suggestions.map((suggestion, idx) => (
-                        <button
-                          key={idx}
-                          className={styles.suggestionChip}
-                          onClick={() => handleAnswer(suggestion)}
-                        >
-                          {suggestion}
-                        </button>
-                      ))}
-                    </div>
-                  )}
                   <button
                     className={styles.sendButton}
                     onClick={handleTextSubmit}
@@ -830,14 +824,14 @@ function AssistPageContent() {
                         <span className={styles.suggestionsLoading}>Loading suggestions...</span>
                       ) : (
                         <div className={styles.followUpList}>
-                          <p className={styles.followUpIntro}>If you want, I can answer these questions next:</p>
-                          {followUpSuggestions.map((suggestion, idx) => (
+                          <p className={styles.followUpIntro}>You can ask these follow-ups:</p>
+                          {followUpSuggestions.map((item, idx) => (
                             <button
                               key={idx}
                               className={styles.followUpListItem}
-                              onClick={() => handleFollowUpSubmit(suggestion)}
+                              onClick={() => handleFollowUpSubmit(item)}
                             >
-                              • {suggestion}
+                              • {item}
                             </button>
                           ))}
                         </div>

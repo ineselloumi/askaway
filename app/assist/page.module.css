@@ -585,7 +585,7 @@
 .followUpList {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
 }
 
 .followUpIntro {
@@ -601,10 +601,14 @@
   font-size: var(--font-size-base);
   text-align: left;
   cursor: pointer;
-  padding: var(--spacing-xs) 0;
-  line-height: 1.5;
+  padding: 1px 0;
+  margin: 0;
+  min-height: unset;
+  min-width: unset;
+  line-height: 1.4;
   width: 100%;
   transition: opacity 0.2s;
+  display: block;
 }
 
 .followUpListItem:hover {
