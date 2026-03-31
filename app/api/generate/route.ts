@@ -1,6 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateMockDrafts, refineMockDraft, generateMockQuestions } from '@/lib/mockGenerator';
 
+// ---------------------------------------------------------------------------
+// Rate limiting — in-memory sliding window (best-effort per serverless instance)
+// For production at scale, swap this for Upstash Redis rate limiting.
+// ---------------------------------------------------------------------------
+const rateLimitMap = new Map<string, number[]>();
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+const RATE_LIMIT_MAX = 20;           // requests per window per IP
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = (rateLimitMap.get(ip) ?? []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+  if (timestamps.length >= RATE_LIMIT_MAX) return false;
+  timestamps.push(now);
+  rateLimitMap.set(ip, timestamps);
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// Input limits
+// ---------------------------------------------------------------------------
+const MAX_MESSAGE_LENGTH    = 2_000;
+const MAX_DRAFT_LENGTH      = 10_000;
+const MAX_FOLLOW_UP_LENGTH  = 500;
+const MAX_ANSWERS_COUNT     = 10;
+const MAX_ANSWER_LENGTH     = 1_000;
+const MAX_IMAGE_B64_BYTES   = 5 * 1024 * 1024; // ~3.75 MB original image
+
 interface GenerateRequest {
   action?: 'questions' | 'draft' | 'refine' | 'next-question' | 'check-ready' | 'follow-ups';
   message: string;
@@ -453,8 +480,48 @@ async function callLLM(prompt: string, imageData?: string): Promise<string> {
 
 export async function POST(request: NextRequest) {
   try {
+    // --- Rate limiting ---
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+      request.headers.get('x-real-ip') ??
+      'unknown';
+    if (!checkRateLimit(ip)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait a moment and try again.' },
+        { status: 429 }
+      );
+    }
+
     const body: GenerateRequest = await request.json();
     const action = body.action || 'draft';
+
+    // --- Input validation ---
+    const validActions = ['questions', 'draft', 'refine', 'next-question', 'check-ready', 'follow-ups'];
+    if (body.action && !validActions.includes(body.action)) {
+      return NextResponse.json({ error: 'Invalid action.' }, { status: 400 });
+    }
+    if (body.message && body.message.length > MAX_MESSAGE_LENGTH) {
+      return NextResponse.json({ error: 'Message is too long (max 2 000 characters).' }, { status: 400 });
+    }
+    if (body.currentDraft && body.currentDraft.length > MAX_DRAFT_LENGTH) {
+      return NextResponse.json({ error: 'Draft is too long (max 10 000 characters).' }, { status: 400 });
+    }
+    if (body.followUpQuestion && body.followUpQuestion.length > MAX_FOLLOW_UP_LENGTH) {
+      return NextResponse.json({ error: 'Follow-up question is too long (max 500 characters).' }, { status: 400 });
+    }
+    if (body.answers) {
+      if (body.answers.length > MAX_ANSWERS_COUNT) {
+        return NextResponse.json({ error: 'Too many answers provided.' }, { status: 400 });
+      }
+      for (const ans of body.answers) {
+        if (ans.answer && ans.answer.length > MAX_ANSWER_LENGTH) {
+          return NextResponse.json({ error: 'One of your answers is too long (max 1 000 characters).' }, { status: 400 });
+        }
+      }
+    }
+    if (body.image && body.image.length > MAX_IMAGE_B64_BYTES) {
+      return NextResponse.json({ error: 'Image is too large. Please use an image under ~3 MB.' }, { status: 400 });
+    }
 
     // Generate questions for a situation
     if (action === 'next-question') {
