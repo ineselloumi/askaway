@@ -1,14 +1,16 @@
 import Link from 'next/link';
 import styles from './page.module.css';
 import HomeQueryInput from './components/HomeQueryInput';
+import TilesCarousel from './components/TilesCarousel';
 
-const situations = [
+const primarySituations = [
   {
     id: 'explain',
     icon: '💡',
     title: 'Explain something',
     description: 'Help me understand a topic, a document, a news article, etc.',
     href: '/assist?situation=explain',
+    color: '#FEF9EC',
   },
   {
     id: 'summarize',
@@ -16,6 +18,7 @@ const situations = [
     title: 'Summarize',
     description: 'Make a document, article or communication more concise.',
     href: '/assist?situation=summarize',
+    color: '#EBF4FF',
   },
   {
     id: 'write',
@@ -23,6 +26,7 @@ const situations = [
     title: 'Write for me',
     description: 'Help me write an email, a letter, a text message, etc.',
     href: '/assist?situation=write',
+    color: '#F0EEFF',
   },
   {
     id: 'image',
@@ -30,13 +34,18 @@ const situations = [
     title: 'Explain an image',
     description: 'Upload a letter, a receipt, a bill, etc.',
     href: '/assist?situation=image',
+    color: '#EDFBF3',
   },
+];
+
+const moreSituations = [
   {
     id: 'health',
     icon: '🩺',
     title: 'Get health information',
     description: 'Ask about symptoms, medication, nutrition, etc.',
     href: '/assist?situation=health',
+    color: '#FEF0F0',
   },
   {
     id: 'decide',
@@ -44,6 +53,7 @@ const situations = [
     title: 'Help me decide',
     description: 'Get help with any decision in your life.',
     href: '/assist?situation=decide',
+    color: '#E8FAF8',
   },
   {
     id: 'translate',
@@ -51,6 +61,7 @@ const situations = [
     title: 'Translate',
     description: 'Decode or translate languages quickly.',
     href: '/assist?situation=translate',
+    color: '#EEF2FF',
   },
   {
     id: 'trip',
@@ -58,6 +69,7 @@ const situations = [
     title: 'Go somewhere',
     description: 'Ask about a city visit, an itinerary or a night out.',
     href: '/assist?situation=trip',
+    color: '#FFF4EC',
   },
   {
     id: 'recipe',
@@ -65,6 +77,7 @@ const situations = [
     title: 'Find a recipe',
     description: 'Suggestions based on your cravings or ingredients.',
     href: '/assist?situation=recipe',
+    color: '#FFF0F3',
   },
 ];
 
@@ -72,24 +85,27 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.title}>AskAway</h1>
-        <p className={styles.subtitle}>What do you need help with today?</p>
+        <h1 className={styles.title}>
+          ask away <span className={styles.titleTagline}>| do more with AI</span>
+        </h1>
+        <Link href="/about" className={styles.headerLink}>
+          How does this work?
+        </Link>
       </header>
 
       <div className={styles.content}>
-        <HomeQueryInput />
-
-        <p className={styles.sectionTitle}>Or click any of these to get started</p>
-        <div className={styles.tiles} role="list" aria-label="Choose what you need help with">
-          {situations.map((situation) => (
+        <p className={styles.sectionTitle}>Click any of these to get started</p>
+        <div className={`${styles.tiles} ${styles.tilesRow4}`} role="list" aria-label="Choose what you need help with">
+          {primarySituations.map((situation) => (
             <Link
               key={situation.id}
               href={situation.href}
               className={styles.tile}
               role="listitem"
+              style={{ '--tile-color': situation.color } as React.CSSProperties}
             >
-              <span className={styles.tileIcon} aria-hidden="true">
-                {situation.icon}
+              <span className={styles.tileIconWrapper} aria-hidden="true">
+                <span className={styles.tileIcon}>{situation.icon}</span>
               </span>
               <h2 className={styles.tileTitle}>{situation.title}</h2>
               <p className={styles.tileDescription}>{situation.description}</p>
@@ -97,13 +113,16 @@ export default function Home() {
           ))}
         </div>
 
+        <p className={styles.sectionTitle}>More things you can do</p>
+        <TilesCarousel situations={moreSituations} />
+
+        <p className={styles.sectionTitle}>Or you can ask directly here</p>
+        <div className={styles.searchCard}>
+          <HomeQueryInput />
+        </div>
+
       </div>
 
-      <footer className={styles.footer}>
-        <Link href="/about" className={styles.footerLink}>
-          How does this work?
-        </Link>
-      </footer>
     </div>
   );
 }

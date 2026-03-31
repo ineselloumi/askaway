@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Lora } from 'next/font/google';
+import { Lora, Poppins } from 'next/font/google';
 import './globals.css';
 import { PostHogProvider } from './providers';
 
@@ -7,6 +7,13 @@ const lora = Lora({
   subsets: ['latin'],
   weight: ['700'],
   variable: '--font-lora',
+  display: 'swap',
+});
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['300', '700'],
+  variable: '--font-poppins',
   display: 'swap',
 });
 
@@ -21,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={lora.variable}>
+    <html lang="en" className={`${lora.variable} ${poppins.variable}`}>
       <body>
         <PostHogProvider>
           <a href="#main-content" className="skip-link">

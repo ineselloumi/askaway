@@ -675,6 +675,16 @@ function AssistPageContent() {
 
   // Mobile FAQ drawer state
   const [faqDrawerOpen, setFaqDrawerOpen] = useState(false);
+  // Desktop sidebar visibility
+  const [faqSidebarVisible, setFaqSidebarVisible] = useState(true);
+
+  const handleIdeasClick = () => {
+    if (window.innerWidth <= 1024) {
+      setFaqDrawerOpen(true);
+    } else {
+      setFaqSidebarVisible((v) => !v);
+    }
+  };
 
   return (
     <div className={styles.page}>
@@ -684,23 +694,25 @@ function AssistPageContent() {
             <Link href="/" className={styles.backButton}>
               ← Start over
             </Link>
-            <h1 className={styles.headerTitle}>
-              {situationTitles[situation] || 'Get help'}
-            </h1>
           </div>
-          {showFaqPanel && (
-            <button
-              className={styles.faqDrawerToggle}
-              onClick={() => setFaqDrawerOpen(true)}
-              aria-label="Show suggested questions"
-            >
-              💡 Ideas
-            </button>
-          )}
+          <Link href="/" className={styles.headerLogo}>
+            ask away
+          </Link>
+          <div className={styles.headerRight}>
+            {showFaqPanel && (
+              <button
+                className={`${styles.faqDrawerToggle} ${faqSidebarVisible ? styles.faqDrawerToggleActive : ''}`}
+                onClick={handleIdeasClick}
+                aria-label="Toggle ideas panel"
+              >
+                💡 Ideas
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
-      <div className={styles.mainLayout}>
+      <div className={`${styles.mainLayout} ${showFaqPanel && !faqSidebarVisible ? styles.mainLayoutCollapsed : ''}`}>
         <div className={styles.chatContainer}>
           <div className={styles.chatInner}>
             {messages.map((message, index) => {
@@ -890,7 +902,7 @@ function AssistPageContent() {
             )}
 
           <aside
-            className={`${styles.faqPanel} ${faqDrawerOpen ? styles.faqPanelOpen : ''}`}
+            className={`${styles.faqPanel} ${faqDrawerOpen ? styles.faqPanelOpen : ''} ${!faqSidebarVisible ? styles.faqPanelHidden : ''}`}
             aria-label="Other people asked"
           >
             {/* Mobile drawer handle + close */}
