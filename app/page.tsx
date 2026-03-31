@@ -95,23 +95,7 @@ export default function Home() {
 
       <div className={styles.content}>
         <p className={styles.sectionTitle}>Click any of these to get started</p>
-        <div className={`${styles.tiles} ${styles.tilesRow4}`} role="list" aria-label="Choose what you need help with">
-          {primarySituations.map((situation) => (
-            <Link
-              key={situation.id}
-              href={situation.href}
-              className={styles.tile}
-              role="listitem"
-              style={{ '--tile-color': situation.color } as React.CSSProperties}
-            >
-              <span className={styles.tileIconWrapper} aria-hidden="true">
-                <span className={styles.tileIcon}>{situation.icon}</span>
-              </span>
-              <h2 className={styles.tileTitle}>{situation.title}</h2>
-              <p className={styles.tileDescription}>{situation.description}</p>
-            </Link>
-          ))}
-        </div>
+        <TilesCarousel situations={primarySituations} />
 
         <p className={styles.sectionTitle}>More things you can do</p>
         <TilesCarousel situations={moreSituations} />
