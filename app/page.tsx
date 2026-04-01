@@ -107,6 +107,11 @@ export default function Home() {
 
       </div>
 
+      <footer className={styles.footer}>
+        <Link href="/terms" className={styles.footerLink}>Terms of Service</Link>
+        <Link href="/privacy" className={styles.footerLink}>Privacy Policy</Link>
+      </footer>
+
     </div>
   );
 }
