@@ -31,12 +31,12 @@ export default function AboutPage() {
       </header>
 
       <div className={styles.content}>
-        <h1 className={styles.title}>How AskAway Works</h1>
+        <h1 className={styles.title}>How ask away works</h1>
 
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>What is it?</h2>
           <p className={styles.paragraph}>
-            AskAway helps you with everyday tasks and questions. Need to reply to a
+            ask away helps you with everyday tasks and questions. Need to reply to a
             message? Want to understand a confusing letter? Want to learn about a topic? We can help.
           </p>
           <p className={styles.paragraph}>

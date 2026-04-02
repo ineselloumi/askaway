@@ -88,19 +88,16 @@ export default function Home() {
         <h1 className={styles.title}>
           ask away <span className={styles.titleTagline}>| do more with AI</span>
         </h1>
-        <Link href="/about" className={styles.headerLink}>
-          How does this work?
-        </Link>
       </header>
 
       <div className={styles.content}>
         <p className={styles.sectionTitle}>Click any of these to get started</p>
         <TilesCarousel situations={primarySituations} />
 
-        <p className={styles.sectionTitle}>More things you can do</p>
+        <p className={styles.sectionTitle}>Ideas of what you can do</p>
         <TilesCarousel situations={moreSituations} />
 
-        <p className={styles.sectionTitle}>Or you can ask directly here</p>
+        <p className={styles.sectionTitle}>Or start typing directly</p>
         <div className={styles.searchCard}>
           <HomeQueryInput />
         </div>
@@ -108,6 +105,7 @@ export default function Home() {
       </div>
 
       <footer className={styles.footer}>
+        <Link href="/about" className={styles.footerLink}>How does this work?</Link>
         <Link href="/terms" className={styles.footerLink}>Terms of Service</Link>
         <Link href="/privacy" className={styles.footerLink}>Privacy Policy</Link>
       </footer>

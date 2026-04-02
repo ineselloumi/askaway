@@ -13,18 +13,6 @@
   padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-xs);
 }
 
-.headerLink {
-  position: absolute;
-  right: var(--spacing-lg);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.headerLink:hover {
-  color: var(--color-text);
-}
 
 .title {
   font-family: var(--font-poppins), var(--font-family);
@@ -127,7 +115,7 @@
 
 .sectionTitle {
   font-size: 19px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--color-text);
   margin: var(--spacing-md) 0 var(--spacing-md) 0;
   text-align: left;
@@ -329,9 +317,6 @@
     display: block;
   }
 
-  .headerLink {
-    display: none;
-  }
 }
 
 @media (max-width: 600px) {

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateMockDrafts, refineMockDraft, generateMockQuestions } from '@/lib/mockGenerator';
 
+export const config = {
+  api: { bodyParser: { sizeLimit: '8mb' } },
+};
+
 // ---------------------------------------------------------------------------
 // Rate limiting — in-memory sliding window (best-effort per serverless instance)
 // For production at scale, swap this for Upstash Redis rate limiting.
@@ -37,7 +41,8 @@ interface GenerateRequest {
   currentDraft?: string;
   questionNumber?: number;
   followUpQuestion?: string;
-  image?: string; // Base64 encoded image data
+  image?: string; // Base64 encoded image data (single, legacy)
+  images?: string[]; // Base64 encoded image data (multiple)
 }
 
 function getProvider() {
@@ -279,6 +284,9 @@ function buildFollowUpQuestionsPrompt(situation: string, answers: { question: st
   const answersText = answers.map(a => `Q: ${a.question}\nA: ${a.answer}`).join('\n\n');
 
   const sharedGuidelines = `Guidelines:
+- Each suggestion must be phrased as a request or question directed TO you (the AI), NOT a question directed at the user
+- The user will click these suggestions to send them back to you, so they must make sense as user prompts (e.g. “Help me find a bedtime routine”, “What are the benefits of X?”, “Give me an example”)
+- NEVER phrase suggestions as questions addressed to the user (e.g. NEVER “Have you considered X?”, “What works best for you?”, “Do you want more details?”)
 - Keep each suggestion under ~8 words when possible
 - One idea per suggestion, no multi-part phrasing
 - Use simple, everyday language — no jargon
@@ -344,7 +352,18 @@ ${draft}
 Their question:
 ${answersText}
 
-Suggest 1–3 follow-ups that help them explore further — specific details, context, implications, or related questions about what they saw.
+Suggest 1–3 things the user can click to ask YOU (the AI) next. These must be prompts the user would send TO you — NOT questions you'd ask the user.
+
+Good examples (user asking the AI):
+- “What similar products exist on the market?”
+- “Tell me more about this style”
+- “What should I look for when buying something like this?”
+- “Where can I find something similar?”
+
+Bad examples (AI asking the user — NEVER do this):
+- “Can you provide more details?”
+- “Do you have other images?”
+- “What identifying marks does it have?”
 
 ${sharedGuidelines}`;
   }
@@ -404,24 +423,24 @@ Write the improved version. Keep the same meaning. Use simple, accessible langua
 Respond with just the improved text.`;
 }
 
-async function callAnthropic(prompt: string, imageData?: string): Promise<string> {
-  // Build message content — include the image as a vision block when provided
+async function callAnthropic(prompt: string, imageData?: string | string[]): Promise<string> {
+  // Build message content — include images as vision blocks when provided
   let messageContent: unknown = prompt;
 
-  if (imageData) {
-    // imageData is a data URL like "data:image/jpeg;base64,..."
-    const match = imageData.match(/^data:([^;]+);base64,(.+)$/);
-    if (match) {
-      const mediaType = match[1] as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
-      const base64Data = match[2];
-      messageContent = [
-        {
-          type: 'image',
-          source: { type: 'base64', media_type: mediaType, data: base64Data },
-        },
-        { type: 'text', text: prompt },
-      ];
+  const imageList = Array.isArray(imageData) ? imageData : imageData ? [imageData] : [];
+
+  if (imageList.length > 0) {
+    const blocks: unknown[] = [];
+    for (const img of imageList) {
+      const match = img.match(/^data:([^;]+);base64,(.+)$/);
+      if (match) {
+        const mediaType = match[1] as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+        const base64Data = match[2];
+        blocks.push({ type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Data } });
+      }
     }
+    blocks.push({ type: 'text', text: prompt });
+    messageContent = blocks;
   }
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -432,7 +451,7 @@ async function callAnthropic(prompt: string, imageData?: string): Promise<string
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-3-haiku-20240307',
+      model: imageList.length > 0 ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001',
       max_tokens: 1024,
       messages: [{ role: 'user', content: messageContent }],
     }),
@@ -470,7 +489,7 @@ async function callOpenAI(prompt: string): Promise<string> {
   return data.choices[0].message.content;
 }
 
-async function callLLM(prompt: string, imageData?: string): Promise<string> {
+async function callLLM(prompt: string, imageData?: string | string[]): Promise<string> {
   if (getProvider() === 'anthropic') {
     return callAnthropic(prompt, imageData);
   } else {
@@ -703,8 +722,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(result);
       }
 
-      const imageData = body.image;
-      const prompt = buildDraftPrompt(body.message, body.situation, body.answers || [], !!imageData);
+      const imageData = body.images ?? (body.image ? [body.image] : undefined);
+      const prompt = buildDraftPrompt(body.message, body.situation, body.answers || [], !!(imageData?.length));
       const draft = await callLLM(prompt, imageData);
       return NextResponse.json({ draft: draft.trim(), _prompt: prompt });
     }

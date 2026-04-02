@@ -7,10 +7,34 @@ import styles from './page.module.css';
 
 type MessageType = 'assistant' | 'user';
 
+function renderInline(line: string) {
+  return line.split(/(\*\*[^*]+\*\*)/).map((part, j) =>
+    part.startsWith('**') && part.endsWith('**')
+      ? <strong key={j}>{part.slice(2, -2)}</strong>
+      : part
+  );
+}
+
+function renderText(text: string) {
+  return text.split('\n').map((line, i, arr) => {
+    const headingMatch = line.match(/^#{1,3} (.+)/);
+    if (headingMatch) {
+      return <p key={i} style={{ fontWeight: 600, marginBottom: '0.25em' }}>{headingMatch[1]}</p>;
+    }
+    return (
+      <span key={i}>
+        {renderInline(line)}
+        {i < arr.length - 1 && <br />}
+      </span>
+    );
+  });
+}
+
 interface ChatMessage {
   id: string;
   type: MessageType;
   text: string;
+  image?: string; // base64 data URL for image messages
 }
 
 interface Answer {
@@ -174,8 +198,9 @@ function AssistPageContent() {
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
 
   // Image upload state
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [imageFileName, setImageFileName] = useState<string>('');
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [imageError, setImageError] = useState<string>('');
+  const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Single unified scroll effect.
@@ -310,36 +335,62 @@ function AssistPageContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [situation]);
 
-  const addMessage = (type: MessageType, text: string) => {
-    setMessages((prev) => [...prev, { id: nextMessageId(), type, text }]);
+  const addMessage = (type: MessageType, text: string, image?: string) => {
+    setMessages((prev) => [...prev, { id: nextMessageId(), type, text, image }]);
   };
 
-  // Handle image upload
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  const MAX_IMAGES = 5;
+
+  const compressImage = (file: File): Promise<string> =>
+    new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setUploadedImage(reader.result as string);
-        setImageFileName(file.name);
+        const dataUrl = reader.result as string;
+        const img = new Image();
+        img.onload = () => {
+          const MAX_DIM = 1200;
+          let { width, height } = img;
+          if (width > MAX_DIM || height > MAX_DIM) {
+            if (width > height) { height = Math.round(height * MAX_DIM / width); width = MAX_DIM; }
+            else { width = Math.round(width * MAX_DIM / height); height = MAX_DIM; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.src = dataUrl;
       };
       reader.readAsDataURL(file);
+    });
+
+  // Handle image upload — compress to max 1200px / JPEG 0.82 before storing
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    setImageError('');
+    const combined = [...uploadedImages, ...files];
+    if (combined.length > MAX_IMAGES) {
+      setImageError(`Sorry, we can only support up to ${MAX_IMAGES} images at a time.`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
     }
+    const compressed = await Promise.all(files.map(compressImage));
+    setUploadedImages((prev) => [...prev, ...compressed]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const removeImage = () => {
-    setUploadedImage(null);
-    setImageFileName('');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  const removeImage = (index: number) => {
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+    setImageError('');
   };
 
   // Handle user answering a question (via text input or suggestion)
   const handleAnswer = async (answer: string) => {
     // For image situation, require either image or text
     if (situation === 'image' && questionNumber === 1) {
-      if (!uploadedImage && !answer.trim()) return;
+      if (!uploadedImages.length && !answer.trim()) return;
     } else {
       if (!answer.trim() || !currentQuestion) return;
     }
@@ -347,9 +398,10 @@ function AssistPageContent() {
     const trimmedAnswer = answer.trim();
     setTextInput('');
 
-    // For image uploads, show the image filename in the message
-    if (situation === 'image' && uploadedImage && questionNumber === 1) {
-      addMessage('user', trimmedAnswer || `[Uploaded: ${imageFileName}]`);
+    // For image uploads, show thumbnails then the question
+    if (situation === 'image' && uploadedImages.length && questionNumber === 1) {
+      uploadedImages.forEach((img) => addMessage('user', '', img));
+      if (trimmedAnswer) addMessage('user', trimmedAnswer);
     } else {
       addMessage('user', trimmedAnswer);
     }
@@ -361,8 +413,8 @@ function AssistPageContent() {
     const nextQuestionNumber = questionNumber + 1;
 
     // For image situation, generate draft immediately after first question (image + question submitted)
-    if (situation === 'image' && questionNumber === 1 && uploadedImage) {
-      await generateDraft(newAnswers, uploadedImage);
+    if (situation === 'image' && questionNumber === 1 && uploadedImages.length) {
+      await generateDraft(newAnswers, uploadedImages);
       return;
     }
 
@@ -439,7 +491,7 @@ function AssistPageContent() {
     }
   };
 
-  const generateDraft = async (finalAnswers: Answer[], imageData?: string | null) => {
+  const generateDraft = async (finalAnswers: Answer[], imageData?: string[] | null) => {
     setTypingLabel('Writing your response...');
     setIsTyping(true);
 
@@ -452,9 +504,8 @@ function AssistPageContent() {
       };
 
       // Include image data if available
-      if (imageData || uploadedImage) {
-        requestBody.image = imageData || uploadedImage;
-      }
+      const images = imageData?.length ? imageData : uploadedImages.length ? uploadedImages : null;
+      if (images) requestBody.images = images;
 
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -469,7 +520,6 @@ function AssistPageContent() {
       if (data.draft) {
         setDraft(data.draft);
         setShowResult(true);
-        addMessage('assistant', "Here's what I came up with:");
 
         // Load follow-up suggestions
         loadFollowUpSuggestions(finalAnswers, data.draft);
@@ -495,8 +545,8 @@ function AssistPageContent() {
     setFollowUpInput('');
     setFollowUpSuggestions([]);
     setIsLoadingSuggestions(false);
-    setUploadedImage(null);
-    setImageFileName('');
+    setUploadedImages([]);
+    setImageError('');
     setFaqDrawerOpen(false);
     setTypingLabel('Thinking...');
     setIsTyping(true);
@@ -554,8 +604,8 @@ function AssistPageContent() {
     setFollowUpInput('');
     setFollowUpSuggestions([]);
     setIsLoadingSuggestions(false);
-    setUploadedImage(null);
-    setImageFileName('');
+    setUploadedImages([]);
+    setImageError('');
     setIsTyping(false);
     setTypingLabel('');
 
@@ -614,9 +664,15 @@ function AssistPageContent() {
 
     setFollowUpInput('');
     setFollowUpSuggestions([]); // Clear suggestions while processing
+
+    // Persist the current response BEFORE the user's follow-up question,
+    // so the conversation reads: AI answer → User question → new AI answer
+    if (draft) addMessage('assistant', draft);
     addMessage('user', question);
     setTypingLabel('Thinking...');
     setIsTyping(true);
+    // Reset scroll guard so the new result scrolls into view
+    hasScrolledToResultRef.current = false;
 
     // Add follow-up to answers for context
     const updatedAnswers = [...answers, { question: 'Follow-up', answer: question }];
@@ -641,7 +697,6 @@ function AssistPageContent() {
 
       if (data.refined) {
         setDraft(data.refined);
-        addMessage('assistant', "Here's more information:");
 
         // Reload suggestions for the new context
         loadFollowUpSuggestions(updatedAnswers, data.refined);
@@ -727,13 +782,17 @@ function AssistPageContent() {
                   message.type === 'assistant' ? styles.assistantMessage : styles.userMessage
                 }`}
               >
+                {message.image ? (
+                  <img src={message.image} alt="Uploaded" className={styles.chatImageThumb} />
+                ) : (
                 <div
                   className={`${styles.messageBubble} ${
                     message.type === 'assistant' ? styles.assistantBubble : styles.userBubble
                   }`}
                 >
-                  {message.text}
+                  {message.type === 'assistant' ? renderText(message.text) : message.text}
                 </div>
+                )}
               </div>
               );
             })}
@@ -756,28 +815,53 @@ function AssistPageContent() {
                 <div className={styles.inputArea}>
                   {/* Image upload area for image situation */}
                   {situation === 'image' && questionNumber === 1 && (
-                    <div className={styles.imageUploadArea}>
+                    <div
+                      className={`${styles.imageUploadArea} ${isDragOver ? styles.imageUploadAreaDragOver : ''}`}
+                      onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                      onDragLeave={() => setIsDragOver(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDragOver(false);
+                        if (e.dataTransfer.files?.length) {
+                          handleImageUpload({ target: { files: e.dataTransfer.files } } as React.ChangeEvent<HTMLInputElement>);
+                        }
+                      }}
+                    >
                       <input
                         type="file"
                         accept="image/*"
+                        multiple
                         onChange={handleImageUpload}
                         ref={fileInputRef}
                         className={styles.fileInput}
                         id="image-upload"
                       />
-                      {!uploadedImage ? (
+                      {imageError && (
+                        <p className={styles.imageError}>{imageError}</p>
+                      )}
+                      {uploadedImages.length > 0 && (
+                        <div className={styles.imagePreviewGrid}>
+                          {uploadedImages.map((img, i) => (
+                            <div key={i} className={styles.imagePreviewItem}>
+                              <img src={img} alt={`Uploaded ${i + 1}`} className={styles.previewImage} />
+                              <button onClick={() => removeImage(i)} className={styles.removeImageButton}>
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                          {uploadedImages.length < MAX_IMAGES && (
+                            <label htmlFor="image-upload" className={styles.addMoreLabel}>
+                              <span>+</span>
+                            </label>
+                          )}
+                        </div>
+                      )}
+                      {uploadedImages.length === 0 && (
                         <label htmlFor="image-upload" className={styles.uploadLabel}>
                           <span className={styles.uploadIcon}>📷</span>
-                          <span>Click to upload an image</span>
-                          <span className={styles.uploadHint}>or drag and drop</span>
+                          <span>Click to upload images</span>
+                          <span className={styles.uploadHint}>or drag and drop — up to 5</span>
                         </label>
-                      ) : (
-                        <div className={styles.imagePreview}>
-                          <img src={uploadedImage} alt="Uploaded preview" className={styles.previewImage} />
-                          <button onClick={removeImage} className={styles.removeImageButton}>
-                            ✕ Remove
-                          </button>
-                        </div>
                       )}
                     </div>
                   )}
@@ -802,7 +886,7 @@ function AssistPageContent() {
                   <button
                     className={styles.sendButton}
                     onClick={handleTextSubmit}
-                    disabled={situation === 'image' && questionNumber === 1 ? !uploadedImage : !textInput.trim()}
+                    disabled={situation === 'image' && questionNumber === 1 ? !uploadedImages.length : !textInput.trim()}
                   >
                     Send
                   </button>
@@ -816,7 +900,7 @@ function AssistPageContent() {
                 {/* Draft bubble */}
                 <div className={`${styles.message} ${styles.assistantMessage}`}>
                   <div className={styles.draftResponse}>
-                    <div className={styles.draftText}>{draft}</div>
+                    <div className={styles.draftText}>{renderText(draft)}</div>
                     <div className={styles.draftFooter}>
                       <p className={styles.responseDisclaimer}>
                         AI can make mistakes, double check important information.
@@ -878,13 +962,6 @@ function AssistPageContent() {
                 </div>
               </>
             )}
-
-            {/* Static Start Over — always visible */}
-            <div className={styles.startOverContainer}>
-              <Link href="/" className={styles.startOverStatic}>
-                Start over
-              </Link>
-            </div>
 
             <div ref={chatEndRef} />
           </div>
