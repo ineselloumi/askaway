@@ -85,6 +85,31 @@ function getFirstQuestion(situation: string): { question: string; suggestions: s
       suggestions: [],
       isContentQuestion: true,
     },
+    'trip': {
+      question: "Where are you thinking of going, and what do you need help with?",
+      suggestions: [],
+      isContentQuestion: true,
+    },
+    'translate': {
+      question: "What would you like to translate, and which languages are involved?",
+      suggestions: [],
+      isContentQuestion: true,
+    },
+    'health': {
+      question: "What health topic can I help you with?",
+      suggestions: [],
+      isContentQuestion: true,
+    },
+    'recipe': {
+      question: "What are you looking to cook? Any ingredients or dietary preferences?",
+      suggestions: [],
+      isContentQuestion: true,
+    },
+    'decide': {
+      question: "What decision are you trying to make?",
+      suggestions: [],
+      isContentQuestion: true,
+    },
     'other': {
       question: "What can I help you with?",
       suggestions: [],
@@ -145,10 +170,15 @@ function buildNextQuestionPrompt(situation: string, answers: { question: string;
     'write': 'write something (an email, letter, text message, etc.)',
     'explain': 'learn about or understand something',
     'summarize': 'summarize something to make it more concise',
+    'trip': 'plan a trip or find travel recommendations',
+    'translate': 'translate text between languages',
+    'health': 'get health information',
+    'recipe': 'find a recipe or cooking help',
+    'decide': 'make a decision',
     'other': 'get help with a general question or task',
   };
 
-  const context = situationContext[situation] || situationContext['write'];
+  const context = situationContext[situation] || situationContext['other'];
   const answersText = answers.map(a => `Q: ${a.question}\nA: ${a.answer}`).join('\n\n');
 
   // Different prompts based on situation
@@ -168,6 +198,22 @@ Instead, ask something that helps you give a BETTER answer about their chosen an
     'summarize': `For summaries, ask about:
 - Desired length (few sentences, paragraph, bullet points)
 - Key focus areas`,
+    'trip': `For travel planning, ask about:
+- Travel dates or duration
+- Budget range or travel style (budget, mid-range, luxury)
+- Key interests (food, culture, nature, nightlife, etc.)`,
+    'translate': `For translation, ask about:
+- The target language if not already specified
+- Any tone or formality preferences`,
+    'health': `For health questions, ask about:
+- Their specific concern or symptom
+- Any relevant context (age, duration, severity)`,
+    'recipe': `For recipe requests, ask about:
+- Dietary restrictions or preferences
+- Skill level or time available`,
+    'decide': `For decisions, ask about:
+- The key factors they care most about
+- Any constraints (budget, time, etc.)`,
     'other': `Ask one helpful clarifying question specific to their topic.`,
   };
 
@@ -201,10 +247,15 @@ function buildCheckReadyPrompt(situation: string, answers: { question: string; a
     'write': 'write something (an email, letter, text message, etc.)',
     'explain': 'learn about or understand something',
     'summarize': 'summarize something to make it more concise',
+    'trip': 'plan a trip or find travel recommendations',
+    'translate': 'translate text between languages',
+    'health': 'get health information',
+    'recipe': 'find a recipe or cooking help',
+    'decide': 'make a decision',
     'other': 'get help with a general question or task',
   };
 
-  const context = situationContext[situation] || situationContext['write'];
+  const context = situationContext[situation] || situationContext['other'];
   const answersText = answers.map(a => `Q: ${a.question}\nA: ${a.answer}`).join('\n\n');
   const isFirstAnswer = answers.length === 1;
 
@@ -256,10 +307,15 @@ function buildDraftPrompt(message: string, situation: string, answers: { questio
     'explain': 'Explain this in simple, easy-to-understand terms. Be SPECIFIC and give concrete details, names, examples, etc.',
     'summarize': 'Summarize this concisely while keeping the key points',
     'image': 'Carefully examine the image provided and answer the user\'s question about it with specific details about what you actually see.',
+    'trip': 'Give helpful, specific travel recommendations and planning advice based on their destination and preferences.',
+    'translate': 'Translate the requested text accurately, and note any nuances or alternative phrasings if relevant.',
+    'health': 'Provide clear, helpful health information. Always remind them to consult a healthcare professional for personal medical advice.',
+    'recipe': 'Provide a clear recipe or cooking guidance with ingredients and steps.',
+    'decide': 'Help them think through their decision with relevant pros, cons, and considerations.',
     'other': 'Help them with what they asked for',
   };
 
-  const instruction = situationInstructions[situation] || situationInstructions['write'];
+  const instruction = situationInstructions[situation] || situationInstructions['other'];
 
   const imageNote = hasImage
     ? `The user has uploaded an image (included above). Base your answer on what you actually see in that image.\n\n`

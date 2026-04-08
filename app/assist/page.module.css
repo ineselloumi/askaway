@@ -120,8 +120,9 @@
   background: var(--color-surface);
   position: sticky;
   top: 70px;
-  align-self: stretch;
-  min-height: calc(100vh - 70px);
+  align-self: start;
+  height: calc(100vh - 70px);
+  overflow-y: auto;
   box-sizing: border-box;
   margin-right: calc(-1 * var(--spacing-lg));
 }
