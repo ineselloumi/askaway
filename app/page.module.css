@@ -8,9 +8,101 @@
 .header {
   position: relative;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-xs);
+}
+
+/* ── Language dropdown ── */
+.langDropdown {
+  position: relative;
+  margin-top: var(--spacing-sm);
+}
+
+.langDropdownTrigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+
+.langDropdownTrigger:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+}
+
+.langDropdownTriggerName {
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+
+.langDropdownCaret {
+  font-size: 9px;
+  color: var(--color-text-muted);
+  margin-left: 2px;
+}
+
+.langDropdownMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  min-width: 180px;
+  z-index: 100;
+}
+
+.langDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-text);
+}
+
+.langDropdownItem:hover {
+  background: var(--color-background);
+}
+
+.langDropdownFlag {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.langDropdownName {
+  flex: 1;
+}
+
+.langDropdownCheck {
+  color: #22c55e;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.langDropdownItemActive {
+  color: var(--color-text);
 }
 
 

@@ -2,16 +2,18 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLocale } from '@/contexts/LocaleContext';
 import styles from '../page.module.css';
 
 export default function HomeQueryInput() {
   const [query, setQuery] = useState('');
   const router = useRouter();
+  const { t, locale } = useLocale();
 
   const handleSubmit = () => {
     const trimmed = query.trim();
     if (!trimmed) return;
-    router.push(`/assist?situation=other&query=${encodeURIComponent(trimmed)}`);
+    router.push(`/assist?situation=other&query=${encodeURIComponent(trimmed)}&locale=${locale}`);
   };
 
   return (
@@ -20,7 +22,7 @@ export default function HomeQueryInput() {
         className={styles.homeQueryTextarea}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="What do you need help with today?"
+        placeholder={t('homeInput.placeholder')}
         rows={1}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
@@ -33,9 +35,9 @@ export default function HomeQueryInput() {
         className={styles.homeQueryButton}
         onClick={handleSubmit}
         disabled={!query.trim()}
-        aria-label="Ask this question"
+        aria-label={t('homeInput.buttonLabel')}
       >
-        Ask →
+        {t('homeInput.buttonText')}
       </button>
     </div>
   );

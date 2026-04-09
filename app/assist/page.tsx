@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useLocale } from '@/contexts/LocaleContext';
 import styles from './page.module.css';
 
 type MessageType = 'assistant' | 'user';
@@ -34,7 +35,7 @@ interface ChatMessage {
   id: string;
   type: MessageType;
   text: string;
-  image?: string; // base64 data URL for image messages
+  image?: string;
 }
 
 interface Answer {
@@ -42,123 +43,31 @@ interface Answer {
   answer: string;
 }
 
-
-const situationGreetings: Record<string, string> = {
-  'write': "Hi! I'll help you write something.",
-  'explain': "Hi! I'll help you understand something.",
-  'summarize': "Hi! I'll help make something more concise.",
-  'image': "Hi! I'll help you understand an image.",
-  'translate': "Hi! I'll help you translate.",
-  'health': "Hi! I'll help with health information.",
-  'recipe': "Hi! I'll help you find a recipe.",
-  'trip': "Hi! I'll help you plan a trip.",
-  'other': "Hi! I'm here to help.",
+// ---------------------------------------------------------------------------
+// Stable ID-based FAQ data (IDs match keys in messages/*.json faqItems)
+// ---------------------------------------------------------------------------
+const situationFaqItems: Record<string, string[]> = {
+  write:     ['rewrite-concise', 'email-formal', 'birthday-note', 'rewrite-assertive'],
+  explain:   ['bitcoin', 'longevity', 'epstein', 'interest-rates'],
+  summarize: ['article-insights', 'summarize-email', 'book-learnings', 'news-summary'],
+  translate: ['translate-spanish', 'french-basics', 'translate-en-de', 'thank-you-japanese'],
+  health:    ['improve-sleep', 'cold-remedies', 'insulin-foods', 'understand-symptom'],
+  image:     ['irs-letter', 'receipts', 'device-usage', 'blood-test'],
+  trip:      ['chicago-restaurants', 'paris-trip', 'honeymoon', 'date-night'],
+  decide:    ['savings', 'switch-jobs', 'mattress', 'trip-destinations'],
+  recipe:    ['soup-winter', 'lasagna', 'low-sugar-breakfast', 'air-fryer'],
+  other:     ['bitcoin', 'longevity', 'epstein', 'interest-rates'],
 };
 
-const situationTitles: Record<string, string> = {
-  'write': 'Write for me',
-  'explain': 'Explain something',
-  'summarize': 'Summarize',
-  'image': 'Explain an image',
-  'translate': 'Translate',
-  'health': 'Health information',
-  'recipe': 'Find a recipe',
-  'trip': 'Plan a trip',
-  'other': 'Something else',
-};
-
-const situationFaqQuestions: Record<string, string[]> = {
-  write: [
-    'Rewrite this to sound more concise',
-    'Make my email sound more formal',
-    'Help me write a birthday note to my friend',
-    'Rewrite this to sound more assertive',
-  ],
-  explain: [
-    'What is Bitcoin and why does it matter?',
-    'What do we know about longevity?',
-    'What\'s happening with the Epstein files?',
-    'How do interest rates affect markets?',
-  ],
-  summarize: [
-    'Top insights in this article',
-    'Summarize this email',
-    'Give me the high level learnings from a book',
-    'What is the summary of today\'s news?',
-  ],
-  translate: [
-    'Translate this sentence from Spanish',
-    'What are some basic French sentences to know when visiting?',
-    'Translate this paragraph from English to German',
-    'How do you say "Thank you" in Japanese?',
-  ],
-  health: [
-    'How can I improve sleep quality?',
-    'What are some remedies for the common cold?',
-    'Foods to avoid for people with insulin resistance',
-    'Help me understand a symptom',
-  ],
-  image: [
-    'Explain this letter from the IRS',
-    'Sum up these receipts for me',
-    'How should I use this device?',
-    'Interpret my blood test results',
-  ],
-  trip: [
-    'Help me find nice dinner restaurants in Chicago',
-    'Plan a 3-day trip to Paris in June',
-    'Affordable honeymoon ideas',
-    'Date night ideas within 15 minutes of my home',
-  ],
-  decide: [
-    'How much should I be saving each month?',
-    'Should I switch jobs?',
-    'What mattress brand should I buy',
-    'I\'m hesitating between two trip destinations'
-  ],
-  recipe: [
-    'Easy soup recipes for winter',
-    'How to make lasagna',
-    'Low sugar breakfast ideas',
-    'Quick air fryer recipes',
-  ],
-  other: [
-    'What is Bitcoin and why does it matter?',
-    'What do we know about longevity?',
-    'What\'s happening with the Epstein files?',
-    'How do interest rates affect markets?',
-  ],
-};
-
-// FAQ items that require the user to provide content before processing.
-// Maps the FAQ query text to a personalized clarifying question.
-const faqClarifyingQuestions: Record<string, string> = {
-  // Write for me — queries that reference existing text to transform
-  'Rewrite this to sound more concise': 'Paste the text you\'d like me to rewrite.',
-  'Make my email sound more formal': 'Paste your email below.',
-  'Rewrite this to sound more assertive': 'Paste the text you\'d like to rewrite.',
-  'Turn my notes into a clear message': 'Paste your notes below.',
-  'Make this message sound more professional': 'Paste the message you\'d like me to improve.',
-  'Help me answer this diplomatically': 'Paste the message you need to respond to.',
-  // Summarize — all queries need text input
-  'Top insights in this article': 'Paste the article below.',
-  'Summarize this email': 'Paste the email you\'d like me to summarize.',
-  'Give me the high level learnings from a book': 'Which book, or paste a passage you\'d like me to summarize?',
-  // Translate — only the query that needs input text
-  'Translate this paragraph from Spanish': 'Paste the Spanish paragraph below.',
-  // Explain an image — all queries need an image upload
-  'Explain this letter from the IRS': 'Please upload the letter you\'d like me to explain.',
-  'Sum up these receipts for me': 'Please upload the receipts.',
-  'How should I use this device?': 'Please upload a photo of the device.',
-  'Interpret my blood test results': 'Please upload your blood test results.',
-};
-
-const faqImageUploadItems = new Set([
-  'Explain this letter from the IRS',
-  'Sum up these receipts for me',
-  'How should I use this device?',
-  'Interpret my blood test results',
+// IDs whose FAQ item needs a clarifying question before proceeding
+const faqClarifyingIds = new Set([
+  'rewrite-concise', 'email-formal', 'rewrite-assertive',
+  'article-insights', 'summarize-email', 'book-learnings',
+  'irs-letter', 'receipts', 'device-usage', 'blood-test',
 ]);
+
+// IDs that require an image upload (subset of faqClarifyingIds)
+const faqImageUploadIds = new Set(['irs-letter', 'receipts', 'device-usage', 'blood-test']);
 
 function logPrompt(action: string, data: Record<string, unknown>) {
   if (data._prompt) {
@@ -172,11 +81,12 @@ function AssistPageContent() {
   const searchParams = useSearchParams();
   const situation = searchParams.get('situation') || 'write';
   const initialQuery = searchParams.get('query') || '';
+
+  const { t, locale, localeReady } = useLocale();
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const lastUserMsgRef = useRef<HTMLDivElement>(null);
   const messageCounterRef = useRef(0);
-  // Prevents the result scroll from re-firing on subsequent renders (e.g. when
-  // follow-up suggestions load and change unrelated state).
   const hasScrolledToResultRef = useRef(false);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -203,12 +113,7 @@ function AssistPageContent() {
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Single unified scroll effect.
-  // • During the question flow and while typing → keep the bottom visible.
-  // • The first time the result appears → scroll so the draft card top is just
-  //   below the sticky header (82 px) with a little breathing room (16 px).
-  //   A ref guard prevents subsequent re-renders (follow-up suggestions loading,
-  //   Strict-Mode double-invocation, etc.) from re-firing the scroll.
+  // Single unified scroll effect
   useEffect(() => {
     if (showResult && !isTyping && lastUserMsgRef.current) {
       if (!hasScrolledToResultRef.current) {
@@ -216,24 +121,17 @@ function AssistPageContent() {
         const top =
           lastUserMsgRef.current.getBoundingClientRect().top +
           document.documentElement.scrollTop -
-          82 - // sticky header height
-          16;  // breathing room
+          82 -
+          16;
         document.documentElement.scrollTop = Math.max(0, top);
       }
       return;
     }
-
-    // Not in result state (or still typing) — reset the guard and keep the
-    // bottom of the chat visible so new questions / the typing indicator show.
-    // Use scrollIntoView instead of scrollTop=scrollHeight so we only scroll
-    // as far as needed — prevents the empty-space overshoot on mobile where
-    // the flex layout makes scrollHeight larger than the actual content.
     hasScrolledToResultRef.current = false;
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'instant', block: 'end' });
     }
   }, [messages, isTyping, currentQuestion, showResult]);
-
 
   // Track if we've initialized to prevent double-running in Strict Mode
   const hasInitialized = useRef(false);
@@ -242,36 +140,30 @@ function AssistPageContent() {
     return `msg-${Date.now()}-${messageCounterRef.current}`;
   };
 
-  // Initialize conversation with greeting and first question
+  // Initialize conversation — wait for locale to hydrate from localStorage first
   useEffect(() => {
+    if (!localeReady) return;
     if (hasInitialized.current) return;
     hasInitialized.current = true;
 
     const initConversation = async () => {
-      // If a pre-filled query came from the home page, skip the greeting and
-      // first question — show the user's query immediately and check if we
-      // have enough info to draft an answer right away.
       if (initialQuery) {
         const userMsgId = nextMessageId();
         setMessages([{ id: userMsgId, type: 'user', text: initialQuery }]);
 
-        const firstAnswer = { question: 'What would you like help with?', answer: initialQuery };
+        const firstAnswer = { question: t('assist.ui.initialQuestion'), answer: initialQuery };
         const newAnswers = [firstAnswer];
         setAnswers(newAnswers);
         setQuestionNumber(1);
 
-        setTypingLabel('Thinking...');
+        setTypingLabel(t('assist.ui.thinking'));
         setIsTyping(true);
 
         try {
           const checkResponse = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'check-ready',
-              situation,
-              answers: newAnswers,
-            }),
+            body: JSON.stringify({ action: 'check-ready', situation, answers: newAnswers, locale }),
           });
 
           const checkData = await checkResponse.json();
@@ -285,7 +177,6 @@ function AssistPageContent() {
             setQuestionNumber(2);
             addMessage('assistant', checkData.question);
           } else {
-            // Fallback: generate draft anyway
             await generateDraft(newAnswers);
           }
         } catch (error) {
@@ -297,10 +188,9 @@ function AssistPageContent() {
       }
 
       // Normal flow: show greeting + first question
-      const greeting = situationGreetings[situation] || situationGreetings['write'];
+      const greeting = t(`assist.greetings.${situation}`) || t('assist.greetings.other');
       setMessages([{ id: nextMessageId(), type: 'assistant', text: greeting }]);
 
-      // Fetch first question
       setTypingLabel('');
       setIsTyping(true);
 
@@ -308,12 +198,7 @@ function AssistPageContent() {
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'next-question',
-            situation,
-            questionNumber: 1,
-            answers: [],
-          }),
+          body: JSON.stringify({ action: 'next-question', situation, questionNumber: 1, answers: [], locale }),
         });
 
         const data = await response.json();
@@ -333,7 +218,7 @@ function AssistPageContent() {
 
     initConversation();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [situation]);
+  }, [situation, localeReady]);
 
   const addMessage = (type: MessageType, text: string, image?: string) => {
     setMessages((prev) => [...prev, { id: nextMessageId(), type, text, image }]);
@@ -365,14 +250,13 @@ function AssistPageContent() {
       reader.readAsDataURL(file);
     });
 
-  // Handle image upload — compress to max 1200px / JPEG 0.82 before storing
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
     setImageError('');
     const combined = [...uploadedImages, ...files];
     if (combined.length > MAX_IMAGES) {
-      setImageError(`Sorry, we can only support up to ${MAX_IMAGES} images at a time.`);
+      setImageError(t('assist.ui.imageUploadError', { max: MAX_IMAGES }));
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
@@ -386,9 +270,7 @@ function AssistPageContent() {
     setImageError('');
   };
 
-  // Handle user answering a question (via text input or suggestion)
   const handleAnswer = async (answer: string) => {
-    // For image situation, require either image or text
     if (situation === 'image' && questionNumber === 1) {
       if (!uploadedImages.length && !answer.trim()) return;
     } else {
@@ -398,7 +280,6 @@ function AssistPageContent() {
     const trimmedAnswer = answer.trim();
     setTextInput('');
 
-    // For image uploads, show thumbnails then the question
     if (situation === 'image' && uploadedImages.length && questionNumber === 1) {
       uploadedImages.forEach((img) => addMessage('user', '', img));
       if (trimmedAnswer) addMessage('user', trimmedAnswer);
@@ -412,37 +293,29 @@ function AssistPageContent() {
 
     const nextQuestionNumber = questionNumber + 1;
 
-    // For image situation, generate draft immediately after first question (image + question submitted)
     if (situation === 'image' && questionNumber === 1 && uploadedImages.length) {
       await generateDraft(newAnswers, uploadedImages);
       return;
     }
 
-    // After 1st answer, check if we have enough info
     if (questionNumber >= 1) {
-      setTypingLabel('Thinking...');
+      setTypingLabel(t('assist.ui.thinking'));
       setIsTyping(true);
 
       try {
         const checkResponse = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'check-ready',
-            situation,
-            answers: newAnswers,
-          }),
+          body: JSON.stringify({ action: 'check-ready', situation, answers: newAnswers, locale }),
         });
 
         const checkData = await checkResponse.json();
         logPrompt('check-ready', checkData);
 
         if (checkData.ready) {
-          // Generate the draft
           await generateDraft(newAnswers);
           return;
         } else if (checkData.question) {
-          // LLM wants to ask another question
           setIsTyping(false);
           setCurrentQuestion({ question: checkData.question, suggestions: checkData.suggestions || [] });
           setQuestionNumber(nextQuestionNumber);
@@ -454,7 +327,6 @@ function AssistPageContent() {
       }
     }
 
-    // Fetch next question
     setTypingLabel('');
     setIsTyping(true);
 
@@ -462,12 +334,7 @@ function AssistPageContent() {
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'next-question',
-          situation,
-          questionNumber: nextQuestionNumber,
-          answers: newAnswers,
-        }),
+        body: JSON.stringify({ action: 'next-question', situation, questionNumber: nextQuestionNumber, answers: newAnswers, locale }),
       });
 
       const data = await response.json();
@@ -477,22 +344,18 @@ function AssistPageContent() {
       if (data.question) {
         setCurrentQuestion({ question: data.question, suggestions: data.suggestions || [] });
         setQuestionNumber(nextQuestionNumber);
-
-        // If there's a brief answer (user asked a question), show it first
-        if (data.briefAnswer) {
-          addMessage('assistant', data.briefAnswer);
-        }
+        if (data.briefAnswer) addMessage('assistant', data.briefAnswer);
         addMessage('assistant', data.question);
       }
     } catch (error) {
       console.error('Error fetching next question:', error);
       setIsTyping(false);
-      addMessage('assistant', 'Sorry, something went wrong. Please try again.');
+      addMessage('assistant', t('assist.ui.errorGeneral'));
     }
   };
 
   const generateDraft = async (finalAnswers: Answer[], imageData?: string[] | null) => {
-    setTypingLabel('Writing your response...');
+    setTypingLabel(t('assist.ui.writing'));
     setIsTyping(true);
 
     try {
@@ -501,9 +364,9 @@ function AssistPageContent() {
         message: finalAnswers.map(a => `${a.question}: ${a.answer}`).join('\n'),
         situation,
         answers: finalAnswers,
+        locale,
       };
 
-      // Include image data if available
       const images = imageData?.length ? imageData : uploadedImages.length ? uploadedImages : null;
       if (images) requestBody.images = images;
 
@@ -520,20 +383,18 @@ function AssistPageContent() {
       if (data.draft) {
         setDraft(data.draft);
         setShowResult(true);
-
-        // Load follow-up suggestions
         loadFollowUpSuggestions(finalAnswers, data.draft);
       }
     } catch (error) {
       console.error('Error generating draft:', error);
       setIsTyping(false);
-      addMessage('assistant', 'Sorry, something went wrong. Please try again.');
+      addMessage('assistant', t('assist.ui.errorGeneral'));
     }
   };
 
   const restartWithQuery = async (query: string) => {
     hasScrolledToResultRef.current = false;
-    const newAnswers = [{ question: 'What would you like help with?', answer: query }];
+    const newAnswers = [{ question: t('assist.ui.initialQuestion'), answer: query }];
     setMessages([{ id: nextMessageId(), type: 'user', text: query }]);
     setTextInput('');
     setCurrentQuestion(null);
@@ -548,14 +409,14 @@ function AssistPageContent() {
     setUploadedImages([]);
     setImageError('');
     setFaqDrawerOpen(false);
-    setTypingLabel('Thinking...');
+    setTypingLabel(t('assist.ui.thinking'));
     setIsTyping(true);
 
     try {
       const checkResponse = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'check-ready', situation, answers: newAnswers }),
+        body: JSON.stringify({ action: 'check-ready', situation, answers: newAnswers, locale }),
       });
       const checkData = await checkResponse.json();
       logPrompt('check-ready', checkData);
@@ -576,27 +437,26 @@ function AssistPageContent() {
     }
   };
 
-  const handleFaqClick = (question: string) => {
-    const clarifyingQ = faqClarifyingQuestions[question];
+  // FAQ items are now ID-based; display text comes from translations
+  const handleFaqClick = (id: string) => {
+    const displayText = t(`assist.faqItems.${id}`);
+    const hasClarifying = faqClarifyingIds.has(id);
+    const clarifyingQ = hasClarifying ? t(`assist.clarifyingQuestions.${id}`) : null;
+
     setFaqDrawerOpen(false);
 
     if (!clarifyingQ) {
-      // Only feed the FAQ item as an answer to the current question if the
-      // conversation hasn't started yet (no user messages).  Once the user
-      // has already sent at least one message, clicking a new FAQ topic means
-      // they want to pivot — always restart fresh.
       const conversationStarted = messages.some((m) => m.type === 'user');
       if (canUseFaq && !conversationStarted) {
-        void handleAnswer(question);
+        void handleAnswer(displayText);
       } else {
-        void restartWithQuery(question);
+        void restartWithQuery(displayText);
       }
       return;
     }
 
-    const needsImageUpload = faqImageUploadItems.has(question);
+    const needsImageUpload = faqImageUploadIds.has(id);
 
-    // Reset all conversation state
     setTextInput('');
     setDraft('');
     setShowResult(false);
@@ -609,72 +469,54 @@ function AssistPageContent() {
     setIsTyping(false);
     setTypingLabel('');
 
-    // Show the FAQ item as user message + clarifying question as assistant message
     setMessages([
-      { id: nextMessageId(), type: 'user', text: question },
+      { id: nextMessageId(), type: 'user', text: displayText },
       { id: nextMessageId(), type: 'assistant', text: clarifyingQ },
     ]);
     setCurrentQuestion({ question: clarifyingQ, suggestions: [] });
 
     if (needsImageUpload) {
-      // Keep questionNumber = 1 so handleAnswer's image-upload logic fires correctly.
-      // Pre-populate answers with the FAQ intent so the LLM knows what to do with the image.
-      setAnswers([{ question: 'What would you like me to do with the image?', answer: question }]);
+      setAnswers([{ question: 'What would you like me to do with the image?', answer: displayText }]);
       setQuestionNumber(1);
     } else {
-      // Q1 is pre-answered with the FAQ intent; clarifyingQ is now Q2.
-      setAnswers([{ question: 'What would you like help with?', answer: question }]);
+      setAnswers([{ question: t('assist.ui.initialQuestion'), answer: displayText }]);
       setQuestionNumber(2);
     }
   };
 
-  // Load follow-up suggestions based on situation
   const loadFollowUpSuggestions = async (finalAnswers: Answer[], generatedDraft: string) => {
     setIsLoadingSuggestions(true);
     try {
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'follow-ups',
-          situation,
-          answers: finalAnswers,
-          currentDraft: generatedDraft,
-        }),
+        body: JSON.stringify({ action: 'follow-ups', situation, answers: finalAnswers, currentDraft: generatedDraft, locale }),
       });
 
       const data = await response.json();
       logPrompt('follow-ups', data);
-      if (data.followUps) {
-        setFollowUpSuggestions(data.followUps);
-      }
+      if (data.followUps) setFollowUpSuggestions(data.followUps);
     } catch (error) {
       console.error('Error fetching follow-up suggestions:', error);
-      // Fallback suggestions
       setFollowUpSuggestions(['Tell me more', 'Can you give an example?']);
     } finally {
       setIsLoadingSuggestions(false);
     }
   };
 
-  // Handle submitting a follow-up question (from text input or suggestion click)
   const handleFollowUpSubmit = async (questionOverride?: string) => {
     const question = questionOverride || followUpInput.trim();
     if (!question) return;
 
     setFollowUpInput('');
-    setFollowUpSuggestions([]); // Clear suggestions while processing
+    setFollowUpSuggestions([]);
 
-    // Persist the current response BEFORE the user's follow-up question,
-    // so the conversation reads: AI answer → User question → new AI answer
     if (draft) addMessage('assistant', draft);
     addMessage('user', question);
-    setTypingLabel('Thinking...');
+    setTypingLabel(t('assist.ui.thinking'));
     setIsTyping(true);
-    // Reset scroll guard so the new result scrolls into view
     hasScrolledToResultRef.current = false;
 
-    // Add follow-up to answers for context
     const updatedAnswers = [...answers, { question: 'Follow-up', answer: question }];
     setAnswers(updatedAnswers);
 
@@ -682,29 +524,22 @@ function AssistPageContent() {
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'refine',
-          situation,
-          answers: updatedAnswers,
-          currentDraft: draft,
-          followUpQuestion: question,
-        }),
+        body: JSON.stringify({ action: 'refine', situation, answers: updatedAnswers, currentDraft: draft, followUpQuestion: question, locale }),
       });
 
       const data = await response.json();
-      logPrompt('refine', data);
+      logPrompt('follow-up answer', data);
       setIsTyping(false);
 
       if (data.refined) {
         setDraft(data.refined);
-
-        // Reload suggestions for the new context
+        setShowResult(true);
         loadFollowUpSuggestions(updatedAnswers, data.refined);
       }
     } catch (error) {
       console.error('Error answering follow-up:', error);
       setIsTyping(false);
-      addMessage('assistant', 'Sorry, something went wrong. Please try again.');
+      addMessage('assistant', t('assist.ui.errorGeneral'));
     }
   };
 
@@ -717,20 +552,15 @@ function AssistPageContent() {
   };
 
   const handleTextSubmit = () => {
-    if (textInput.trim()) {
-      handleAnswer(textInput);
-    }
+    if (textInput.trim()) handleAnswer(textInput);
   };
 
-  // Determine what to show
+  const faqItemIds = situationFaqItems[situation] ?? [];
+  const showFaqPanel = faqItemIds.length > 0;
   const showQuestionInput = currentQuestion && !isTyping && !showResult;
-  const faqQuestions = situationFaqQuestions[situation] ?? [];
-  const showFaqPanel = faqQuestions.length > 0;
   const canUseFaq = Boolean(showQuestionInput);
 
-  // Mobile FAQ drawer state
   const [faqDrawerOpen, setFaqDrawerOpen] = useState(false);
-  // Desktop sidebar visibility
   const [faqSidebarVisible, setFaqSidebarVisible] = useState(true);
 
   const handleIdeasClick = () => {
@@ -747,7 +577,7 @@ function AssistPageContent() {
         <div className={styles.headerInner}>
           <div className={styles.headerLeft}>
             <Link href="/" className={styles.backButton}>
-              ← Start over
+              {t('assist.ui.startOver')}
             </Link>
           </div>
           <Link href="/" className={styles.headerLogo}>
@@ -758,9 +588,9 @@ function AssistPageContent() {
               <button
                 className={`${styles.faqDrawerToggle} ${faqSidebarVisible ? styles.faqDrawerToggleActive : ''}`}
                 onClick={handleIdeasClick}
-                aria-label="Toggle ideas panel"
+                aria-label={t('assist.ui.toggleIdeas')}
               >
-                💡 Ideas
+                {t('assist.ui.ideas')}
               </button>
             )}
           </div>
@@ -775,25 +605,25 @@ function AssistPageContent() {
                 message.type === 'user' &&
                 !messages.slice(index + 1).some((m) => m.type === 'user');
               return (
-              <div
-                key={message.id}
-                ref={isLastUserMsg ? lastUserMsgRef : undefined}
-                className={`${styles.message} ${
-                  message.type === 'assistant' ? styles.assistantMessage : styles.userMessage
-                }`}
-              >
-                {message.image ? (
-                  <img src={message.image} alt="Uploaded" className={styles.chatImageThumb} />
-                ) : (
                 <div
-                  className={`${styles.messageBubble} ${
-                    message.type === 'assistant' ? styles.assistantBubble : styles.userBubble
+                  key={message.id}
+                  ref={isLastUserMsg ? lastUserMsgRef : undefined}
+                  className={`${styles.message} ${
+                    message.type === 'assistant' ? styles.assistantMessage : styles.userMessage
                   }`}
                 >
-                  {message.type === 'assistant' ? renderText(message.text) : message.text}
+                  {message.image ? (
+                    <img src={message.image} alt={t('assist.ui.imageAlt')} className={styles.chatImageThumb} />
+                  ) : (
+                    <div
+                      className={`${styles.messageBubble} ${
+                        message.type === 'assistant' ? styles.assistantBubble : styles.userBubble
+                      }`}
+                    >
+                      {message.type === 'assistant' ? renderText(message.text) : message.text}
+                    </div>
+                  )}
                 </div>
-                )}
-              </div>
               );
             })}
 
@@ -809,7 +639,7 @@ function AssistPageContent() {
               </div>
             )}
 
-            {/* Question input area: text input + suggestion chips */}
+            {/* Question input area */}
             {showQuestionInput && (
               <div className={`${styles.message} ${styles.assistantMessage}`}>
                 <div className={styles.inputArea}>
@@ -836,17 +666,13 @@ function AssistPageContent() {
                         className={styles.fileInput}
                         id="image-upload"
                       />
-                      {imageError && (
-                        <p className={styles.imageError}>{imageError}</p>
-                      )}
+                      {imageError && <p className={styles.imageError}>{imageError}</p>}
                       {uploadedImages.length > 0 && (
                         <div className={styles.imagePreviewGrid}>
                           {uploadedImages.map((img, i) => (
                             <div key={i} className={styles.imagePreviewItem}>
-                              <img src={img} alt={`Uploaded ${i + 1}`} className={styles.previewImage} />
-                              <button onClick={() => removeImage(i)} className={styles.removeImageButton}>
-                                ✕
-                              </button>
+                              <img src={img} alt={`${t('assist.ui.imageAlt')} ${i + 1}`} className={styles.previewImage} />
+                              <button onClick={() => removeImage(i)} className={styles.removeImageButton}>✕</button>
                             </div>
                           ))}
                           {uploadedImages.length < MAX_IMAGES && (
@@ -859,8 +685,8 @@ function AssistPageContent() {
                       {uploadedImages.length === 0 && (
                         <label htmlFor="image-upload" className={styles.uploadLabel}>
                           <span className={styles.uploadIcon}>📷</span>
-                          <span>Click to upload images</span>
-                          <span className={styles.uploadHint}>or drag and drop — up to 5</span>
+                          <span>{t('assist.ui.uploadImages')}</span>
+                          <span className={styles.uploadHint}>{t('assist.ui.uploadHint')}</span>
                         </label>
                       )}
                     </div>
@@ -871,10 +697,10 @@ function AssistPageContent() {
                     onChange={(e) => setTextInput(e.target.value)}
                     placeholder={
                       situation === 'image' && questionNumber === 1
-                        ? "What would you like to know about this image?"
+                        ? t('assist.ui.imagePlaceholder')
                         : questionNumber === 1
-                        ? "Paste or type here..."
-                        : "Type your answer..."
+                        ? t('assist.ui.firstPlaceholder')
+                        : t('assist.ui.answerPlaceholder')
                     }
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
@@ -888,7 +714,7 @@ function AssistPageContent() {
                     onClick={handleTextSubmit}
                     disabled={situation === 'image' && questionNumber === 1 ? !uploadedImages.length : !textInput.trim()}
                   >
-                    Send
+                    {t('assist.ui.send')}
                   </button>
                 </div>
               </div>
@@ -897,30 +723,28 @@ function AssistPageContent() {
             {/* Draft result */}
             {showResult && draft && !isTyping && (
               <>
-                {/* Draft bubble */}
                 <div className={`${styles.message} ${styles.assistantMessage}`}>
                   <div className={styles.draftResponse}>
                     <div className={styles.draftText}>{renderText(draft)}</div>
                     <div className={styles.draftFooter}>
                       <p className={styles.responseDisclaimer}>
-                        AI can make mistakes, double check important information.
+                        {t('assist.ui.disclaimer')}
                       </p>
                       <button className={styles.copyButtonSmall} onClick={handleCopy}>
-                        {copied ? '✓ Copied' : 'Copy this answer'}
+                        {copied ? t('assist.ui.copied') : t('assist.ui.copy')}
                       </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Follow-up suggestions as a separate assistant message */}
                 {(isLoadingSuggestions || followUpSuggestions.length > 0) && (
                   <div className={`${styles.message} ${styles.assistantMessage}`}>
                     <div className={`${styles.messageBubble} ${styles.assistantBubble}`}>
                       {isLoadingSuggestions ? (
-                        <span className={styles.suggestionsLoading}>Loading suggestions...</span>
+                        <span className={styles.suggestionsLoading}>{t('assist.ui.loadingSuggestions')}</span>
                       ) : (
                         <div className={styles.followUpList}>
-                          <p className={styles.followUpIntro}>You can ask these follow-ups:</p>
+                          <p className={styles.followUpIntro}>{t('assist.ui.followUpIntro')}</p>
                           {followUpSuggestions.map((item, idx) => (
                             <button
                               key={idx}
@@ -936,14 +760,13 @@ function AssistPageContent() {
                   </div>
                 )}
 
-                {/* Follow-up input — same style as first question input */}
                 <div className={`${styles.message} ${styles.assistantMessage}`}>
                   <div className={styles.inputArea}>
                     <textarea
                       className={styles.textarea}
                       value={followUpInput}
                       onChange={(e) => setFollowUpInput(e.target.value)}
-                      placeholder="Ask anything else..."
+                      placeholder={t('assist.ui.followUpPlaceholder')}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -956,7 +779,7 @@ function AssistPageContent() {
                       onClick={() => handleFollowUpSubmit()}
                       disabled={!followUpInput.trim()}
                     >
-                      Send
+                      {t('assist.ui.send')}
                     </button>
                   </div>
                 </div>
@@ -969,7 +792,6 @@ function AssistPageContent() {
 
         {showFaqPanel && (
           <>
-            {/* Mobile backdrop */}
             {faqDrawerOpen && (
               <div
                 className={styles.faqOverlay}
@@ -978,67 +800,63 @@ function AssistPageContent() {
               />
             )}
 
-          <aside
-            className={`${styles.faqPanel} ${faqDrawerOpen ? styles.faqPanelOpen : ''} ${!faqSidebarVisible ? styles.faqPanelHidden : ''}`}
-            aria-label="Other people asked"
-          >
-            {/* Mobile drawer handle + close */}
-            <div className={styles.faqDrawerHeader}>
-              <div className={styles.faqDrawerHandle} />
-              <button
-                className={styles.faqDrawerClose}
-                onClick={() => setFaqDrawerOpen(false)}
-                aria-label="Close"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className={styles.howToUse}>
-              <h2 className={styles.faqTitle}>How to use</h2>
-              <ul className={styles.howToUseList}>
-                <li>
-                  <strong>Say it in your own words:</strong> No special language needed, just describe what you&apos;re looking for as you naturally would to another person.
-                </li>
-                <li>
-                  <strong>A little context goes a long way:</strong> The more you share about your situation, the more helpful the answer will be.
-                </li>
-                <li>
-                  <strong>You can always ask again.</strong> If the first answer isn&apos;t quite right, just say so! You can ask to make it shorter, simpler, or try a different approach.
-                </li>
-              </ul>
-            </div>
-
-            <h2 className={styles.faqTitle}>Example questions</h2>
-            <p className={styles.faqDescription}>Try one of these to get started.</p>
-            <div className={styles.faqList}>
-              {faqQuestions.map((question) => (
+            <aside
+              className={`${styles.faqPanel} ${faqDrawerOpen ? styles.faqPanelOpen : ''} ${!faqSidebarVisible ? styles.faqPanelHidden : ''}`}
+              aria-label={t('assist.ui.howToUseTitle')}
+            >
+            <div className={styles.faqPanelInner}>
+              {/* Mobile drawer handle + close */}
+              <div className={styles.faqDrawerHeader}>
+                <div className={styles.faqDrawerHandle} />
                 <button
-                  key={question}
-                  className={styles.faqItem}
-                  onClick={() => handleFaqClick(question)}
+                  className={styles.faqDrawerClose}
+                  onClick={() => setFaqDrawerOpen(false)}
+                  aria-label="Close"
                 >
-                  <span className={styles.faqIcon} aria-hidden="true">
-                    <svg
-                      className={styles.faqIconSvg}
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M8 10.5H16M8 14H13M20 11.5C20 15.6421 16.4183 19 12 19C10.8462 19 9.74944 18.7708 8.7585 18.3572L5 19.5L6.06779 16.2597C5.39703 14.9488 5 13.4724 5 11.5C5 7.35786 8.58172 4 13 4C17.4183 4 20 7.35786 20 11.5Z"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  <span className={styles.faqQuestion}>{question}</span>
+                  ✕
                 </button>
-              ))}
+              </div>
+
+              <div className={styles.howToUse}>
+                <h2 className={styles.faqTitle}>{t('assist.ui.howToUseTitle')}</h2>
+                <ul className={styles.howToUseList}>
+                  <li><strong>{t('assist.tips.1bold')}</strong> {t('assist.tips.1body')}</li>
+                  <li><strong>{t('assist.tips.2bold')}</strong> {t('assist.tips.2body')}</li>
+                  <li><strong>{t('assist.tips.3bold')}</strong> {t('assist.tips.3body')}</li>
+                </ul>
+              </div>
+
+              <h2 className={styles.faqTitle}>{t('assist.ui.exampleQuestionsTitle')}</h2>
+              <p className={styles.faqDescription}>{t('assist.ui.exampleQuestionsDesc')}</p>
+              <div className={styles.faqList}>
+                {faqItemIds.map((id) => (
+                  <button
+                    key={id}
+                    className={styles.faqItem}
+                    onClick={() => handleFaqClick(id)}
+                  >
+                    <span className={styles.faqIcon} aria-hidden="true">
+                      <svg
+                        className={styles.faqIconSvg}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M8 10.5H16M8 14H13M20 11.5C20 15.6421 16.4183 19 12 19C10.8462 19 9.74944 18.7708 8.7585 18.3572L5 19.5L6.06779 16.2597C5.39703 14.9488 5 13.4724 5 11.5C5 7.35786 8.58172 4 13 4C17.4183 4 20 7.35786 20 11.5Z"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <span className={styles.faqQuestion}>{t(`assist.faqItems.${id}`)}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </aside>
+            </aside>
           </>
         )}
       </div>

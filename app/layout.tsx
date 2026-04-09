@@ -3,6 +3,7 @@ import { Lora, Poppins } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import { PostHogProvider } from './providers';
+import { LocaleProvider } from '@/contexts/LocaleContext';
 
 const lora = Lora({
   subsets: ['latin'],
@@ -44,12 +45,14 @@ export default function RootLayout({
           <img height="1" width="1" style={{display:'none'}} src="https://www.facebook.com/tr?id=924960063643828&ev=PageView&noscript=1" alt="" />
         </noscript>
         <PostHogProvider>
-          <a href="#main-content" className="skip-link">
-            Skip to main content
-          </a>
-          <main id="main-content">
-            {children}
-          </main>
+          <LocaleProvider>
+            <a href="#main-content" className="skip-link">
+              Skip to main content
+            </a>
+            <main id="main-content">
+              {children}
+            </main>
+          </LocaleProvider>
         </PostHogProvider>
       </body>
     </html>

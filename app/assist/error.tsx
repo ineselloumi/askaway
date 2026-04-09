@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { useLocale } from '@/contexts/LocaleContext';
 
 export default function AssistError({
   error,
@@ -10,6 +11,8 @@ export default function AssistError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { t } = useLocale();
+
   useEffect(() => {
     console.error('Assist page error:', error);
   }, [error]);
@@ -25,10 +28,8 @@ export default function AssistError({
       textAlign: 'center',
       gap: '1.5rem',
     }}>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Something went wrong</h1>
-      <p style={{ color: '#666', maxWidth: '360px' }}>
-        The page took too long to load. Please try again.
-      </p>
+      <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>{t('error.title')}</h1>
+      <p style={{ color: '#666', maxWidth: '360px' }}>{t('error.message')}</p>
       <div style={{ display: 'flex', gap: '1rem' }}>
         <button
           onClick={reset}
@@ -42,7 +43,7 @@ export default function AssistError({
             fontSize: '1rem',
           }}
         >
-          Try again
+          {t('error.retry')}
         </button>
         <Link
           href="/"
@@ -56,7 +57,7 @@ export default function AssistError({
             fontSize: '1rem',
           }}
         >
-          Go home
+          {t('error.home')}
         </Link>
       </div>
     </div>

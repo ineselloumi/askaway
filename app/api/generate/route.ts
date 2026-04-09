@@ -36,6 +36,7 @@ interface GenerateRequest {
   action?: 'questions' | 'draft' | 'refine' | 'next-question' | 'check-ready' | 'follow-ups';
   message: string;
   situation: string;
+  locale?: string;
   answers?: { question: string; answer: string }[];
   refinement?: 'shorter' | 'kinder' | 'clearer';
   currentDraft?: string;
@@ -43,6 +44,17 @@ interface GenerateRequest {
   followUpQuestion?: string;
   image?: string; // Base64 encoded image data (single, legacy)
   images?: string[]; // Base64 encoded image data (multiple)
+}
+
+const languageInstructions: Record<string, string> = {
+  fr: 'IMPORTANT: Réponds entièrement en français.',
+  es: 'IMPORTANT: Responde completamente en español.',
+  de: 'IMPORTANT: Antworte vollständig auf Deutsch.',
+};
+
+function getLanguageInstruction(locale?: string): string {
+  if (!locale || locale === 'en') return '';
+  return languageInstructions[locale] ? `\n\n${languageInstructions[locale]}` : '';
 }
 
 function getProvider() {
@@ -68,56 +80,65 @@ function hasApiKey(): boolean {
 }
 
 // First questions ask for the ACTUAL CONTENT the user wants help with
-function getFirstQuestion(situation: string): { question: string; suggestions: string[]; isContentQuestion: boolean } {
-  const firstQuestions: Record<string, { question: string; suggestions: string[]; isContentQuestion: boolean }> = {
-    'write': {
-      question: "What do you need to write? Tell me who it's for and what you want to say.",
-      suggestions: [],
-      isContentQuestion: true,
-    },
-    'explain': {
-      question: "Paste or describe what you'd like me to explain.",
-      suggestions: [],
-      isContentQuestion: true,
-    },
-    'summarize': {
-      question: "Paste a text you'd like me to summarize. You can also paste website links directly.",
-      suggestions: [],
-      isContentQuestion: true,
-    },
-    'trip': {
-      question: "Where are you thinking of going, and what do you need help with?",
-      suggestions: [],
-      isContentQuestion: true,
-    },
-    'translate': {
-      question: "What would you like to translate, and which languages are involved?",
-      suggestions: [],
-      isContentQuestion: true,
-    },
-    'health': {
-      question: "What health topic can I help you with?",
-      suggestions: [],
-      isContentQuestion: true,
-    },
-    'recipe': {
-      question: "What are you looking to cook? Any ingredients or dietary preferences?",
-      suggestions: [],
-      isContentQuestion: true,
-    },
-    'decide': {
-      question: "What decision are you trying to make?",
-      suggestions: [],
-      isContentQuestion: true,
-    },
-    'other': {
-      question: "What can I help you with?",
-      suggestions: [],
-      isContentQuestion: true,
-    },
-  };
+const firstQuestionsEn: Record<string, string> = {
+  'write':     "What do you need to write? Tell me who it's for and what you want to say.",
+  'explain':   "Paste or describe what you'd like me to explain.",
+  'summarize': "Paste a text you'd like me to summarize. You can also paste website links directly.",
+  'trip':      "Where are you thinking of going, and what do you need help with?",
+  'translate': "What would you like to translate, and which languages are involved?",
+  'health':    "What health topic can I help you with?",
+  'recipe':    "What are you looking to cook? Any ingredients or dietary preferences?",
+  'decide':    "What decision are you trying to make?",
+  'other':     "What can I help you with?",
+};
 
-  return firstQuestions[situation] || firstQuestions['other'];
+const firstQuestionsFr: Record<string, string> = {
+  'write':     "Qu'est-ce que vous devez rédiger ? Dites-moi pour qui et ce que vous voulez dire.",
+  'explain':   "Collez ou décrivez ce que vous aimeriez que j'explique.",
+  'summarize': "Collez un texte à résumer. Vous pouvez aussi coller des liens de sites web.",
+  'trip':      "Où pensez-vous aller, et comment puis-je vous aider ?",
+  'translate': "Que souhaitez-vous traduire, et quelles langues sont concernées ?",
+  'health':    "Quel sujet de santé puis-je vous aider à aborder ?",
+  'recipe':    "Qu'avez-vous envie de cuisiner ? Des ingrédients ou préférences particulières ?",
+  'decide':    "Quelle décision cherchez-vous à prendre ?",
+  'other':     "De quoi avez-vous besoin ?",
+};
+
+const firstQuestionsEs: Record<string, string> = {
+  'write':     "¿Qué necesitas escribir? Dime para quién es y qué quieres decir.",
+  'explain':   "Pega o describe lo que te gustaría que explique.",
+  'summarize': "Pega un texto que te gustaría que resuma. También puedes pegar enlaces de sitios web.",
+  'trip':      "¿A dónde estás pensando ir y en qué necesitas ayuda?",
+  'translate': "¿Qué te gustaría traducir y qué idiomas están involucrados?",
+  'health':    "¿Con qué tema de salud puedo ayudarte?",
+  'recipe':    "¿Qué quieres cocinar? ¿Algún ingrediente o preferencia dietética?",
+  'decide':    "¿Qué decisión estás tratando de tomar?",
+  'other':     "¿En qué puedo ayudarte?",
+};
+
+const firstQuestionsDe: Record<string, string> = {
+  'write':     "Was musst du schreiben? Sag mir, für wen es ist und was du sagen möchtest.",
+  'explain':   "Füge ein oder beschreibe, was ich erklären soll.",
+  'summarize': "Füge einen Text ein, den ich zusammenfassen soll. Du kannst auch Website-Links direkt einfügen.",
+  'trip':      "Wohin denkst du zu gehen und wobei brauchst du Hilfe?",
+  'translate': "Was möchtest du übersetzen und welche Sprachen sind beteiligt?",
+  'health':    "Bei welchem Gesundheitsthema kann ich dir helfen?",
+  'recipe':    "Was möchtest du kochen? Bestimmte Zutaten oder Ernährungspräferenzen?",
+  'decide':    "Welche Entscheidung versuchst du zu treffen?",
+  'other':     "Wobei kann ich dir helfen?",
+};
+
+const firstQuestionsByLocale: Record<string, Record<string, string>> = {
+  en: firstQuestionsEn,
+  fr: firstQuestionsFr,
+  es: firstQuestionsEs,
+  de: firstQuestionsDe,
+};
+
+function getFirstQuestion(situation: string, locale?: string): { question: string; suggestions: string[]; isContentQuestion: boolean } {
+  const map = firstQuestionsByLocale[locale || 'en'] || firstQuestionsEn;
+  const question = map[situation] || map['other'];
+  return { question, suggestions: [], isContentQuestion: true };
 }
 
 // Check if text looks like a question (ends with ? or starts with question words)
@@ -598,6 +619,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Image is too large. Please use an image under ~3 MB.' }, { status: 400 });
     }
 
+    const langInstruction = getLanguageInstruction(body.locale);
+
     // Generate questions for a situation
     if (action === 'next-question') {
       const questionNumber = body.questionNumber || 1;
@@ -605,7 +628,7 @@ export async function POST(request: NextRequest) {
 
       // First question is always the content question (hardcoded, not LLM-generated)
       if (questionNumber === 1) {
-        return NextResponse.json(getFirstQuestion(body.situation));
+        return NextResponse.json(getFirstQuestion(body.situation, body.locale));
       }
 
       // Check if the user's last answer was a question (especially for "explain" situations)
@@ -637,7 +660,7 @@ export async function POST(request: NextRequest) {
 
       // If the user asked a question (especially in "explain" mode), give a brief answer + follow-up
       if (userAskedQuestion && (body.situation === 'explain' || body.situation === 'other')) {
-        const prompt = buildBriefAnswerWithQuestionPrompt(body.situation, answers);
+        const prompt = buildBriefAnswerWithQuestionPrompt(body.situation, answers) + langInstruction;
         const response = await callLLM(prompt);
         const jsonMatch = response.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
@@ -647,7 +670,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Use LLM to generate contextual follow-up questions
-      const prompt = buildNextQuestionPrompt(body.situation, answers, questionNumber);
+      const prompt = buildNextQuestionPrompt(body.situation, answers, questionNumber) + langInstruction;
       const response = await callLLM(prompt);
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -674,7 +697,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ready: questionCount >= 1 });
       }
 
-      const prompt = buildCheckReadyPrompt(body.situation, answers);
+      const prompt = buildCheckReadyPrompt(body.situation, answers) + langInstruction;
       const response = await callLLM(prompt);
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -723,7 +746,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ followUps: mockFollowUps[body.situation] || mockFollowUps['other'] });
       }
 
-      const prompt = buildFollowUpQuestionsPrompt(body.situation, answers, draft);
+      const prompt = buildFollowUpQuestionsPrompt(body.situation, answers, draft) + langInstruction;
       const response = await callLLM(prompt);
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -747,7 +770,7 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      const prompt = buildFollowUpAnswerPrompt(body.situation, answers, previousDraft, body.followUpQuestion);
+      const prompt = buildFollowUpAnswerPrompt(body.situation, answers, previousDraft, body.followUpQuestion) + langInstruction;
       const response = await callLLM(prompt);
       return NextResponse.json({ refined: response.trim(), isFollowUp: true, _prompt: prompt });
     }
@@ -779,7 +802,7 @@ export async function POST(request: NextRequest) {
       }
 
       const imageData = body.images ?? (body.image ? [body.image] : undefined);
-      const prompt = buildDraftPrompt(body.message, body.situation, body.answers || [], !!(imageData?.length));
+      const prompt = buildDraftPrompt(body.message, body.situation, body.answers || [], !!(imageData?.length)) + langInstruction;
       const draft = await callLLM(prompt, imageData);
       return NextResponse.json({ draft: draft.trim(), _prompt: prompt });
     }
