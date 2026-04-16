@@ -29,6 +29,8 @@ const LOCALES: { code: Locale; flag: string; nativeName: string }[] = [
   { code: 'fr', flag: '🇫🇷', nativeName: 'Français' },
   { code: 'es', flag: '🇪🇸', nativeName: 'Español' },
   { code: 'de', flag: '🇩🇪', nativeName: 'Deutsch' },
+  { code: 'it', flag: '🇮🇹', nativeName: 'Italiano' },
+  { code: 'pt', flag: '🇧🇷', nativeName: 'Português' },
 ];
 
 export default function Home() {

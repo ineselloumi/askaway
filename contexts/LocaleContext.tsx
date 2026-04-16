@@ -5,10 +5,12 @@ import en from '@/messages/en.json';
 import fr from '@/messages/fr.json';
 import es from '@/messages/es.json';
 import de from '@/messages/de.json';
+import it from '@/messages/it.json';
+import pt from '@/messages/pt.json';
 
-export type Locale = 'en' | 'fr' | 'es' | 'de';
+export type Locale = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt';
 
-const messages: Record<Locale, typeof en> = { en, fr, es, de };
+const messages: Record<Locale, typeof en> = { en, fr, es, de, it, pt };
 
 // Resolve a dot-path key like "assist.ui.send" through a nested object
 function resolve(obj: Record<string, unknown>, path: string): string {
