@@ -39,10 +39,17 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('en');
   const [localeReady, setLocaleReady] = useState(false);
 
-  // Hydrate from localStorage once on mount
+  // Hydrate from ?lang= URL param (takes priority) or localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('askaway-locale') as Locale | null;
-    if (saved && saved in messages) setLocaleState(saved);
+    const params = new URLSearchParams(window.location.search);
+    const urlLang = params.get('lang') as Locale | null;
+    if (urlLang && urlLang in messages) {
+      setLocaleState(urlLang);
+      localStorage.setItem('askaway-locale', urlLang);
+    } else {
+      const saved = localStorage.getItem('askaway-locale') as Locale | null;
+      if (saved && saved in messages) setLocaleState(saved);
+    }
     setLocaleReady(true);
   }, []);
 

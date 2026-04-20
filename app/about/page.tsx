@@ -1,55 +1,53 @@
+'use client';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useLocale } from '@/contexts/LocaleContext';
 import styles from './page.module.css';
 
-const principles = [
-  {
-    icon: '🎯',
-    title: 'Start where you are',
-    description: 'No empty text box staring at you. Pick a situation and we guide you from there.',
-  },
-  {
-    icon: '💬',
-    title: 'Dive deeper, one question at a time',
-    description: 'We ask simple questions in plain words. No confusing tech talk.',
-  },
-  {
-    icon: '🤝',
-    title: 'You are in control',
-    description: 'The tool is at your service, so nothing happens until you say so.',
-  },
-];
-
 export default function AboutPage() {
+  const { t, locale, localeReady } = useLocale();
+  const router = useRouter();
+
+  // Sync ?lang= in URL once locale is ready
+  useEffect(() => {
+    if (!localeReady) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('lang') !== locale) {
+      params.set('lang', locale);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+  }, [locale, localeReady, router]);
+
+  const principles = [
+    { icon: t('about.principles.p1icon'), title: t('about.principles.p1title'), description: t('about.principles.p1desc') },
+    { icon: t('about.principles.p2icon'), title: t('about.principles.p2title'), description: t('about.principles.p2desc') },
+    { icon: t('about.principles.p3icon'), title: t('about.principles.p3title'), description: t('about.principles.p3desc') },
+  ];
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <Link href="/" className={styles.backButton}>
-            ← Back to home
+          <Link href={`/?lang=${locale}`} className={styles.backButton}>
+            {t('about.backButton')}
           </Link>
         </div>
       </header>
 
       <div className={styles.content}>
-        <h1 className={styles.title}>How ask away works</h1>
+        <h1 className={styles.title}>{t('about.pageTitle')}</h1>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>What is it?</h2>
-          <p className={styles.paragraph}>
-            ask away helps you with everyday tasks and questions. Need to reply to a
-            message? Want to understand a confusing letter? Want to learn about a topic? We can help.
-          </p>
-          <p className={styles.paragraph}>
-            We use artificial intelligence technology, also called "AI", to write responses for you. But we made it simple.
-            No confusing words. No empty boxes where you have to figure out what to type.
-          </p>
+          <h2 className={styles.sectionTitle}>{t('about.whatIsIt.title')}</h2>
+          <p className={styles.paragraph}>{t('about.whatIsIt.p1')}</p>
+          <p className={styles.paragraph}>{t('about.whatIsIt.p2')}</p>
         </section>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Our principles</h2>
-          <p className={styles.paragraph}>
-            We built this for people who find artificial intelligence tools confusing and need a little extra guidance. 
-          </p>
+          <h2 className={styles.sectionTitle}>{t('about.principles.title')}</h2>
+          <p className={styles.paragraph}>{t('about.principles.intro')}</p>
           <ul className={styles.list}>
             {principles.map((principle, index) => (
               <li key={index} className={styles.listItem}>
@@ -66,20 +64,15 @@ export default function AboutPage() {
         </section>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>How we handle your information</h2>
-          <p className={styles.paragraph}>
-            When you share context or paste a message, we only use it to help you get the answer you need.
-            We do not save your conversations or share them with anyone else.
-          </p>
-          <p className={styles.paragraph}>
-            This is a simple tool. You use it, you get your result, that is it.
-          </p>
+          <h2 className={styles.sectionTitle}>{t('about.privacy.title')}</h2>
+          <p className={styles.paragraph}>{t('about.privacy.p1')}</p>
+          <p className={styles.paragraph}>{t('about.privacy.p2')}</p>
         </section>
 
         <div className={styles.cta}>
-          <h2 className={styles.ctaTitle}>Ready to try it?</h2>
-          <Link href="/" className={styles.ctaButton}>
-            Get started
+          <h2 className={styles.ctaTitle}>{t('about.cta.title')}</h2>
+          <Link href={`/?lang=${locale}`} className={styles.ctaButton}>
+            {t('about.cta.button')}
           </Link>
         </div>
       </div>

@@ -134,6 +134,31 @@
       "blood-test":        "Bitte lade deine Blutuntersuchungsergebnisse hoch."
     }
   },
+  "about": {
+    "pageTitle": "Wie ask away funktioniert",
+    "backButton": "← Zurück zur Startseite",
+    "whatIsIt": {
+      "title": "Was ist das?",
+      "p1": "ask away hilft Ihnen bei alltäglichen Aufgaben und Fragen. Müssen Sie auf eine Nachricht antworten? Möchten Sie einen verwirrenden Brief verstehen? Möchten Sie etwas über ein Thema lernen? Wir können helfen.",
+      "p2": "Wir nutzen künstliche Intelligenz, auch \"KI\" genannt, um Antworten für Sie zu verfassen. Aber wir haben es einfach gemacht. Keine verwirrenden Wörter. Keine leeren Felder, wo Sie herausfinden müssen, was Sie eingeben sollen."
+    },
+    "principles": {
+      "title": "Unsere Grundsätze",
+      "intro": "Wir haben das für Menschen entwickelt, die Werkzeuge der künstlichen Intelligenz verwirrend finden und etwas mehr Unterstützung benötigen.",
+      "p1icon": "🎯", "p1title": "Fangen Sie dort an, wo Sie sind", "p1desc": "Kein leeres Textfeld, das Sie anstarrt. Wählen Sie eine Situation und wir begleiten Sie von dort aus.",
+      "p2icon": "💬", "p2title": "Gehen Sie tiefer, eine Frage nach der anderen", "p2desc": "Wir stellen einfache Fragen in verständlichen Worten. Kein verwirrendes Fachjargon.",
+      "p3icon": "🤝", "p3title": "Sie haben die Kontrolle", "p3desc": "Das Werkzeug steht Ihnen zur Verfügung, nichts passiert, bis Sie es sagen."
+    },
+    "privacy": {
+      "title": "Wie wir mit Ihren Informationen umgehen",
+      "p1": "Wenn Sie Kontext teilen oder eine Nachricht einfügen, verwenden wir diese nur, um Ihnen die benötigte Antwort zu geben. Wir speichern Ihre Gespräche nicht und teilen sie nicht mit anderen.",
+      "p2": "Das ist ein einfaches Werkzeug. Sie nutzen es, Sie erhalten Ihr Ergebnis, das war's."
+    },
+    "cta": {
+      "title": "Bereit, es auszuprobieren?",
+      "button": "Loslegen"
+    }
+  },
   "error": {
     "title":   "Etwas ist schiefgelaufen",
     "message": "Die Seite hat zu lange zum Laden gebraucht. Bitte versuche es erneut.",

@@ -13,7 +13,7 @@ export default function HomeQueryInput() {
   const handleSubmit = () => {
     const trimmed = query.trim();
     if (!trimmed) return;
-    router.push(`/assist?situation=other&query=${encodeURIComponent(trimmed)}&locale=${locale}`);
+    router.push(`/assist?situation=other&query=${encodeURIComponent(trimmed)}&lang=${locale}`);
   };
 
   return (

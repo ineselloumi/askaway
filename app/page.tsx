@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import HomeQueryInput from './components/HomeQueryInput';
 import TilesCarousel from './components/TilesCarousel';
@@ -35,6 +36,7 @@ const LOCALES: { code: Locale; flag: string; nativeName: string }[] = [
 
 export default function Home() {
   const { t, locale, setLocale } = useLocale();
+  const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +55,7 @@ export default function Home() {
     ids.map((id) => ({
       id,
       ...situationMeta[id],
+      href: `${situationMeta[id].href}&lang=${locale}`,
       title: t(`situations.${id}.title`),
       description: t(`situations.${id}.description`),
     }));
@@ -85,7 +88,13 @@ export default function Home() {
                   role="option"
                   aria-selected={locale === code}
                   className={`${styles.langDropdownItem} ${locale === code ? styles.langDropdownItemActive : ''}`}
-                  onClick={() => { setLocale(code); setDropdownOpen(false); }}
+                  onClick={() => {
+                    setLocale(code);
+                    setDropdownOpen(false);
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('lang', code);
+                    router.replace(`?${params.toString()}`, { scroll: false });
+                  }}
                 >
                   <span className={styles.langDropdownFlag}>{flag}</span>
                   <span className={styles.langDropdownName}>{nativeName.toUpperCase()}</span>
@@ -111,7 +120,7 @@ export default function Home() {
       </div>
 
       <footer className={styles.footer}>
-        <Link href="/about"   className={styles.footerLink}>{t('home.footerAbout')}</Link>
+        <Link href={`/about?lang=${locale}`} className={styles.footerLink}>{t('home.footerAbout')}</Link>
         <Link href="/terms"   className={styles.footerLink}>{t('home.footerTerms')}</Link>
         <Link href="/privacy" className={styles.footerLink}>{t('home.footerPrivacy')}</Link>
       </footer>

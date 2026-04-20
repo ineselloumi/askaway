@@ -134,6 +134,31 @@
       "blood-test":        "Por favor sube tus resultados de análisis de sangre."
     }
   },
+  "about": {
+    "pageTitle": "Cómo funciona ask away",
+    "backButton": "← Volver al inicio",
+    "whatIsIt": {
+      "title": "¿Qué es?",
+      "p1": "ask away te ayuda con tareas y preguntas del día a día. ¿Necesitas responder un mensaje? ¿Quieres entender una carta confusa? ¿Quieres aprender sobre un tema? Podemos ayudarte.",
+      "p2": "Usamos tecnología de inteligencia artificial, también llamada \"IA\", para redactar respuestas por ti. Pero lo hemos hecho simple. Sin palabras complicadas. Sin casillas vacías donde tienes que adivinar qué escribir."
+    },
+    "principles": {
+      "title": "Nuestros principios",
+      "intro": "Lo construimos para personas que encuentran las herramientas de inteligencia artificial confusas y necesitan un poco más de orientación.",
+      "p1icon": "🎯", "p1title": "Empieza donde estás", "p1desc": "Sin casilla vacía mirándote. Elige una situación y te guiamos desde ahí.",
+      "p2icon": "💬", "p2title": "Ve más profundo, una pregunta a la vez", "p2desc": "Hacemos preguntas simples en palabras sencillas. Sin tecnicismos confusos.",
+      "p3icon": "🤝", "p3title": "Tú tienes el control", "p3desc": "La herramienta está a tu servicio, nada sucede hasta que tú lo decides."
+    },
+    "privacy": {
+      "title": "Cómo manejamos tu información",
+      "p1": "Cuando compartes contexto o pegas un mensaje, solo lo usamos para ayudarte a obtener la respuesta que necesitas. No guardamos tus conversaciones ni las compartimos con nadie.",
+      "p2": "Es una herramienta simple. La usas, obtienes tu resultado, eso es todo."
+    },
+    "cta": {
+      "title": "¿Listo para probarlo?",
+      "button": "Comenzar"
+    }
+  },
   "error": {
     "title":   "Algo salió mal",
     "message": "La página tardó demasiado en cargar. Por favor, inténtalo de nuevo.",

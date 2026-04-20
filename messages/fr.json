@@ -134,6 +134,31 @@
       "blood-test":        "Veuillez télécharger vos résultats d'analyses."
     }
   },
+  "about": {
+    "pageTitle": "Comment fonctionne ask away",
+    "backButton": "← Retour à l'accueil",
+    "whatIsIt": {
+      "title": "C'est quoi ?",
+      "p1": "ask away vous aide dans vos tâches et questions du quotidien. Besoin de répondre à un message ? Vous voulez comprendre une lettre confuse ? Vous souhaitez en apprendre plus sur un sujet ? Nous pouvons aider.",
+      "p2": "Nous utilisons l'intelligence artificielle, aussi appelée \"IA\", pour rédiger des réponses à votre place. Mais nous l'avons rendu simple. Pas de jargon compliqué. Pas de cases vides où vous devez deviner quoi écrire."
+    },
+    "principles": {
+      "title": "Nos principes",
+      "intro": "Nous avons conçu cet outil pour les personnes qui trouvent les outils d'intelligence artificielle déroutants et ont besoin d'un peu plus de guidage.",
+      "p1icon": "🎯", "p1title": "Commencez là où vous en êtes", "p1desc": "Pas de case vide à fixer. Choisissez une situation et nous vous guidons à partir de là.",
+      "p2icon": "💬", "p2title": "Allez plus loin, une question à la fois", "p2desc": "Nous posons des questions simples en mots clairs. Pas de jargon technique.",
+      "p3icon": "🤝", "p3title": "Vous avez le contrôle", "p3desc": "L'outil est à votre service, rien ne se passe tant que vous ne le décidez pas."
+    },
+    "privacy": {
+      "title": "Comment nous traitons vos informations",
+      "p1": "Lorsque vous partagez un contexte ou collez un message, nous l'utilisons uniquement pour vous aider à obtenir la réponse dont vous avez besoin. Nous ne sauvegardons pas vos conversations et ne les partageons avec personne.",
+      "p2": "C'est un outil simple. Vous l'utilisez, vous obtenez votre résultat, c'est tout."
+    },
+    "cta": {
+      "title": "Prêt à essayer ?",
+      "button": "Commencer"
+    }
+  },
   "error": {
     "title":   "Une erreur s'est produite",
     "message": "La page a mis trop de temps à charger. Veuillez réessayer.",

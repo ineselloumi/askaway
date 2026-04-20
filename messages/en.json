@@ -134,6 +134,31 @@
       "blood-test":        "Please upload your blood test results."
     }
   },
+  "about": {
+    "pageTitle": "How ask away works",
+    "backButton": "← Back to home",
+    "whatIsIt": {
+      "title": "What is it?",
+      "p1": "ask away helps you with everyday tasks and questions. Need to reply to a message? Want to understand a confusing letter? Want to learn about a topic? We can help.",
+      "p2": "We use artificial intelligence technology, also called \"AI\", to write responses for you. But we made it simple. No confusing words. No empty boxes where you have to figure out what to type."
+    },
+    "principles": {
+      "title": "Our principles",
+      "intro": "We built this for people who find artificial intelligence tools confusing and need a little extra guidance.",
+      "p1icon": "🎯", "p1title": "Start where you are", "p1desc": "No empty text box staring at you. Pick a situation and we guide you from there.",
+      "p2icon": "💬", "p2title": "Dive deeper, one question at a time", "p2desc": "We ask simple questions in plain words. No confusing tech talk.",
+      "p3icon": "🤝", "p3title": "You are in control", "p3desc": "The tool is at your service, so nothing happens until you say so."
+    },
+    "privacy": {
+      "title": "How we handle your information",
+      "p1": "When you share context or paste a message, we only use it to help you get the answer you need. We do not save your conversations or share them with anyone else.",
+      "p2": "This is a simple tool. You use it, you get your result, that is it."
+    },
+    "cta": {
+      "title": "Ready to try it?",
+      "button": "Get started"
+    }
+  },
   "error": {
     "title":   "Something went wrong",
     "message": "The page took too long to load. Please try again.",
