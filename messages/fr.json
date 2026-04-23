@@ -3,7 +3,7 @@
     "title": "ask away",
     "tagline": "| faire plus avec l'IA",
     "sectionStart": "Choisissez une option pour commencer",
-    "sectionIdeas": "Des idées de ce que vous pouvez faire",
+    "sectionStories": "Des vraies personnes, des vraies questions",
     "sectionType": "Ou tapez directement",
     "footerAbout": "Comment ça fonctionne ?",
     "footerTerms": "Conditions d'utilisation",
@@ -15,7 +15,7 @@
     "write":     { "title": "Rédiger pour moi",           "description": "M'aider à écrire un e-mail, une lettre, un SMS, etc." },
     "image":     { "title": "Expliquer une image",        "description": "Télécharger une lettre, un reçu, une facture, etc." },
     "health":    { "title": "Informations de santé",      "description": "Poser des questions sur des symptômes, médicaments, nutrition, etc." },
-    "decide":    { "title": "M'aider à décider",          "description": "Obtenir de l'aide pour toute décision de la vie." },
+    "decide":    { "title": "Juste discuter",              "description": "Parfait quand vous avez besoin d'une oreille attentive ou d'un interlocuteur bienveillant." },
     "translate": { "title": "Traduire",                   "description": "Décoder ou traduire des langues rapidement." },
     "trip":      { "title": "Voyager",                    "description": "Se renseigner sur une ville, un itinéraire ou une sortie." },
     "recipe":    { "title": "Trouver une recette",        "description": "Suggestions selon vos envies ou vos ingrédients." }
@@ -36,7 +36,7 @@
       "recipe":    "Bonjour ! Je vais vous aider à trouver une recette.",
       "trip":      "Bonjour ! Je vais vous aider à planifier un voyage.",
       "decide":    "Bonjour ! Je vais vous aider à réfléchir à une décision.",
-      "other":     "Bonjour ! Je suis là pour vous aider."
+      "other":     "Bonjour ! En quoi puis-je vous aider aujourd'hui ?"
     },
     "situationTitles": {
       "write":     "Rédiger pour moi",
@@ -50,7 +50,7 @@
       "other":     "Autre chose"
     },
     "ui": {
-      "startOver":            "← Recommencer",
+      "startOver":            "← Retour",
       "ideas":                "💡 Idées",
       "toggleIdeas":          "Afficher/masquer le panneau d'idées",
       "send":                 "Envoyer",
@@ -157,6 +157,42 @@
     "cta": {
       "title": "Prêt à essayer ?",
       "button": "Commencer"
+    }
+  },
+  "stories": {
+    "ui": {
+      "ctaQuestion": "Envie de poser une question similaire ?",
+      "ctaButton":   "Essayez vous-même →"
+    },
+    "maria": {
+      "label":    "Voyage",
+      "story":    "Maria a planifié son voyage idéal de 4 jours à Paris",
+      "cta":      "Voir comment elle a fait",
+      "subtitle": "Comment Maria a planifié son voyage idéal à Paris"
+    },
+    "tom": {
+      "label":    "Sécurité",
+      "story":    "Tom a démasqué un arnaqueur ciblant son compte bancaire",
+      "cta":      "Voir ce qu'il a demandé",
+      "subtitle": "Comment Tom a démasqué un arnaqueur ciblant son compte bancaire"
+    },
+    "hannah": {
+      "label":    "Bien-être",
+      "story":    "Hannah a découvert des habitudes pour améliorer son sommeil",
+      "cta":      "Lire les conseils",
+      "subtitle": "Comment Hannah a amélioré ses habitudes de sommeil"
+    },
+    "juan": {
+      "label":    "Santé",
+      "story":    "Juan a reçu des conseils sur ses symptômes médicaux",
+      "cta":      "Voir comment il a demandé",
+      "subtitle": "Comment Juan a obtenu des conseils sur ses symptômes médicaux"
+    },
+    "nicolas": {
+      "label":    "Nutrition",
+      "story":    "Nicolas a trouvé une recette de lasagnes adaptée à ses allergies",
+      "cta":      "Voir comment il a fait",
+      "subtitle": "Comment Nicolas a trouvé une recette adaptée à ses allergies"
     }
   },
   "error": {

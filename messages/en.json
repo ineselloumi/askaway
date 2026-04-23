@@ -3,7 +3,7 @@
     "title": "ask away",
     "tagline": "| do more with AI",
     "sectionStart": "Click any of these to get started",
-    "sectionIdeas": "Ideas of what you can do",
+    "sectionStories": "Learn from real stories",
     "sectionType": "Or start typing directly",
     "footerAbout": "How does this work?",
     "footerTerms": "Terms of Service",
@@ -15,7 +15,7 @@
     "write":     { "title": "Write for me",            "description": "Help me write an email, a letter, a text message, etc." },
     "image":     { "title": "Explain an image",        "description": "Upload a letter, a receipt, a bill, etc." },
     "health":    { "title": "Get health information",  "description": "Ask about symptoms, medication, nutrition, etc." },
-    "decide":    { "title": "Help me decide",          "description": "Get help with any decision in your life." },
+    "decide":    { "title": "Just chat",                "description": "Perfect when you just need a sounding board or supportive ear." },
     "translate": { "title": "Translate",               "description": "Decode or translate languages quickly." },
     "trip":      { "title": "Go somewhere",            "description": "Ask about a city visit, an itinerary or a night out." },
     "recipe":    { "title": "Find a recipe",           "description": "Suggestions based on your cravings or ingredients." }
@@ -36,7 +36,7 @@
       "recipe":    "Hi! I'll help you find a recipe.",
       "trip":      "Hi! I'll help you plan a trip.",
       "decide":    "Hi! I'll help you think through a decision.",
-      "other":     "Hi! I'm here to help."
+      "other":     "Hi! What can I help you with today?"
     },
     "situationTitles": {
       "write":     "Write for me",
@@ -50,7 +50,7 @@
       "other":     "Something else"
     },
     "ui": {
-      "startOver":            "← Start over",
+      "startOver":            "← Back",
       "ideas":                "💡 Ideas",
       "toggleIdeas":          "Toggle ideas panel",
       "send":                 "Send",
@@ -157,6 +157,42 @@
     "cta": {
       "title": "Ready to try it?",
       "button": "Get started"
+    }
+  },
+  "stories": {
+    "ui": {
+      "ctaQuestion": "Want to ask something similar?",
+      "ctaButton":   "Try it yourself →"
+    },
+    "maria": {
+      "label":    "Travel",
+      "story":    "Maria planned her ideal 4-day trip to Paris",
+      "cta":      "See how she did it",
+      "subtitle": "How Maria planned her ideal trip to Paris"
+    },
+    "tom": {
+      "label":    "Safety",
+      "story":    "Tom caught a scammer targeting his bank account",
+      "cta":      "See what he asked",
+      "subtitle": "How Tom caught a scammer targeting his bank account"
+    },
+    "hannah": {
+      "label":    "Wellness",
+      "story":    "Hannah learned about habits to improve her sleep",
+      "cta":      "Read the tips here",
+      "subtitle": "How Hannah improved her sleep habits"
+    },
+    "juan": {
+      "label":    "Health",
+      "story":    "Juan received guidance about medical symptoms",
+      "cta":      "See how he asked",
+      "subtitle": "How Juan got guidance about his medical symptoms"
+    },
+    "nicolas": {
+      "label":    "Nutrition",
+      "story":    "Nicolas found a lasagna recipe adapted to his allergies",
+      "cta":      "See how he did it",
+      "subtitle": "How Nicolas found a lasagna recipe adapted to his allergies"
     }
   },
   "error": {

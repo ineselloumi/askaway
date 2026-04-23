@@ -6,20 +6,20 @@ import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import HomeQueryInput from './components/HomeQueryInput';
 import TilesCarousel from './components/TilesCarousel';
+import StoryCarousel from './components/StoryCarousel';
 import { useLocale, type Locale } from '@/contexts/LocaleContext';
 
 const situationIds = {
-  primary: ['explain', 'summarize', 'write', 'image'] as const,
-  more:    ['health', 'decide', 'translate', 'trip', 'recipe'] as const,
+  primary: ['explain', 'summarize', 'write', 'image', 'translate', 'decide'] as const,
 };
 
 const situationMeta: Record<string, { icon: string; href: string; color: string }> = {
   explain:   { icon: '💡', href: '/assist?situation=explain',   color: '#FEF9EC' },
   summarize: { icon: '📝', href: '/assist?situation=summarize', color: '#EBF4FF' },
   write:     { icon: '✍️', href: '/assist?situation=write',     color: '#F0EEFF' },
-  image:     { icon: '🖼️', href: '/assist?situation=image',     color: '#EDFBF3' },
+  image:     { icon: '🔍', href: '/assist?situation=image',     color: '#EDFBF3' },
   health:    { icon: '🩺', href: '/assist?situation=health',    color: '#FEF0F0' },
-  decide:    { icon: '⚖️', href: '/assist?situation=decide',    color: '#E8FAF8' },
+  decide:    { icon: '💬', href: '/assist?situation=other',     color: '#E8FAF8' },
   translate: { icon: '🌍', href: '/assist?situation=translate', color: '#EEF2FF' },
   trip:      { icon: '📍', href: '/assist?situation=trip',      color: '#FFF4EC' },
   recipe:    { icon: '🍳', href: '/assist?situation=recipe',    color: '#FFF0F3' },
@@ -63,9 +63,13 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
+        {/* Left spacer — keeps title centred */}
+        <div className={styles.headerSpacer} />
+
         <h1 className={styles.title}>
           {t('home.title')} <span className={styles.titleTagline}>{t('home.tagline')}</span>
         </h1>
+
         <div className={styles.langDropdown} ref={dropdownRef}>
           <button
             className={styles.langDropdownTrigger}
@@ -110,8 +114,8 @@ export default function Home() {
         <p className={styles.sectionTitle}>{t('home.sectionStart')}</p>
         <TilesCarousel situations={buildSituations(situationIds.primary)} />
 
-        <p className={styles.sectionTitle}>{t('home.sectionIdeas')}</p>
-        <TilesCarousel situations={buildSituations(situationIds.more)} />
+        <p className={styles.sectionTitle}>{t('home.sectionStories')}</p>
+        <StoryCarousel />
 
         <p className={styles.sectionTitle}>{t('home.sectionType')}</p>
         <div className={styles.searchCard}>

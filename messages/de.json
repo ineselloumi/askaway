@@ -3,7 +3,7 @@
     "title": "ask away",
     "tagline": "| mehr mit KI erreichen",
     "sectionStart": "Klicke auf eine dieser Optionen, um zu starten",
-    "sectionIdeas": "Ideen, was du tun kannst",
+    "sectionStories": "Echte Menschen, echte Fragen",
     "sectionType": "Oder tippe direkt",
     "footerAbout": "Wie funktioniert das?",
     "footerTerms": "Nutzungsbedingungen",
@@ -15,7 +15,7 @@
     "write":     { "title": "Schreib für mich",         "description": "Hilf mir, eine E-Mail, einen Brief, eine SMS usw. zu schreiben." },
     "image":     { "title": "Bild erklären",            "description": "Lade einen Brief, eine Quittung, eine Rechnung usw. hoch." },
     "health":    { "title": "Gesundheitsinformationen", "description": "Frage nach Symptomen, Medikamenten, Ernährung usw." },
-    "decide":    { "title": "Hilf mir zu entscheiden",  "description": "Lass dich bei jeder Entscheidung in deinem Leben unterstützen." },
+    "decide":    { "title": "Einfach reden",             "description": "Perfekt, wenn du einfach jemanden brauchst, der zuhört und versteht." },
     "translate": { "title": "Übersetzen",               "description": "Sprachen schnell entschlüsseln oder übersetzen." },
     "trip":      { "title": "Irgendwohin gehen",        "description": "Frage nach einem Stadtbesuch, einem Reiseplan oder einem Abendausflug." },
     "recipe":    { "title": "Ein Rezept finden",        "description": "Vorschläge basierend auf deinen Gelüsten oder Zutaten." }
@@ -36,7 +36,7 @@
       "recipe":    "Hallo! Ich helfe dir, ein Rezept zu finden.",
       "trip":      "Hallo! Ich helfe dir, eine Reise zu planen.",
       "decide":    "Hallo! Ich helfe dir, eine Entscheidung zu durchdenken.",
-      "other":     "Hallo! Ich bin hier, um zu helfen."
+      "other":     "Hallo! Womit kann ich dir heute helfen?"
     },
     "situationTitles": {
       "write":     "Schreib für mich",
@@ -50,7 +50,7 @@
       "other":     "Etwas anderes"
     },
     "ui": {
-      "startOver":            "← Neu starten",
+      "startOver":            "← Zurück",
       "ideas":                "💡 Ideen",
       "toggleIdeas":          "Ideenpanel ein-/ausblenden",
       "send":                 "Senden",
@@ -157,6 +157,42 @@
     "cta": {
       "title": "Bereit, es auszuprobieren?",
       "button": "Loslegen"
+    }
+  },
+  "stories": {
+    "ui": {
+      "ctaQuestion": "Möchtest du etwas Ähnliches fragen?",
+      "ctaButton":   "Selbst ausprobieren →"
+    },
+    "maria": {
+      "label":    "Reisen",
+      "story":    "Maria plante ihren idealen 4-Tage-Trip nach Paris",
+      "cta":      "Sehen, wie sie es gemacht hat",
+      "subtitle": "Wie Maria ihre Traumreise nach Paris geplant hat"
+    },
+    "tom": {
+      "label":    "Sicherheit",
+      "story":    "Tom entlarvte einen Betrüger, der sein Bankkonto angriff",
+      "cta":      "Sehen, was er gefragt hat",
+      "subtitle": "Wie Tom einen Betrüger bei seinem Bankkonto erwischte"
+    },
+    "hannah": {
+      "label":    "Wohlbefinden",
+      "story":    "Hannah lernte Gewohnheiten kennen, die ihren Schlaf verbessern",
+      "cta":      "Die Tipps lesen",
+      "subtitle": "Wie Hannah ihre Schlafgewohnheiten verbessert hat"
+    },
+    "juan": {
+      "label":    "Gesundheit",
+      "story":    "Juan bekam Rat zu seinen medizinischen Symptomen",
+      "cta":      "Sehen, wie er gefragt hat",
+      "subtitle": "Wie Juan Rat zu seinen medizinischen Symptomen bekam"
+    },
+    "nicolas": {
+      "label":    "Ernährung",
+      "story":    "Nicolas fand ein Lasagne-Rezept für seine Allergien",
+      "cta":      "Sehen, wie er es gemacht hat",
+      "subtitle": "Wie Nicolas ein für seine Allergien angepasstes Rezept fand"
     }
   },
   "error": {

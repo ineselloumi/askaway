@@ -33,7 +33,7 @@ const MAX_ANSWER_LENGTH     = 1_000;
 const MAX_IMAGE_B64_BYTES   = 5 * 1024 * 1024; // ~3.75 MB original image
 
 interface GenerateRequest {
-  action?: 'questions' | 'draft' | 'refine' | 'next-question' | 'check-ready' | 'follow-ups';
+  action?: 'questions' | 'draft' | 'refine' | 'next-question' | 'check-ready' | 'follow-ups' | 'title';
   message: string;
   situation: string;
   locale?: string;
@@ -500,6 +500,22 @@ Write the improved version. Keep the same meaning. Use simple, accessible langua
 Respond with just the improved text.`;
 }
 
+function buildTitlePrompt(firstUserMessage: string): string {
+  return `Generate a short title (3–5 words) for a conversation that starts with this message:
+
+"${firstUserMessage}"
+
+Rules:
+- 3–5 words maximum
+- Capture the core topic naturally
+- No quotes, no punctuation at the end
+- Don't start with "How to"
+
+Examples: "Paris trip itinerary", "Seasonal allergy symptoms", "Dairy-free lasagna recipe", "Bank phishing email check", "Sleep improvement habits"
+
+Respond with just the title, nothing else.`;
+}
+
 async function callAnthropic(prompt: string, imageData?: string | string[]): Promise<string> {
   // Build message content — include images as vision blocks when provided
   let messageContent: unknown = prompt;
@@ -592,7 +608,7 @@ export async function POST(request: NextRequest) {
     const action = body.action || 'draft';
 
     // --- Input validation ---
-    const validActions = ['questions', 'draft', 'refine', 'next-question', 'check-ready', 'follow-ups'];
+    const validActions = ['questions', 'draft', 'refine', 'next-question', 'check-ready', 'follow-ups', 'title'];
     if (body.action && !validActions.includes(body.action)) {
       return NextResponse.json({ error: 'Invalid action.' }, { status: 400 });
     }
@@ -712,6 +728,22 @@ export async function POST(request: NextRequest) {
     // Legacy: Generate all clarifying questions at once (keeping for backwards compatibility)
     if (action === 'questions') {
       return NextResponse.json(generateMockQuestions(body.situation));
+    }
+
+    // Generate a short conversation title from the first user message
+    if (action === 'title') {
+      const firstMessage = body.message?.trim() || '';
+      if (!firstMessage) return NextResponse.json({ title: 'New conversation' });
+
+      if (!hasApiKey()) {
+        // Fallback: truncate to first 5 words
+        const words = firstMessage.split(/\s+/).slice(0, 5).join(' ');
+        return NextResponse.json({ title: words });
+      }
+
+      const prompt = buildTitlePrompt(firstMessage);
+      const response = await callLLM(prompt);
+      return NextResponse.json({ title: response.trim() });
     }
 
     // Generate follow-up questions based on the conversation

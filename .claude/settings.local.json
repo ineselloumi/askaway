@@ -1,7 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(grep -v \"^\\\\-\\\\-$\")",
+      "Bash(lsof -ti:3000)",
+      "Bash(xargs kill *)"
     ]
   }
 }

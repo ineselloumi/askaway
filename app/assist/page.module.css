@@ -1,5 +1,6 @@
 .page {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   background: var(--color-background);
@@ -54,17 +55,20 @@
 
 .mainLayout {
   flex: 1;
+  min-height: 0; /* critical: lets flex child shrink below content size */
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: var(--spacing-lg);
-  min-height: 0;
-  padding: 0 var(--spacing-lg);
+  /* Default: sidebar (260px) + chat (1fr). No gap before sidebar — it's flush left. */
+  grid-template-columns: 260px 1fr;
+  overflow: hidden;
+  /* Only right side gets padding; sidebar handles its own left flush */
+  padding: 0 var(--spacing-lg) 0 0;
   box-sizing: border-box;
 }
 
-.mainLayoutCollapsed {
-  grid-template-columns: 1fr;
+/* When the FAQ panel is visible, add a third column */
+.mainLayoutWithFaq {
+  grid-template-columns: 260px 1fr 360px;
 }
 
 .backButton {
@@ -93,22 +97,23 @@
   margin: 0;
 }
 
-/* Chat container */
+/* Chat container — the only scrolling region on the page */
 .chatContainer {
   overflow-y: auto;
+  height: 100%;
   padding: var(--spacing-lg) 0;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
 }
 
 .chatInner {
-  width: min(100%, 1200px);
+  width: min(100%, 780px);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  /* Indent to align with title (back button width + headerLeft gap) */
-  padding-left: 129px;
+  padding: 0 var(--spacing-lg);
 }
 
 .faqPanel {
@@ -759,6 +764,34 @@
   background: var(--color-primary-light);
 }
 
+/* ── Sidebar hamburger toggle (mobile only) ──────────────── */
+
+.sidebarToggle {
+  display: none; /* hidden on desktop — sidebar is always visible */
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  min-height: unset;
+  min-width: unset;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.sidebarToggle:hover {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.sidebarToggleIcon {
+  width: 20px;
+  height: 20px;
+}
+
 /* FAQ drawer toggle */
 .faqDrawerToggle {
   display: flex;
@@ -913,8 +946,15 @@
     grid-template-columns: unset;
   }
 
+  /* Show hamburger on mobile */
+  .sidebarToggle {
+    display: flex;
+  }
+
+  /* Sidebar becomes a fixed overlay — handled in ConversationSidebar.module.css */
   .mainLayout {
     display: block;
+    padding: 0 var(--spacing-lg);
   }
 
   /* Hide the static side panel — replaced by the bottom drawer */
@@ -1000,12 +1040,8 @@
     width: 100%;
   }
 
-  .chatInner {
-    padding-left: 0;
-  }
-
   .chatContainer {
-    padding: var(--spacing-md);
+    padding: var(--spacing-md) 0;
   }
 
   .messageBubble,

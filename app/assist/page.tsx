@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from '@/contexts/LocaleContext';
+import { useConversations, type MessageType, type ChatMessage, type Answer } from '@/contexts/ConversationsContext';
+import ConversationSidebar from './components/ConversationSidebar';
 import styles from './page.module.css';
-
-type MessageType = 'assistant' | 'user';
 
 function renderInline(line: string) {
   return line.split(/(\*\*[^*]+\*\*)/).map((part, j) =>
@@ -29,18 +29,6 @@ function renderText(text: string) {
       </span>
     );
   });
-}
-
-interface ChatMessage {
-  id: string;
-  type: MessageType;
-  text: string;
-  image?: string;
-}
-
-interface Answer {
-  question: string;
-  answer: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -78,19 +66,40 @@ function logPrompt(action: string, data: Record<string, unknown>) {
 }
 
 function AssistPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const situation = searchParams.get('situation') || 'write';
   const initialQuery = searchParams.get('query') || '';
+  const initialPrefill = searchParams.get('prefill') || '';
 
   const { t, locale, localeReady } = useLocale();
+  const {
+    saveConversation,
+    updateConversation,
+    setActiveConversationId,
+    pendingLoad,
+    clearPendingLoad,
+  } = useConversations();
+
+  // Tracks the id of the conversation currently being shown (null = fresh/unsaved)
+  const conversationIdRef = useRef<string | null>(null);
+  // Prevents re-generating the LLM title after it has been set once
+  const titleGeneratedRef = useRef(false);
+
+  // Controls whether the conversation history sidebar is open (mobile only)
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Allows re-triggering the init effect after "New conversation" is clicked
+  const [resetKey, setResetKey] = useState(0);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const lastUserMsgRef = useRef<HTMLDivElement>(null);
   const messageCounterRef = useRef(0);
   const hasScrolledToResultRef = useRef(false);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [textInput, setTextInput] = useState('');
+  const [textInput, setTextInput] = useState(initialPrefill);
   const [isTyping, setIsTyping] = useState(false);
   const [typingLabel, setTypingLabel] = useState('');
 
@@ -98,6 +107,9 @@ function AssistPageContent() {
   const [currentQuestion, setCurrentQuestion] = useState<{ question: string; suggestions: string[] } | null>(null);
   const [questionNumber, setQuestionNumber] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);
+
+  // Generated conversation title (set after first AI response)
+  const [conversationTitle, setConversationTitle] = useState<string | null>(null);
 
   // Result state
   const [draft, setDraft] = useState('');
@@ -115,15 +127,16 @@ function AssistPageContent() {
 
   // Single unified scroll effect
   useEffect(() => {
+    const container = chatContainerRef.current;
+    if (!container) return;
+
     if (showResult && !isTyping && lastUserMsgRef.current) {
       if (!hasScrolledToResultRef.current) {
         hasScrolledToResultRef.current = true;
-        const top =
-          lastUserMsgRef.current.getBoundingClientRect().top +
-          document.documentElement.scrollTop -
-          82 -
-          16;
-        document.documentElement.scrollTop = Math.max(0, top);
+        // Scroll so the last user message sits just below the container's top edge
+        const msgTop = lastUserMsgRef.current.getBoundingClientRect().top;
+        const containerTop = container.getBoundingClientRect().top;
+        container.scrollTop = Math.max(0, container.scrollTop + msgTop - containerTop - 16);
       }
       return;
     }
@@ -191,6 +204,14 @@ function AssistPageContent() {
       const greeting = t(`assist.greetings.${situation}`) || t('assist.greetings.other');
       setMessages([{ id: nextMessageId(), type: 'assistant', text: greeting }]);
 
+      // For "other" (general-purpose chat), the greeting IS the opening prompt —
+      // skip the extra API call that would produce a near-identical second message.
+      if (situation === 'other') {
+        setCurrentQuestion({ question: greeting, suggestions: [] });
+        setQuestionNumber(1);
+        return;
+      }
+
       setTypingLabel('');
       setIsTyping(true);
 
@@ -218,7 +239,131 @@ function AssistPageContent() {
 
     initConversation();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [situation, localeReady]);
+  }, [situation, localeReady, resetKey]);
+
+  // ── Load a saved conversation when the sidebar requests it ────────────────
+  useEffect(() => {
+    if (!pendingLoad) return;
+
+    // Mark as initialised so the init effect doesn't clobber the restored state
+    hasInitialized.current = true;
+
+    setMessages(pendingLoad.messages);
+    setAnswers(pendingLoad.answers);
+    setDraft(pendingLoad.draft);
+    setShowResult(pendingLoad.showResult);
+    setQuestionNumber(pendingLoad.questionNumber);
+    setCurrentQuestion(pendingLoad.currentQuestion);
+    setFollowUpSuggestions(pendingLoad.followUpSuggestions);
+    setTextInput('');
+    setFollowUpInput('');
+    setIsTyping(false);
+    setTypingLabel('');
+    setCopied(false);
+    setUploadedImages([]);
+    setImageError('');
+    hasScrolledToResultRef.current = false;
+    conversationIdRef.current = pendingLoad.id;
+    titleGeneratedRef.current = true; // already has a title — don't regenerate
+
+    clearPendingLoad();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingLoad]);
+
+  // ── Auto-save to sessionStorage whenever meaningful state changes ─────────
+  useEffect(() => {
+    const hasUserMessage = messages.some(m => m.type === 'user');
+    if (!hasUserMessage) return;
+
+    const timer = setTimeout(() => {
+      const firstUserMsg = messages.find(m => m.type === 'user');
+      const rawTitle = firstUserMsg?.text?.trim() || 'Image conversation';
+      const placeholderTitle = rawTitle.length > 52 ? rawTitle.slice(0, 52) + '…' : rawTitle;
+
+      if (!conversationIdRef.current) {
+        // First save — use truncated text as placeholder, then upgrade with LLM title
+        const id = saveConversation({
+          title: placeholderTitle,
+          situationType: situation,
+          locale,
+          messages,
+          answers,
+          draft,
+          showResult,
+          questionNumber,
+          currentQuestion,
+          followUpSuggestions,
+        });
+        conversationIdRef.current = id;
+        setActiveConversationId(id);
+
+        // Fire-and-forget: replace placeholder with a proper LLM-generated title
+        if (!titleGeneratedRef.current && firstUserMsg?.text) {
+          titleGeneratedRef.current = true;
+          fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'title', message: firstUserMsg.text, situation }),
+          })
+            .then(r => r.json())
+            .then(data => {
+              if (data.title && conversationIdRef.current) {
+                updateConversation(conversationIdRef.current, { title: data.title });
+              }
+            })
+            .catch(() => {}); // silently keep the placeholder on error
+        }
+      } else {
+        // Subsequent saves — patch the existing entry
+        updateConversation(conversationIdRef.current, {
+          messages,
+          answers,
+          draft,
+          showResult,
+          questionNumber,
+          currentQuestion,
+          followUpSuggestions,
+        });
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, answers, draft, showResult, questionNumber, currentQuestion, followUpSuggestions]);
+
+  // ── Start a brand-new conversation ────────────────────────────────────────
+  const handleNewConversation = () => {
+    conversationIdRef.current = null;
+    hasInitialized.current = false;
+    titleGeneratedRef.current = false;
+    setActiveConversationId(null);
+    setMessages([]);
+    setAnswers([]);
+    setDraft('');
+    setShowResult(false);
+    setQuestionNumber(0);
+    setCurrentQuestion(null);
+    setFollowUpSuggestions([]);
+    setTextInput('');
+    setFollowUpInput('');
+    setIsTyping(false);
+    setTypingLabel('');
+    setCopied(false);
+    setUploadedImages([]);
+    setImageError('');
+    hasScrolledToResultRef.current = false;
+    setFaqDrawerOpen(false);
+    if (situation === 'other') {
+      // Already on the right URL — router.push would be a no-op, so bump
+      // resetKey directly to re-fire the init effect.
+      setResetKey(k => k + 1);
+    } else {
+      // Navigating away: the situation change in the effect deps will trigger
+      // re-init automatically once the URL updates. Don't bump resetKey here
+      // or it fires init with the OLD situation before the URL settles.
+      router.push('/assist?situation=other');
+    }
+  };
 
   const addMessage = (type: MessageType, text: string, image?: string) => {
     setMessages((prev) => [...prev, { id: nextMessageId(), type, text, image }]);
@@ -279,6 +424,9 @@ function AssistPageContent() {
 
     const trimmedAnswer = answer.trim();
     setTextInput('');
+
+    // Generate a smart title from the first user message
+    if (answers.length === 0 && trimmedAnswer) generateTitle(trimmedAnswer);
 
     if (situation === 'image' && uploadedImages.length && questionNumber === 1) {
       uploadedImages.forEach((img) => addMessage('user', '', img));
@@ -484,6 +632,18 @@ function AssistPageContent() {
     }
   };
 
+  const generateTitle = (firstUserMessage: string) => {
+    if (conversationTitle) return; // only generate once
+    fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'title', message: firstUserMessage }),
+    })
+      .then(r => r.json())
+      .then(data => { if (data.title) setConversationTitle(data.title); })
+      .catch(() => {}); // fire-and-forget, non-critical
+  };
+
   const loadFollowUpSuggestions = async (finalAnswers: Answer[], generatedDraft: string) => {
     setIsLoadingSuggestions(true);
     try {
@@ -561,7 +721,7 @@ function AssistPageContent() {
   const canUseFaq = Boolean(showQuestionInput);
 
   const [faqDrawerOpen, setFaqDrawerOpen] = useState(false);
-  const [faqSidebarVisible, setFaqSidebarVisible] = useState(true);
+  const [faqSidebarVisible, setFaqSidebarVisible] = useState(false);
 
   const handleIdeasClick = () => {
     if (window.innerWidth <= 1024) {
@@ -576,6 +736,16 @@ function AssistPageContent() {
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <div className={styles.headerLeft}>
+            {/* Hamburger — opens the conversation sidebar on mobile */}
+            <button
+              className={styles.sidebarToggle}
+              onClick={() => setSidebarOpen(v => !v)}
+              aria-label="Open conversation history"
+            >
+              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className={styles.sidebarToggleIcon}>
+                <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+            </button>
             <Link href="/" className={styles.backButton}>
               {t('assist.ui.startOver')}
             </Link>
@@ -597,8 +767,14 @@ function AssistPageContent() {
         </div>
       </header>
 
-      <div className={`${styles.mainLayout} ${showFaqPanel && !faqSidebarVisible ? styles.mainLayoutCollapsed : ''}`}>
-        <div className={styles.chatContainer}>
+      <div className={`${styles.mainLayout} ${showFaqPanel && faqSidebarVisible ? styles.mainLayoutWithFaq : ''}`}>
+        <ConversationSidebar
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          onNewConversation={handleNewConversation}
+        />
+
+        <div className={styles.chatContainer} ref={chatContainerRef}>
           <div className={styles.chatInner}>
             {messages.map((message, index) => {
               const isLastUserMsg =
