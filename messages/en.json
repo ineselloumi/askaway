@@ -80,7 +80,10 @@
       "justNow":              "just now",
       "minutesAgo":           "{n}m ago",
       "hoursAgo":             "{n}h ago",
-      "sidebarFootnote":      "These conversations will disappear when you close this tab."
+      "sidebarFootnote":      "These conversations will disappear when you close this tab.",
+      "signUpNudge":          "Sign up to save your conversations.",
+      "signInGoogle":         "Continue with Google",
+      "signOut":              "Sign out"
     },
     "tips": {
       "1bold": "Say it in your own words:",

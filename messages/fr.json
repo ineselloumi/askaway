@@ -80,7 +80,10 @@
       "justNow":              "à l'instant",
       "minutesAgo":           "il y a {n} min",
       "hoursAgo":             "il y a {n} h",
-      "sidebarFootnote":      "Ces conversations disparaîtront lorsque vous fermerez cet onglet."
+      "sidebarFootnote":      "Ces conversations disparaîtront lorsque vous fermerez cet onglet.",
+      "signUpNudge":          "Inscrivez-vous pour sauvegarder vos conversations.",
+      "signInGoogle":         "Continuer avec Google",
+      "signOut":              "Se déconnecter"
     },
     "tips": {
       "1bold": "Parlez naturellement :",

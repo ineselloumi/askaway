@@ -13,6 +13,8 @@
     "eval:next-question": "SUITE=next-question npx tsx evals/run.ts"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.104.1",
     "next": "^15.1.0",
     "posthog-js": "^1.354.0",
     "react": "^19.0.0",

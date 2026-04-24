@@ -80,7 +80,10 @@
       "justNow":              "agora mesmo",
       "minutesAgo":           "há {n} min",
       "hoursAgo":             "há {n} h",
-      "sidebarFootnote":      "Estas conversas desaparecerão quando fechar este separador."
+      "sidebarFootnote":      "Estas conversas desaparecerão quando fechar este separador.",
+      "signUpNudge":          "Registe-se para guardar as suas conversas.",
+      "signInGoogle":         "Continuar com o Google",
+      "signOut":              "Terminar sessão"
     },
     "tips": {
       "1bold": "Diga com suas próprias palavras:",

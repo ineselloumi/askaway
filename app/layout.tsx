@@ -4,6 +4,7 @@ import Script from 'next/script';
 import './globals.css';
 import { PostHogProvider } from './providers';
 import { LocaleProvider } from '@/contexts/LocaleContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ConversationsProvider } from '@/contexts/ConversationsContext';
 
 const lora = Lora({
@@ -47,6 +48,7 @@ export default function RootLayout({
         </noscript>
         <PostHogProvider>
           <LocaleProvider>
+            <AuthProvider>
             <ConversationsProvider>
               <a href="#main-content" className="skip-link">
                 Skip to main content
@@ -55,6 +57,7 @@ export default function RootLayout({
                 {children}
               </main>
             </ConversationsProvider>
+            </AuthProvider>
           </LocaleProvider>
         </PostHogProvider>
       </body>

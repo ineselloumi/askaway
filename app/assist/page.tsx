@@ -542,6 +542,10 @@ function AssistPageContent() {
 
   const restartWithQuery = async (query: string) => {
     hasScrolledToResultRef.current = false;
+    // Reset conversation refs so the auto-save creates a fresh entry
+    conversationIdRef.current = null;
+    titleGeneratedRef.current = false;
+    setActiveConversationId(null);
     const newAnswers = [{ question: t('assist.ui.initialQuestion'), answer: query }];
     setMessages([{ id: nextMessageId(), type: 'user', text: query }]);
     setTextInput('');
@@ -604,6 +608,11 @@ function AssistPageContent() {
     }
 
     const needsImageUpload = faqImageUploadIds.has(id);
+
+    // Reset conversation refs so the auto-save creates a fresh entry
+    conversationIdRef.current = null;
+    titleGeneratedRef.current = false;
+    setActiveConversationId(null);
 
     setTextInput('');
     setDraft('');

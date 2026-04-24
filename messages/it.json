@@ -80,7 +80,10 @@
       "justNow":              "proprio ora",
       "minutesAgo":           "{n} min fa",
       "hoursAgo":             "{n} h fa",
-      "sidebarFootnote":      "Queste conversazioni scompariranno quando chiuderai questa scheda."
+      "sidebarFootnote":      "Queste conversazioni scompariranno quando chiuderai questa scheda.",
+      "signUpNudge":          "Registrati per salvare le tue conversazioni.",
+      "signInGoogle":         "Continua con Google",
+      "signOut":              "Disconnettiti"
     },
     "tips": {
       "1bold": "Dillo con parole tue:",

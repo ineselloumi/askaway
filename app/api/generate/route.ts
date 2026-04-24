@@ -510,10 +510,11 @@ function buildTitlePrompt(firstUserMessage: string): string {
 Rules:
 - 3–5 words maximum
 - Capture the core topic naturally
+- Sentence case only — capitalise the first word only (unless a word is a proper noun)
 - No quotes, no punctuation at the end
 - Don't start with "How to"
 
-Examples: "Paris trip itinerary", "Seasonal allergy symptoms", "Dairy-free lasagna recipe", "Bank phishing email check", "Sleep improvement habits"
+Examples: "Paris trip itinerary", "Seasonal allergy symptoms", "Dairy-free lasagna recipe", "Phishing email check", "Sleep improvement habits"
 
 Respond with just the title, nothing else.`;
 }
@@ -745,7 +746,17 @@ export async function POST(request: NextRequest) {
 
       const prompt = buildTitlePrompt(firstMessage) + langInstruction;
       const response = await callLLM(prompt);
-      return NextResponse.json({ title: response.trim() });
+      const raw = response.trim();
+      // If every word starts with a capital (Title Case), convert to sentence case.
+      // Leave already-sentence-cased titles alone to preserve proper nouns.
+      const words = raw.split(' ');
+      const isTitleCase = words.length > 1 && words.every(w => /^[A-Z]/.test(w));
+      const title = isTitleCase
+        ? raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase()
+            .replace(/\b(hsbc|paris|google|amazon|netflix|reddit|bitcoin|uber|airbnb)\b/gi,
+              w => w.charAt(0).toUpperCase() + w.slice(1))
+        : raw;
+      return NextResponse.json({ title });
     }
 
     // Generate follow-up questions based on the conversation
