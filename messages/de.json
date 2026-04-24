@@ -73,7 +73,14 @@
       "imagePlaceholder":     "Was möchtest du über dieses Bild wissen?",
       "firstPlaceholder":     "Hier einfügen oder tippen...",
       "answerPlaceholder":    "Deine Antwort eingeben...",
-      "imageAlt":             "Hochgeladen"
+      "imageAlt":             "Hochgeladen",
+      "sidebarTitle":         "Gespräche",
+      "newConversation":      "Neues Gespräch",
+      "sidebarEmpty":         "Deine Gespräche erscheinen hier, sobald du anfängst zu chatten.",
+      "justNow":              "gerade eben",
+      "minutesAgo":           "vor {n} Min.",
+      "hoursAgo":             "vor {n} Std.",
+      "sidebarFootnote":      "Diese Gespräche verschwinden, wenn du diesen Tab schließt."
     },
     "tips": {
       "1bold": "Sag es mit deinen eigenen Worten:",

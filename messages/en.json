@@ -73,7 +73,14 @@
       "imagePlaceholder":     "What would you like to know about this image?",
       "firstPlaceholder":     "Paste or type here...",
       "answerPlaceholder":    "Type your answer...",
-      "imageAlt":             "Uploaded"
+      "imageAlt":             "Uploaded",
+      "sidebarTitle":         "Conversations",
+      "newConversation":      "New conversation",
+      "sidebarEmpty":         "Your conversations will appear here once you start chatting.",
+      "justNow":              "just now",
+      "minutesAgo":           "{n}m ago",
+      "hoursAgo":             "{n}h ago",
+      "sidebarFootnote":      "These conversations will disappear when you close this tab."
     },
     "tips": {
       "1bold": "Say it in your own words:",

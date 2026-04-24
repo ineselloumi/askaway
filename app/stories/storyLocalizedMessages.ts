@@ -64,12 +64,12 @@ Un dîner de gala pour clôturer le séjour. Septime dans le 11e est l'un des me
     tom: {
       user: `J'ai reçu cet e-mail hier, est-il légitime ?
 
-De : security-alert@bankofamerica-support-center.com
+De : security-alert@hsbc-support-center.com
 Objet : ⚠️ Urgent : Activité suspecte détectée sur votre compte
 
 Bonjour Tom,
 
-Nous avons détecté une activité de connexion inhabituelle sur votre compte Bank of America se terminant par 3486. Afin de protéger votre compte, nous avons temporairement limité l'accès à celui-ci.
+Nous avons détecté une activité de connexion inhabituelle sur votre compte HSBC se terminant par 3486. Afin de protéger votre compte, nous avons temporairement limité l'accès à celui-ci.
 
 Veuillez vérifier votre identité dans les 24 heures pour rétablir l'accès complet :
 
@@ -77,10 +77,10 @@ Veuillez vérifier votre identité dans les 24 heures pour rétablir l'accès co
 
 Si vous ne procédez pas à cette vérification, votre compte sera définitivement suspendu.
 
-L'équipe de sécurité Bank of America`,
+L'équipe de sécurité HSBC`,
       assistant: `Il s'agit d'un e-mail de phishing. Ne cliquez sur aucun lien. Voici pourquoi il est clairement frauduleux :
 
-Le domaine de l'expéditeur est faux. Le vrai domaine de Bank of America est bankofamerica.com. Cet e-mail provient de bankofamerica-support-center.com — un domaine entièrement différent, conçu pour paraître légitime au premier coup d'œil.
+Le domaine de l'expéditeur est faux. Le vrai domaine de HSBC est hsbc.com. Cet e-mail provient de hsbc-support-center.com — un domaine entièrement différent, conçu pour paraître légitime au premier coup d'œil.
 
 ## Les techniques utilisées sont des classiques du phishing
 * Urgence artificielle (« 24 heures » ou « définitivement suspendu »)
@@ -94,8 +94,8 @@ Les escrocs peuvent obtenir des numéros de compte partiels via des fuites de do
 ## Que faire
 * Ne cliquez sur aucun lien dans cet e-mail
 * Signalez-le comme phishing/spam dans votre messagerie
-* Si vous avez un doute sur votre compte Bank of America, rendez-vous directement sur bankofamerica.com en le tapant dans votre navigateur, ou appelez le numéro au dos de votre carte
-* Vous pouvez aussi transférer les e-mails de phishing à abuse@bankofamerica.com`,
+* Si vous avez un doute sur votre compte HSBC, rendez-vous directement sur hsbc.com en le tapant dans votre navigateur, ou appelez le numéro au dos de votre carte
+* Vous pouvez aussi transférer les e-mails de phishing à phishing@hsbc.com`,
     },
     hannah: {
       user: `J'ai du mal à m'endormir et à rester endormie. Je me réveille souvent à 3h ou 4h du matin et je n'arrive pas à me rendormir. Que puis-je faire pour améliorer mon sommeil ?`,
@@ -244,12 +244,12 @@ Una cena especial para cerrar el viaje por todo lo alto. Septime, en el distrito
     tom: {
       user: `Recibí este correo electrónico ayer, ¿es legítimo?
 
-De: security-alert@bankofamerica-support-center.com
+De: security-alert@hsbc-support-center.com
 Asunto: ⚠️ Urgente: Se ha detectado actividad sospechosa en tu cuenta
 
 Hola Tom,
 
-Hemos detectado actividad de inicio de sesión inusual en tu cuenta de Bank of America que termina en 3486. Para proteger tu cuenta, hemos limitado el acceso temporalmente.
+Hemos detectado actividad de inicio de sesión inusual en tu cuenta de HSBC que termina en 3486. Para proteger tu cuenta, hemos limitado el acceso temporalmente.
 
 Por favor, verifica tu identidad en un plazo de 24 horas para restaurar el acceso completo:
 
@@ -257,10 +257,10 @@ Por favor, verifica tu identidad en un plazo de 24 horas para restaurar el acces
 
 Si no verificas tu identidad, tu cuenta será suspendida de forma permanente.
 
-Equipo de Seguridad de Bank of America`,
+Equipo de Seguridad de HSBC`,
       assistant: `Este es un correo de phishing. No hagas clic en ningún enlace. Aquí tienes los motivos por los que es claramente fraudulento:
 
-El dominio del remitente es falso. El dominio real de Bank of America es bankofamerica.com. Este correo proviene de bankofamerica-support-center.com — un dominio completamente diferente diseñado para parecer legítimo a primera vista.
+El dominio del remitente es falso. El dominio real de HSBC es hsbc.com. Este correo proviene de hsbc-support-center.com — un dominio completamente diferente diseñado para parecer legítimo a primera vista.
 
 ## Las tácticas son patrones clásicos de phishing
 * Urgencia artificial ("24 horas" o "suspendida de forma permanente")
@@ -274,8 +274,8 @@ Los estafadores pueden obtener números de cuenta parciales a través de filtrac
 ## Qué hacer
 * No hagas clic en ningún enlace del correo
 * Márcalo como phishing/spam en tu cliente de correo
-* Si realmente te preocupa tu cuenta de BofA, ve directamente a bankofamerica.com escribiéndolo en tu navegador, o llama al número que aparece en el reverso de tu tarjeta
-* También puedes reenviar correos de phishing a abuse@bankofamerica.com`,
+* Si realmente te preocupa tu cuenta de HSBC, ve directamente a hsbc.com escribiéndolo en tu navegador, o llama al número que aparece en el reverso de tu tarjeta
+* También puedes reenviar correos de phishing a phishing@hsbc.com`,
     },
     hannah: {
       user: `He tenido problemas para conciliar el sueño y para mantenerlo. A menudo me despierto a las 3 o las 4 de la madrugada y me cuesta volver a dormirme. ¿Qué puedo hacer para mejorar mi sueño?`,
@@ -424,12 +424,12 @@ Schlemmeressen zum Abschluss der Reise. Septime im 11. Arrondissement ist eines 
     tom: {
       user: `Ich habe diese E-Mail gestern erhalten. Ist sie legitim?
 
-Von: security-alert@bankofamerica-support-center.com
+Von: security-alert@hsbc-support-center.com
 Betreff: ⚠️ Dringend: Verdächtige Aktivität auf Ihrem Konto festgestellt
 
 Hallo Tom,
 
-wir haben ungewöhnliche Anmeldeaktivitäten auf Ihrem Bank of America-Konto mit der Endung 3486 festgestellt. Um Ihr Konto zu schützen, haben wir den Zugriff vorübergehend eingeschränkt.
+wir haben ungewöhnliche Anmeldeaktivitäten auf Ihrem HSBC-Konto mit der Endung 3486 festgestellt. Um Ihr Konto zu schützen, haben wir den Zugriff vorübergehend eingeschränkt.
 
 Bitte bestätigen Sie Ihre Identität innerhalb von 24 Stunden, um den vollständigen Zugriff wiederherzustellen:
 
@@ -437,10 +437,10 @@ Bitte bestätigen Sie Ihre Identität innerhalb von 24 Stunden, um den vollstän
 
 Wenn Sie Ihre Identität nicht bestätigen, wird Ihr Konto dauerhaft gesperrt.
 
-Bank of America Sicherheitsteam`,
+HSBC Sicherheitsteam`,
       assistant: `Das ist eine Phishing-E-Mail. Klicke auf keinen Link darin. Hier ist der Grund, warum sie eindeutig betrügerisch ist:
 
-Die Absender-Domain ist gefälscht. Die echte Domain von Bank of America ist bankofamerica.com. Diese E-Mail kommt von bankofamerica-support-center.com — eine völlig andere Domain, die darauf ausgelegt ist, auf den ersten Blick legitim zu wirken.
+Die Absender-Domain ist gefälscht. Die echte Domain von HSBC ist hsbc.com. Diese E-Mail kommt von hsbc-support-center.com — eine völlig andere Domain, die darauf ausgelegt ist, auf den ersten Blick legitim zu wirken.
 
 ## Die Methoden sind klassische Phishing-Muster
 * Künstliche Dringlichkeit ("24 Stunden" oder "dauerhaft gesperrt")
@@ -454,8 +454,8 @@ Betrüger können Teile von Kontonummern aus Datenlecks erhalten oder sie einfac
 ## Was du tun solltest
 * Klicke auf keinen Link in der E-Mail
 * Markiere sie als Phishing/Spam in deinem E-Mail-Programm
-* Wenn du wirklich besorgt über dein BofA-Konto bist, gehe direkt auf bankofamerica.com, indem du die Adresse in deinen Browser eingibst, oder ruf die Nummer auf der Rückseite deiner Karte an
-* Du kannst Phishing-E-Mails auch an abuse@bankofamerica.com weiterleiten`,
+* Wenn du wirklich besorgt über dein HSBC-Konto bist, gehe direkt auf hsbc.com, indem du die Adresse in deinen Browser eingibst, oder ruf die Nummer auf der Rückseite deiner Karte an
+* Du kannst Phishing-E-Mails auch an phishing@hsbc.com weiterleiten`,
     },
     hannah: {
       user: `Ich habe Probleme beim Einschlafen und Durchschlafen. Ich wache oft um 3 oder 4 Uhr morgens auf und kann dann nur schwer wieder einschlafen. Was kann ich tun, um meinen Schlaf zu verbessern?`,
@@ -604,12 +604,12 @@ Una cena speciale per concludere il viaggio. Septime, nell'11° arrondissement, 
     tom: {
       user: `Ho ricevuto questa email ieri, è legittima?
 
-Da: security-alert@bankofamerica-support-center.com
+Da: security-alert@hsbc-support-center.com
 Oggetto: ⚠️ Urgente: Rilevata attività sospetta sul tuo conto
 
 Ciao Tom,
 
-Abbiamo rilevato un'attività di accesso insolita sul tuo conto Bank of America che termina con 3486. Per proteggere il tuo conto, ne abbiamo temporaneamente limitato l'accesso.
+Abbiamo rilevato un'attività di accesso insolita sul tuo conto HSBC che termina con 3486. Per proteggere il tuo conto, ne abbiamo temporaneamente limitato l'accesso.
 
 Verifica la tua identità entro 24 ore per ripristinare l'accesso completo:
 
@@ -617,10 +617,10 @@ Verifica la tua identità entro 24 ore per ripristinare l'accesso completo:
 
 Se non effettui la verifica, il tuo conto verrà sospeso definitivamente.
 
-Team di Sicurezza di Bank of America`,
+Team di Sicurezza HSBC`,
       assistant: `Questa è un'email di phishing. Non cliccare su nessun link al suo interno. Ecco perché è chiaramente fraudolenta:
 
-Il dominio del mittente è falso. Il vero dominio di Bank of America è bankofamerica.com. Questa email proviene da bankofamerica-support-center.com — un dominio completamente diverso, progettato per sembrare legittimo a prima vista.
+Il dominio del mittente è falso. Il vero dominio di HSBC è hsbc.com. Questa email proviene da hsbc-support-center.com — un dominio completamente diverso, progettato per sembrare legittimo a prima vista.
 
 ## Le tattiche sono classici schemi di phishing
 * Urgenza artificiale ("24 ore" o "sospeso definitivamente")
@@ -634,8 +634,8 @@ I truffatori possono ottenere numeri di conto parziali da violazioni di dati o s
 ## Cosa fare
 * Non cliccare su nessun link nell'email
 * Segnalala come phishing/spam nel tuo client di posta
-* Se sei davvero preoccupato per il tuo conto BofA, vai direttamente su bankofamerica.com digitandolo nel browser, oppure chiama il numero sul retro della tua carta
-* Puoi anche inoltrare le email di phishing a abuse@bankofamerica.com`,
+* Se sei davvero preoccupato per il tuo conto HSBC, vai direttamente su hsbc.com digitandolo nel browser, oppure chiama il numero sul retro della tua carta
+* Puoi anche inoltrare le email di phishing a phishing@hsbc.com`,
     },
     hannah: {
       user: `Ho difficoltà ad addormentarmi e a mantenere il sonno. Spesso mi sveglio alle 3 o alle 4 di mattina e faccio fatica a riaddormentarmi. Cosa posso fare per migliorare il mio sonno?`,
@@ -784,12 +784,12 @@ Um jantar especial para fechar a viagem. O Septime, no 11.º arrondissement, é 
     tom: {
       user: `Recebi este email ontem, é legítimo?
 
-De: security-alert@bankofamerica-support-center.com
+De: security-alert@hsbc-support-center.com
 Assunto: ⚠️ Urgente: Atividade suspeita detetada na sua conta
 
 Olá Tom,
 
-Detetámos atividade de início de sessão invulgar na sua conta do Bank of America com final em 3486. Para proteger a sua conta, limitámos temporariamente o acesso.
+Detetámos atividade de início de sessão invulgar na sua conta do HSBC com final em 3486. Para proteger a sua conta, limitámos temporariamente o acesso.
 
 Por favor, verifique a sua identidade nas próximas 24 horas para restaurar o acesso completo:
 
@@ -797,10 +797,10 @@ Por favor, verifique a sua identidade nas próximas 24 horas para restaurar o ac
 
 Se não verificar, a sua conta será permanentemente suspensa.
 
-Equipa de Segurança do Bank of America`,
+Equipa de Segurança do HSBC`,
       assistant: `Este é um email de phishing. Não cliques em nenhum link. Eis porque é claramente fraudulento:
 
-O domínio do remetente é falso. O domínio real do Bank of America é bankofamerica.com. Este email vem de bankofamerica-support-center.com — um domínio completamente diferente, concebido para parecer legítimo à primeira vista.
+O domínio do remetente é falso. O domínio real do HSBC é hsbc.com. Este email vem de hsbc-support-center.com — um domínio completamente diferente, concebido para parecer legítimo à primeira vista.
 
 ## As táticas são padrões clássicos de phishing
 * Urgência artificial ("24 horas" ou "permanentemente suspensa")
@@ -814,8 +814,8 @@ Os burlões podem obter números de conta parciais através de violações de da
 ## O que fazer
 * Não cliques em nenhum link do email
 * Marca-o como phishing/spam no teu cliente de email
-* Se estiveres genuinamente preocupado com a tua conta do BofA, vai diretamente a bankofamerica.com escrevendo o endereço no browser, ou liga para o número no verso do teu cartão
-* Também podes reencaminhar emails de phishing para abuse@bankofamerica.com`,
+* Se estiveres genuinamente preocupado com a tua conta do HSBC, vai diretamente a hsbc.com escrevendo o endereço no browser, ou liga para o número no verso do teu cartão
+* Também podes reencaminhar emails de phishing para phishing@hsbc.com`,
     },
     hannah: {
       user: `Tenho tido dificuldade em adormecer e em manter o sono. Acordo muitas vezes às 3 ou 4 da manhã e tenho dificuldade em voltar a adormecer. O que posso fazer para melhorar o sono?`,

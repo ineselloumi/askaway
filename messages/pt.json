@@ -73,7 +73,14 @@
       "imagePlaceholder":     "O que você gostaria de saber sobre esta imagem?",
       "firstPlaceholder":     "Cole ou escreva aqui...",
       "answerPlaceholder":    "Digite sua resposta...",
-      "imageAlt":             "Carregado"
+      "imageAlt":             "Carregado",
+      "sidebarTitle":         "Conversas",
+      "newConversation":      "Nova conversa",
+      "sidebarEmpty":         "As suas conversas aparecerão aqui quando começar a conversar.",
+      "justNow":              "agora mesmo",
+      "minutesAgo":           "há {n} min",
+      "hoursAgo":             "há {n} h",
+      "sidebarFootnote":      "Estas conversas desaparecerão quando fechar este separador."
     },
     "tips": {
       "1bold": "Diga com suas próprias palavras:",

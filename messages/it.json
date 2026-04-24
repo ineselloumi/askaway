@@ -73,7 +73,14 @@
       "imagePlaceholder":     "Cosa vorresti sapere su questa immagine?",
       "firstPlaceholder":     "Incolla o scrivi qui...",
       "answerPlaceholder":    "Scrivi la tua risposta...",
-      "imageAlt":             "Caricato"
+      "imageAlt":             "Caricato",
+      "sidebarTitle":         "Conversazioni",
+      "newConversation":      "Nuova conversazione",
+      "sidebarEmpty":         "Le tue conversazioni appariranno qui una volta che avrai iniziato a chattare.",
+      "justNow":              "proprio ora",
+      "minutesAgo":           "{n} min fa",
+      "hoursAgo":             "{n} h fa",
+      "sidebarFootnote":      "Queste conversazioni scompariranno quando chiuderai questa scheda."
     },
     "tips": {
       "1bold": "Dillo con parole tue:",

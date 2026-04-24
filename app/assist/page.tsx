@@ -303,7 +303,7 @@ function AssistPageContent() {
           fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'title', message: firstUserMsg.text, situation }),
+            body: JSON.stringify({ action: 'title', message: firstUserMsg.text, situation, locale }),
           })
             .then(r => r.json())
             .then(data => {
@@ -637,7 +637,7 @@ function AssistPageContent() {
     fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'title', message: firstUserMessage }),
+      body: JSON.stringify({ action: 'title', message: firstUserMessage, locale }),
     })
       .then(r => r.json())
       .then(data => { if (data.title) setConversationTitle(data.title); })

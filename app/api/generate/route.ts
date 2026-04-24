@@ -50,6 +50,8 @@ const languageInstructions: Record<string, string> = {
   fr: 'IMPORTANT: Réponds entièrement en français.',
   es: 'IMPORTANT: Responde completamente en español.',
   de: 'IMPORTANT: Antworte vollständig auf Deutsch.',
+  it: 'IMPORTANT: Rispondi completamente in italiano.',
+  pt: 'IMPORTANT: Responde completamente em português.',
 };
 
 function getLanguageInstruction(locale?: string): string {
@@ -741,7 +743,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ title: words });
       }
 
-      const prompt = buildTitlePrompt(firstMessage);
+      const prompt = buildTitlePrompt(firstMessage) + langInstruction;
       const response = await callLLM(prompt);
       return NextResponse.json({ title: response.trim() });
     }

@@ -73,7 +73,14 @@
       "imagePlaceholder":     "Qu'aimeriez-vous savoir sur cette image ?",
       "firstPlaceholder":     "Collez ou écrivez ici...",
       "answerPlaceholder":    "Tapez votre réponse...",
-      "imageAlt":             "Image téléchargée"
+      "imageAlt":             "Image téléchargée",
+      "sidebarTitle":         "Conversations",
+      "newConversation":      "Nouvelle conversation",
+      "sidebarEmpty":         "Vos conversations apparaîtront ici une fois que vous aurez commencé à discuter.",
+      "justNow":              "à l'instant",
+      "minutesAgo":           "il y a {n} min",
+      "hoursAgo":             "il y a {n} h",
+      "sidebarFootnote":      "Ces conversations disparaîtront lorsque vous fermerez cet onglet."
     },
     "tips": {
       "1bold": "Parlez naturellement :",

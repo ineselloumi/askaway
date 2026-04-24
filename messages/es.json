@@ -73,7 +73,14 @@
       "imagePlaceholder":     "¿Qué te gustaría saber sobre esta imagen?",
       "firstPlaceholder":     "Pega o escribe aquí...",
       "answerPlaceholder":    "Escribe tu respuesta...",
-      "imageAlt":             "Subido"
+      "imageAlt":             "Subido",
+      "sidebarTitle":         "Conversaciones",
+      "newConversation":      "Nueva conversación",
+      "sidebarEmpty":         "Tus conversaciones aparecerán aquí cuando empieces a chatear.",
+      "justNow":              "ahora mismo",
+      "minutesAgo":           "hace {n} min",
+      "hoursAgo":             "hace {n} h",
+      "sidebarFootnote":      "Estas conversaciones desaparecerán cuando cierres esta pestaña."
     },
     "tips": {
       "1bold": "Dilo con tus propias palabras:",

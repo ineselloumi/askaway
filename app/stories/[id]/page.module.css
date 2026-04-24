@@ -3,7 +3,7 @@
    ═══════════════════════════════════════════════════════ */
 
 .page {
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -490,8 +490,10 @@
   }
 
   .mainLayout {
-    display: block;
-    padding: 0 var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: unset;
+    padding: 0;
   }
 
   .faqPanel {
@@ -573,6 +575,10 @@
     width: 100%;
   }
 
+  .chatInner {
+    padding: 0 var(--spacing-md);
+  }
+
   .banner {
     flex-direction: column;
     align-items: center;
@@ -583,6 +589,6 @@
     flex-direction: column;
     gap: 10px;
     text-align: center;
-    padding: 14px 24px;
+    padding: 14px 20px;
   }
 }
