@@ -99,16 +99,16 @@ export function ConversationsProvider({ children }: { children: React.ReactNode 
   const [pendingLoad, setPendingLoad] = useState<SavedConversation | null>(null);
   const supabase = createClient();
 
-  // ── Load conversations from Supabase whenever user is ready ──────────────
+  // Conversations queued before auth resolved — kept in state so changes trigger a re-run
+  const [pendingSaves, setPendingSaves] = useState<SavedConversation[]>([]);
+
+  // ── Initial load from Supabase when user is ready ─────────────────────────
 
   useEffect(() => {
-    // Wait until auth is resolved and we have a user (anonymous or real)
     if (authLoading || !user) return;
 
-    const fetchConversations = async () => {
-      // Recovery: if the user has a real account, check sessionStorage for any
-      // conversations that were saved before anonymous auth was introduced and
-      // migrate them into Supabase so nothing is lost.
+    const initialLoad = async () => {
+      // Legacy sessionStorage recovery (pre-anonymous-auth sessions)
       if (!user.is_anonymous) {
         try {
           const stored = sessionStorage.getItem('askaway_conversations');
@@ -130,13 +130,31 @@ export function ConversationsProvider({ children }: { children: React.ReactNode 
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
-      if (!error && data) {
-        setConversations(data.map(rowToConv));
-      }
+      if (!error && data) setConversations(data.map(rowToConv));
     };
 
-    fetchConversations();
+    initialLoad();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, authLoading]);
+
+  // ── Flush pending saves the moment both user and pending items are available
+
+  useEffect(() => {
+    if (!user || authLoading || pendingSaves.length === 0) return;
+
+    const toFlush = pendingSaves;
+    setPendingSaves([]); // clear queue immediately to avoid double-flush
+
+    supabase
+      .from('conversations')
+      .upsert(toFlush.map(c => convToRow(c, user.id)), { onConflict: 'id' })
+      .then(({ error }) => {
+        if (error) console.error('[Supabase] flush failed:', error);
+        else console.log('[Supabase] flushed', toFlush.length, 'queued conversation(s)');
+      });
+  // pendingSaves.length as dep: re-runs whenever a new item is queued
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, authLoading, pendingSaves.length]);
 
   // ── CRUD ──────────────────────────────────────────────────────────────────
 
@@ -148,7 +166,15 @@ export function ConversationsProvider({ children }: { children: React.ReactNode 
       setConversations(prev => [newConv, ...prev]);
 
       if (user) {
-        supabase.from('conversations').insert(convToRow(newConv, user.id)).then();
+        supabase.from('conversations').insert(convToRow(newConv, user.id))
+          .then(({ error }) => {
+            if (error) console.error('[Supabase] insert failed:', error);
+            else console.log('[Supabase] insert ok:', newConv.id);
+          });
+      } else {
+        // Auth not ready yet — queue in state so the flush effect re-runs
+        console.warn('[Supabase] no user yet, queuing save for:', newConv.id);
+        setPendingSaves(prev => [...prev, newConv]);
       }
 
       return id;
@@ -158,23 +184,25 @@ export function ConversationsProvider({ children }: { children: React.ReactNode 
 
   const updateConversation = useCallback(
     (id: string, updates: Partial<SavedConversation>) => {
-      setConversations(prev =>
-        prev.map(c => c.id === id ? { ...c, ...updates, updatedAt: Date.now() } : c)
-      );
+      setConversations(prev => {
+        const next = prev.map(c => c.id === id ? { ...c, ...updates, updatedAt: Date.now() } : c);
 
-      if (user) {
-        const updatedAt = new Date().toISOString();
-        const dbUpdates: Record<string, unknown> = { updated_at: updatedAt };
-        if (updates.title !== undefined) dbUpdates.title = updates.title;
-        if (updates.messages !== undefined) dbUpdates.messages = updates.messages;
-        if (updates.answers !== undefined) dbUpdates.answers = updates.answers;
-        if (updates.draft !== undefined) dbUpdates.draft = updates.draft;
-        if (updates.showResult !== undefined) dbUpdates.show_result = updates.showResult;
-        if (updates.questionNumber !== undefined) dbUpdates.question_number = updates.questionNumber;
-        if (updates.currentQuestion !== undefined) dbUpdates.current_question = updates.currentQuestion;
-        if (updates.followUpSuggestions !== undefined) dbUpdates.follow_up_suggestions = updates.followUpSuggestions;
-        supabase.from('conversations').update(dbUpdates).eq('id', id).then();
-      }
+        if (user) {
+          const updatedConv = next.find(c => c.id === id);
+          if (updatedConv) {
+            supabase
+              .from('conversations')
+              .upsert(convToRow(updatedConv, user.id), { onConflict: 'id' })
+              .then(({ error }) => {
+                if (error) console.error('[Supabase] upsert failed:', error);
+              });
+          }
+        }
+        // If no user yet, the pending save will carry the full conversation
+        // and the flush will upsert it when auth resolves.
+
+        return next;
+      });
     },
     [user]
   );

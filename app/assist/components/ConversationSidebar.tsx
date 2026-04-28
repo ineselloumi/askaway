@@ -91,10 +91,12 @@ export default function ConversationSidebar({ open, onClose, onNewConversation }
             ))}
           </nav>
 
-          {/* Case B — guest with conversations: sign-up nudge right below list */}
-          {isGuest && hasConversations && (
+          {/* Cases A & B — always show Google CTA for guests */}
+          {isGuest && (
             <div className={styles.authSection}>
-              <p className={styles.signInText}>{t('assist.ui.signUpNudge')}</p>
+              {hasConversations && (
+                <p className={styles.signInText}>{t('assist.ui.signUpNudge')}</p>
+              )}
               <button className={styles.signInButton} onClick={signInWithGoogle}>
                 <GoogleIcon />
                 {t('assist.ui.signInGoogle')}

@@ -19,16 +19,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
   useEffect(() => {
-    // Get initial session — if none, sign in anonymously so every visitor has a user_id
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (data.user) {
-        setUser(data.user);
+    const initAuth = async () => {
+      // 1. Check localStorage first (instant, no network call) — handles returning users
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session?.user) {
+        setUser(sessionData.session.user);
+        setLoading(false);
+        return;
+      }
+
+      // 2. No cached session — verify with server (catches expired/invalid tokens)
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData.user) {
+        setUser(userData.user);
+        setLoading(false);
+        return;
+      }
+
+      // 3. Truly new visitor — sign in anonymously so conversations are persisted from the start
+      const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
+      if (anonError) {
+        // Anonymous auth not available (e.g. disabled in Supabase dashboard)
+        // App still works — conversations just won't be saved until user signs in with Google
+        console.warn('[Auth] Anonymous sign-in unavailable:', anonError.message);
       } else {
-        const { data: anonData } = await supabase.auth.signInAnonymously();
         setUser(anonData.user ?? null);
       }
       setLoading(false);
-    });
+    };
+
+    initAuth();
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
