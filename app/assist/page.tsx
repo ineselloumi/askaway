@@ -7,6 +7,7 @@ import { useLocale } from '@/contexts/LocaleContext';
 import { useConversations, type MessageType, type ChatMessage, type Answer } from '@/contexts/ConversationsContext';
 import ConversationSidebar from './components/ConversationSidebar';
 import styles from './page.module.css';
+import { trackSearch } from '@/lib/pixel';
 
 function renderInline(line: string) {
   return line.split(/(\*\*[^*]+\*\*)/).map((part, j) =>
@@ -427,6 +428,7 @@ function AssistPageContent() {
 
     const trimmedAnswer = answer.trim();
     setTextInput('');
+    trackSearch();
 
     // Generate a smart title from the first user message
     if (answers.length === 0 && trimmedAnswer) generateTitle(trimmedAnswer);
@@ -561,6 +563,7 @@ function AssistPageContent() {
   };
 
   const restartWithQuery = async (query: string) => {
+    trackSearch();
     hasScrolledToResultRef.current = false;
     // Reset conversation refs so the auto-save creates a fresh entry
     conversationIdRef.current = null;
@@ -699,6 +702,7 @@ function AssistPageContent() {
 
     setFollowUpInput('');
     setFollowUpSuggestions([]);
+    trackSearch();
 
     if (draft) addMessage('assistant', draft);
     addMessage('user', question);

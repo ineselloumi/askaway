@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '@/contexts/LocaleContext';
+import { trackSearch } from '@/lib/pixel';
 import styles from '../page.module.css';
 
 export default function HomeQueryInput() {
@@ -13,6 +14,7 @@ export default function HomeQueryInput() {
   const handleSubmit = () => {
     const trimmed = query.trim();
     if (!trimmed) return;
+    trackSearch();
     router.push(`/assist?situation=other&query=${encodeURIComponent(trimmed)}&lang=${locale}`);
   };
 
