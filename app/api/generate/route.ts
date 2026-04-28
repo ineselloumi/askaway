@@ -25,11 +25,11 @@ function checkRateLimit(ip: string): boolean {
 // ---------------------------------------------------------------------------
 // Input limits
 // ---------------------------------------------------------------------------
-const MAX_MESSAGE_LENGTH    = 2_000;
+const MAX_MESSAGE_LENGTH    = 100_000; // users paste essays/articles
 const MAX_DRAFT_LENGTH      = 10_000;
 const MAX_FOLLOW_UP_LENGTH  = 500;
 const MAX_ANSWERS_COUNT     = 10;
-const MAX_ANSWER_LENGTH     = 1_000;
+const MAX_ANSWER_LENGTH     = 50_000; // users paste essays/articles
 const MAX_IMAGE_B64_BYTES   = 5 * 1024 * 1024; // ~3.75 MB original image
 
 interface GenerateRequest {

@@ -182,7 +182,10 @@ function AssistPageContent() {
           const checkData = await checkResponse.json();
           logPrompt('check-ready', checkData);
 
-          if (checkData.ready) {
+          if (checkData.error) {
+            setIsTyping(false);
+            addMessage('assistant', t('assist.ui.errorGeneral'));
+          } else if (checkData.ready) {
             await generateDraft(newAnswers);
           } else if (checkData.question) {
             setIsTyping(false);
@@ -195,7 +198,7 @@ function AssistPageContent() {
         } catch (error) {
           console.error('Error checking readiness for initial query:', error);
           setIsTyping(false);
-          await generateDraft(newAnswers);
+          addMessage('assistant', t('assist.ui.errorGeneral'));
         }
         return;
       }
@@ -460,6 +463,11 @@ function AssistPageContent() {
         const checkData = await checkResponse.json();
         logPrompt('check-ready', checkData);
 
+        if (checkData.error) {
+          setIsTyping(false);
+          addMessage('assistant', t('assist.ui.errorGeneral'));
+          return;
+        }
         if (checkData.ready) {
           await generateDraft(newAnswers);
           return;
@@ -472,6 +480,9 @@ function AssistPageContent() {
         }
       } catch (error) {
         console.error('Error checking readiness:', error);
+        setIsTyping(false);
+        addMessage('assistant', t('assist.ui.errorGeneral'));
+        return;
       }
     }
 
@@ -489,6 +500,10 @@ function AssistPageContent() {
       logPrompt('next-question', data);
       setIsTyping(false);
 
+      if (data.error) {
+        addMessage('assistant', t('assist.ui.errorGeneral'));
+        return;
+      }
       if (data.question) {
         setCurrentQuestion({ question: data.question, suggestions: data.suggestions || [] });
         setQuestionNumber(nextQuestionNumber);
@@ -527,6 +542,11 @@ function AssistPageContent() {
       const data = await response.json();
       logPrompt('draft', data);
       setIsTyping(false);
+
+      if (data.error) {
+        addMessage('assistant', data.error);
+        return;
+      }
 
       if (data.draft) {
         setDraft(data.draft);
