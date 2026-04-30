@@ -830,9 +830,35 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      const prompt = buildFollowUpAnswerPrompt(body.situation, answers, previousDraft, body.followUpQuestion) + langInstruction;
-      const response = await callLLM(prompt);
-      return NextResponse.json({ refined: response.trim(), isFollowUp: true, _prompt: prompt });
+      // Run citation enrichment on the follow-up question too
+      let sources: CitationSource[] = [];
+      const tavilyKey = process.env.TAVILY_API_KEY;
+      const anthropicKey = getAnthropicKey();
+      const followUpQuestion = body.followUpQuestion.slice(0, 500);
+
+      if (tavilyKey && anthropicKey && (body.locale === 'en' || !body.locale)) {
+        try {
+          const classification = await classifyQuery(followUpQuestion, anthropicKey);
+          if (classification.needs_citation && classification.categories.length > 0) {
+            sources = await fetchCitations(
+              followUpQuestion,
+              classification.categories,
+              classification.is_recent_news,
+              tavilyKey,
+            );
+          }
+        } catch (err) {
+          console.warn('Citation enrichment skipped (follow-up):', err);
+        }
+      }
+
+      const citationContext = buildCitationContext(sources);
+      const systemSuffix = sources.length > 0
+        ? `IMPORTANT: For this response you have been given real-time web sources fetched right now. These sources are current and authoritative — they supersede your training knowledge cutoff. Answer the user's question fully and confidently using these sources. Do NOT say you lack recent information or suggest the user check elsewhere.`
+        : undefined;
+      const prompt = buildFollowUpAnswerPrompt(body.situation, answers, previousDraft, body.followUpQuestion) + citationContext + langInstruction;
+      const response = await callLLM(prompt, undefined, systemSuffix);
+      return NextResponse.json({ refined: response.trim(), sources, isFollowUp: true, _prompt: prompt });
     }
 
     // Refine existing draft

@@ -755,6 +755,7 @@ function AssistPageContent() {
 
       if (data.refined) {
         setDraft(data.refined);
+        setDraftSources(data.sources ?? []);
         setShowResult(true);
         loadFollowUpSuggestions(updatedAnswers, data.refined);
       }
