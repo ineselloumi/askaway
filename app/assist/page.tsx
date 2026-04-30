@@ -18,6 +18,10 @@ function renderInline(line: string) {
   );
 }
 
+function stripCitationMarkers(text: string): string {
+  return text.replace(/\[\[(.+?)\]\]\{(?:source_)?\d+\}/g, '$1');
+}
+
 function renderInlineCitations(line: string, sources: CitationSource[]) {
   // Match [[phrase]]{1} or [[phrase]]{source_1} (tolerant of Claude's format variations)
   const parts = line.split(/(\[\[.+?\]\]\{(?:source_)?\d+\})/);
@@ -733,7 +737,7 @@ function AssistPageContent() {
     setFollowUpSuggestions([]);
     trackSearch();
 
-    if (draft) addMessage('assistant', draft);
+    if (draft) addMessage('assistant', stripCitationMarkers(draft));
     addMessage('user', question);
     setTypingLabel(t('assist.ui.thinking'));
     setIsTyping(true);
