@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateMockDrafts, refineMockDraft, generateMockQuestions } from '@/lib/mockGenerator';
+import { classifyQuery, fetchCitations, buildCitationContext, type CitationSource } from '@/lib/citations';
 
 export const config = {
   api: { bodyParser: { sizeLimit: '8mb' } },
@@ -519,7 +520,7 @@ Examples: "Paris trip itinerary", "Seasonal allergy symptoms", "Dairy-free lasag
 Respond with just the title, nothing else.`;
 }
 
-async function callAnthropic(prompt: string, imageData?: string | string[]): Promise<string> {
+async function callAnthropic(prompt: string, imageData?: string | string[], systemSuffix?: string): Promise<string> {
   // Build message content — include images as vision blocks when provided
   let messageContent: unknown = prompt;
 
@@ -549,6 +550,20 @@ async function callAnthropic(prompt: string, imageData?: string | string[]): Pro
     body: JSON.stringify({
       model: imageList.length > 0 ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001',
       max_tokens: 1024,
+      system: `You are Ask Away, an AI assistant powered by Claude (made by Anthropic). Ask Away was built to make AI useful and approachable for people who are new to it.
+
+What Ask Away can do:
+- Analyze and generate text (writing, explaining, summarizing, translating, answering questions, etc.)
+- Analyze images uploaded by the user
+
+What Ask Away cannot do:
+- Generate images
+- Build software applications
+- Run autonomous agents or multi-step automated tasks
+
+Ask Away was created by an independent developer who prefers to stay anonymous. They are not affiliated with any company and are not making money from it. The developer built Ask Away because they wanted to help everyday people get real value from AI.
+
+When users ask who you are, what tool they're using, or how you differ from other AI tools (like ChatGPT, Gemini, etc.), answer as Ask Away — not as Claude directly. You are Claude under the hood, but the product the user is interacting with is Ask Away.${systemSuffix ? `\n\n${systemSuffix}` : ''}`,
       messages: [{ role: 'user', content: messageContent }],
     }),
   });
@@ -585,11 +600,11 @@ async function callOpenAI(prompt: string): Promise<string> {
   return data.choices[0].message.content;
 }
 
-async function callLLM(prompt: string, imageData?: string | string[]): Promise<string> {
+async function callLLM(prompt: string, imageData?: string | string[], systemSuffix?: string): Promise<string> {
   if (getProvider() === 'anthropic') {
-    return callAnthropic(prompt, imageData);
+    return callAnthropic(prompt, imageData, systemSuffix);
   } else {
-    return callOpenAI(prompt); // OpenAI vision would require a separate implementation
+    return callOpenAI(prompt);
   }
 }
 
@@ -847,9 +862,38 @@ export async function POST(request: NextRequest) {
       }
 
       const imageData = body.images ?? (body.image ? [body.image] : undefined);
-      const prompt = buildDraftPrompt(body.message, body.situation, body.answers || [], !!(imageData?.length)) + langInstruction;
-      const draft = await callLLM(prompt, imageData);
-      return NextResponse.json({ draft: draft.trim(), _prompt: prompt });
+      const hasImage = !!(imageData?.length);
+
+      // Only attempt citations for English and non-image requests
+      let sources: CitationSource[] = [];
+      const tavilyKey = process.env.TAVILY_API_KEY;
+      const anthropicKey = getAnthropicKey();
+      const userQuestion = (body.answers?.[0]?.answer || body.message || '').slice(0, 500);
+
+      if (tavilyKey && anthropicKey && !hasImage && (body.locale === 'en' || !body.locale)) {
+        try {
+          const classification = await classifyQuery(userQuestion, anthropicKey);
+          if (classification.needs_citation && classification.categories.length > 0) {
+            sources = await fetchCitations(
+              userQuestion,
+              classification.categories,
+              classification.is_recent_news,
+              tavilyKey,
+            );
+          }
+        } catch (err) {
+          // Citation enrichment is best-effort — never block the draft
+          console.warn('Citation enrichment skipped:', err);
+        }
+      }
+
+      const citationContext = buildCitationContext(sources);
+      const prompt = buildDraftPrompt(body.message, body.situation, body.answers || [], hasImage) + citationContext + langInstruction;
+      const systemSuffix = sources.length > 0
+        ? `IMPORTANT: For this response you have been given real-time web sources fetched right now. These sources are current and authoritative — they supersede your training knowledge cutoff. Answer the user's question fully and confidently using these sources. Do NOT say you lack recent information or suggest the user check elsewhere. The sources provided ARE the up-to-date information.`
+        : undefined;
+      const draft = await callLLM(prompt, imageData, systemSuffix);
+      return NextResponse.json({ draft: draft.trim(), sources, _prompt: prompt });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

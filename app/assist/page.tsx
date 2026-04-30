@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useConversations, type MessageType, type ChatMessage, type Answer } from '@/contexts/ConversationsContext';
 import ConversationSidebar from './components/ConversationSidebar';
+import CitationTooltip, { type CitationSource } from '@/app/components/CitationTooltip';
 import styles from './page.module.css';
 import { trackSearch } from '@/lib/pixel';
 
@@ -17,7 +18,23 @@ function renderInline(line: string) {
   );
 }
 
-function renderText(text: string) {
+function renderInlineCitations(line: string, sources: CitationSource[]) {
+  // Match [[phrase]]{1} or [[phrase]]{source_1} (tolerant of Claude's format variations)
+  const parts = line.split(/(\[\[.+?\]\]\{(?:source_)?\d+\})/);
+  return parts.map((part, i) => {
+    const match = part.match(/^\[\[(.+?)\]\]\{(?:source_)?(\d+)\}$/);
+    if (match) {
+      const phrase = match[1];
+      const id = parseInt(match[2], 10);
+      const source = sources.find(s => s.id === id);
+      if (source) return <CitationTooltip key={i} text={phrase} source={source} />;
+      return <span key={i}>{phrase}</span>;
+    }
+    return <span key={i}>{renderInline(part)}</span>;
+  });
+}
+
+function renderText(text: string, sources: CitationSource[] = []) {
   return text.split('\n').map((line, i, arr) => {
     const headingMatch = line.match(/^#{1,3} (.+)/);
     if (headingMatch) {
@@ -25,7 +42,7 @@ function renderText(text: string) {
     }
     return (
       <span key={i}>
-        {renderInline(line)}
+        {sources.length > 0 ? renderInlineCitations(line, sources) : renderInline(line)}
         {i < arr.length - 1 && <br />}
       </span>
     );
@@ -86,6 +103,9 @@ function AssistPageContent() {
   const conversationIdRef = useRef<string | null>(null);
   // Prevents re-generating the LLM title after it has been set once
   const titleGeneratedRef = useRef(false);
+  // Set to true by handleNewConversation so the init effect ignores a stale
+  // ?query= param that hasn't been cleared from useSearchParams yet.
+  const skipInitialQueryRef = useRef(false);
 
   // Controls whether the conversation history sidebar is open (mobile only)
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -114,6 +134,7 @@ function AssistPageContent() {
 
   // Result state
   const [draft, setDraft] = useState('');
+  const [draftSources, setDraftSources] = useState<CitationSource[]>([]);
   const [showResult, setShowResult] = useState(false);
   const [copied, setCopied] = useState(false);
   const [followUpInput, setFollowUpInput] = useState('');
@@ -161,11 +182,13 @@ function AssistPageContent() {
     hasInitialized.current = true;
 
     const initConversation = async () => {
-      if (initialQuery) {
+      const queryToUse = skipInitialQueryRef.current ? '' : initialQuery;
+      skipInitialQueryRef.current = false;
+      if (queryToUse) {
         const userMsgId = nextMessageId();
-        setMessages([{ id: userMsgId, type: 'user', text: initialQuery }]);
+        setMessages([{ id: userMsgId, type: 'user', text: queryToUse }]);
 
-        const firstAnswer = { question: t('assist.ui.initialQuestion'), answer: initialQuery };
+        const firstAnswer = { question: t('assist.ui.initialQuestion'), answer: queryToUse };
         const newAnswers = [firstAnswer];
         setAnswers(newAnswers);
         setQuestionNumber(1);
@@ -344,6 +367,7 @@ function AssistPageContent() {
     setMessages([]);
     setAnswers([]);
     setDraft('');
+    setDraftSources([]);
     setShowResult(false);
     setQuestionNumber(0);
     setCurrentQuestion(null);
@@ -358,8 +382,10 @@ function AssistPageContent() {
     hasScrolledToResultRef.current = false;
     setFaqDrawerOpen(false);
     if (situation === 'other') {
-      // Already on the right URL — router.push would be a no-op, so bump
-      // resetKey directly to re-fire the init effect.
+      // Flag the ref before bumping resetKey so the init effect ignores the
+      // stale ?query= param (useSearchParams hasn't updated yet at this point).
+      skipInitialQueryRef.current = true;
+      router.replace('/assist?situation=other');
       setResetKey(k => k + 1);
     } else {
       // Navigating away: the situation change in the effect deps will trigger
@@ -552,6 +578,7 @@ function AssistPageContent() {
 
       if (data.draft) {
         setDraft(data.draft);
+        setDraftSources(data.sources ?? []);
         setShowResult(true);
         loadFollowUpSuggestions(finalAnswers, data.draft);
       }
@@ -576,6 +603,7 @@ function AssistPageContent() {
     setQuestionNumber(1);
     setAnswers(newAnswers);
     setDraft('');
+    setDraftSources([]);
     setShowResult(false);
     setCopied(false);
     setFollowUpInput('');
@@ -639,6 +667,7 @@ function AssistPageContent() {
 
     setTextInput('');
     setDraft('');
+    setDraftSources([]);
     setShowResult(false);
     setCopied(false);
     setFollowUpInput('');
@@ -934,7 +963,7 @@ function AssistPageContent() {
               <>
                 <div className={`${styles.message} ${styles.assistantMessage}`}>
                   <div className={styles.draftResponse}>
-                    <div className={styles.draftText}>{renderText(draft)}</div>
+                    <div className={styles.draftText}>{renderText(draft, draftSources)}</div>
                     <div className={styles.draftFooter}>
                       <p className={styles.responseDisclaimer}>
                         {t('assist.ui.disclaimer')}
