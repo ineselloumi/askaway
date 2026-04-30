@@ -214,21 +214,22 @@ export function buildCitationContext(sources: CitationSource[]): string {
   return `
 
 CITATION INSTRUCTIONS:
-The following sources were fetched in real time and represent current, up-to-date information. Treat them as your primary and authoritative source for this response — they override your training knowledge cutoff. Do NOT disclaim that you lack recent information; the sources below ARE the recent information. Summarize and answer directly from them.
+The following sources were fetched in real time and represent current, up-to-date information. Treat them as your primary and authoritative source for this response — they override your training knowledge cutoff. Do NOT disclaim that you lack recent information; the sources below ARE the recent information.
 
-Where your answer references a fact or claim from one of these sources, wrap the exact phrase in citation markers. Use ONLY this exact format — a number inside curly braces, no other text:
-[[the specific phrase]]{1}
-[[another phrase]]{2}
-[[same source again]]{1}
+Write your entire response in your own words. Do not copy or paraphrase closely from the sources — synthesize the information into a single coherent, flowing answer in your own voice. Then, for any sentence or claim that is backed by one of the sources, wrap YOUR OWN phrasing (not the source's words) in citation markers like this:
+
+[[your own phrasing of the claim]]{1}
+[[another claim you wrote]]{2}
 
 Sources:
 ${list}
 
 Citation rules:
-- Use the source content to answer the question fully and confidently
-- The number in {N} must match the source number above (e.g. {1} for source [1], {2} for source [2])
+- Write naturally and cohesively — the response should read as one unified answer, not a patchwork of quotes
+- Wrap YOUR words, not the source's words, in the citation markers
+- The number in {N} must match the source number (e.g. {1} for source [1])
 - Do NOT write {source_1} or {source1} — only the plain number like {1}
 - You may cite the same source multiple times
-- Leave statements without a matching source uncited — do not force citations
-- Never tell the user to "check other sources" if the answer is already in the sources above`;
+- Leave uncited any sentences that are general knowledge or not directly backed by a source
+- Never tell the user to check other sources if the answer is already covered above`;
 }
