@@ -129,7 +129,12 @@
       "soup-winter":           "Einfache Suppenrezepte für den Winter",
       "lasagna":               "Wie macht man Lasagne",
       "low-sugar-breakfast":   "Frühstücksideen mit wenig Zucker",
-      "air-fryer":             "Schnelle Rezepte für die Heißluftfritteuse"
+      "air-fryer":             "Schnelle Rezepte für die Heißluftfritteuse",
+      "back-pain":             "Warum schmerzt mein Rücken jeden Morgen?",
+      "carrots-lentils":       "Rezeptideen mit Karotten und Linsen.",
+      "fine-mail":             "Ich habe eine Geldstrafe per Post erhalten, ist sie legitim?",
+      "birthday-niece":        "Schreibe eine Geburtstagsnachricht für meine 10-jährige Nichte.",
+      "weekend-chicago":       "Hilf mir, ein Wochenende in Chicago zu planen."
     },
     "clarifyingQuestions": {
       "rewrite-concise":   "Füge den Text ein, den ich umschreiben soll.",

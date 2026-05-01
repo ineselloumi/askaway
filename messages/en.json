@@ -129,7 +129,12 @@
       "soup-winter":           "Easy soup recipes for winter",
       "lasagna":               "How to make lasagna",
       "low-sugar-breakfast":   "Low sugar breakfast ideas",
-      "air-fryer":             "Quick air fryer recipes"
+      "air-fryer":             "Quick air fryer recipes",
+      "back-pain":             "Why does my back hurt every morning?",
+      "carrots-lentils":       "Recipe ideas with carrots and lentils.",
+      "fine-mail":             "I got a fine in the mail, is it legit?",
+      "birthday-niece":        "Write a birthday message to my 10yo niece.",
+      "weekend-chicago":       "Help me plan a weekend in Chicago."
     },
     "clarifyingQuestions": {
       "rewrite-concise":   "Paste the text you'd like me to rewrite.",

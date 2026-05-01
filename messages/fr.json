@@ -129,7 +129,12 @@
       "soup-winter":           "Recettes de soupe faciles pour l'hiver",
       "lasagna":               "Comment faire des lasagnes",
       "low-sugar-breakfast":   "Idées de petit-déjeuner pauvres en sucre",
-      "air-fryer":             "Recettes rapides à la friteuse à air"
+      "air-fryer":             "Recettes rapides à la friteuse à air",
+      "back-pain":             "Pourquoi j'ai mal au dos tous les matins ?",
+      "carrots-lentils":       "Idées de recettes avec des carottes et des lentilles.",
+      "fine-mail":             "J'ai reçu une amende par courrier, est-elle légitime ?",
+      "birthday-niece":        "Écris un message d'anniversaire pour ma nièce de 10 ans.",
+      "weekend-chicago":       "Aide-moi à planifier un week-end à Chicago."
     },
     "clarifyingQuestions": {
       "rewrite-concise":   "Collez le texte que vous souhaitez reformuler.",

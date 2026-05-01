@@ -56,18 +56,7 @@ function renderText(text: string, sources: CitationSource[] = []) {
 // ---------------------------------------------------------------------------
 // Stable ID-based FAQ data (IDs match keys in messages/*.json faqItems)
 // ---------------------------------------------------------------------------
-const situationFaqItems: Record<string, string[]> = {
-  write:     ['rewrite-concise', 'email-formal', 'birthday-note', 'rewrite-assertive'],
-  explain:   ['bitcoin', 'longevity', 'epstein', 'interest-rates'],
-  summarize: ['article-insights', 'summarize-email', 'book-learnings', 'news-summary'],
-  translate: ['translate-spanish', 'french-basics', 'translate-en-de', 'thank-you-japanese'],
-  health:    ['improve-sleep', 'cold-remedies', 'insulin-foods', 'understand-symptom'],
-  image:     ['irs-letter', 'receipts', 'device-usage', 'blood-test'],
-  trip:      ['chicago-restaurants', 'paris-trip', 'honeymoon', 'date-night'],
-  decide:    ['savings', 'switch-jobs', 'mattress', 'trip-destinations'],
-  recipe:    ['soup-winter', 'lasagna', 'low-sugar-breakfast', 'air-fryer'],
-  other:     ['bitcoin', 'longevity', 'epstein', 'interest-rates'],
-};
+const globalFaqItems = ['back-pain', 'carrots-lentils', 'fine-mail', 'birthday-niece', 'weekend-chicago'];
 
 // IDs whose FAQ item needs a clarifying question before proceeding
 const faqClarifyingIds = new Set([
@@ -786,13 +775,14 @@ function AssistPageContent() {
     if (textInput.trim()) handleAnswer(textInput);
   };
 
-  const faqItemIds = situationFaqItems[situation] ?? [];
-  const showFaqPanel = faqItemIds.length > 0;
+  const faqItemIds = globalFaqItems;
+  const showFaqPanel = true;
   const showQuestionInput = currentQuestion && !isTyping && !showResult;
   const canUseFaq = Boolean(showQuestionInput);
 
   const [faqDrawerOpen, setFaqDrawerOpen] = useState(false);
   const [faqSidebarVisible, setFaqSidebarVisible] = useState(false);
+  useEffect(() => { if (window.innerWidth > 1024) setFaqSidebarVisible(true); }, []);
 
   const handleIdeasClick = () => {
     if (window.innerWidth <= 1024) {
