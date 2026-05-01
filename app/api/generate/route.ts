@@ -892,6 +892,7 @@ export async function POST(request: NextRequest) {
 
       // Only attempt citations for English and non-image requests
       let sources: CitationSource[] = [];
+      let queryCategories: string[] = [];
       const tavilyKey = process.env.TAVILY_API_KEY;
       const anthropicKey = getAnthropicKey();
       const userQuestion = (body.answers?.[0]?.answer || body.message || '').slice(0, 500);
@@ -899,6 +900,7 @@ export async function POST(request: NextRequest) {
       if (tavilyKey && anthropicKey && !hasImage && (body.locale === 'en' || !body.locale)) {
         try {
           const classification = await classifyQuery(userQuestion, anthropicKey);
+          queryCategories = classification.categories;
           if (classification.needs_citation && classification.categories.length > 0) {
             sources = await fetchCitations(
               userQuestion,
@@ -919,7 +921,7 @@ export async function POST(request: NextRequest) {
         ? `IMPORTANT: For this response you have been given real-time web sources fetched right now. These sources are current and authoritative — they supersede your training knowledge cutoff. Answer the user's question fully and confidently using these sources. Do NOT say you lack recent information or suggest the user check elsewhere. The sources provided ARE the up-to-date information.`
         : undefined;
       const draft = await callLLM(prompt, imageData, systemSuffix);
-      return NextResponse.json({ draft: draft.trim(), sources, _prompt: prompt });
+      return NextResponse.json({ draft: draft.trim(), sources, categories: queryCategories, _prompt: prompt });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

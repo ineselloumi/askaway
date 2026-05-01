@@ -324,6 +324,7 @@ function AssistPageContent() {
           questionNumber,
           currentQuestion,
           followUpSuggestions,
+          queryCategories: [],
         });
         conversationIdRef.current = id;
         setActiveConversationId(id);
@@ -584,6 +585,9 @@ function AssistPageContent() {
         setDraft(data.draft);
         setDraftSources(data.sources ?? []);
         setShowResult(true);
+        if (conversationIdRef.current && data.categories?.length) {
+          updateConversation(conversationIdRef.current, { queryCategories: data.categories });
+        }
         loadFollowUpSuggestions(finalAnswers, data.draft);
       }
     } catch (error) {

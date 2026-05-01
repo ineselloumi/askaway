@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from './AuthContext';
 
@@ -20,6 +20,13 @@ export interface Answer {
   answer: string;
 }
 
+export interface UserLocation {
+  countryCode?: string;
+  countryName?: string;
+  city?: string;
+  region?: string;
+}
+
 export interface SavedConversation {
   id: string;
   title: string;
@@ -34,6 +41,11 @@ export interface SavedConversation {
   questionNumber: number;
   currentQuestion: { question: string; suggestions: string[] } | null;
   followUpSuggestions: string[];
+  // Analytics — set at creation time, not shown in UI
+  queryCategories: string[];
+  isLoggedIn: boolean;
+  isReturningUser: boolean;
+  userLocation: UserLocation | null;
 }
 
 // ─── Context interface ────────────────────────────────────────────────────────
@@ -43,7 +55,8 @@ interface ConversationsContextValue {
   activeConversationId: string | null;
   pendingLoad: SavedConversation | null;
   clearPendingLoad: () => void;
-  saveConversation: (conv: Omit<SavedConversation, 'id' | 'createdAt' | 'updatedAt'>) => string;
+  // Analytics fields (isLoggedIn, isReturningUser, userLocation) are injected automatically
+  saveConversation: (conv: Omit<SavedConversation, 'id' | 'createdAt' | 'updatedAt' | 'isLoggedIn' | 'isReturningUser' | 'userLocation'>) => string;
   updateConversation: (id: string, updates: Partial<SavedConversation>) => void;
   requestLoadConversation: (id: string) => void;
   setActiveConversationId: (id: string | null) => void;
@@ -67,6 +80,12 @@ function convToRow(conv: SavedConversation, userId: string) {
     follow_up_suggestions: conv.followUpSuggestions,
     created_at: new Date(conv.createdAt).toISOString(),
     updated_at: new Date(conv.updatedAt).toISOString(),
+    // Analytics
+    is_logged_in: conv.isLoggedIn,
+    user_location: conv.userLocation,
+    query_categories: conv.queryCategories,
+    message_count: conv.messages.length,
+    is_returning_user: conv.isReturningUser,
   };
 }
 
@@ -85,6 +104,11 @@ function rowToConv(row: Record<string, unknown>): SavedConversation {
     questionNumber: (row.question_number as number) ?? 1,
     currentQuestion: (row.current_question as SavedConversation['currentQuestion']) ?? null,
     followUpSuggestions: (row.follow_up_suggestions as string[]) ?? [],
+    // Analytics
+    queryCategories: (row.query_categories as string[]) ?? [],
+    isLoggedIn: (row.is_logged_in as boolean) ?? false,
+    isReturningUser: (row.is_returning_user as boolean) ?? false,
+    userLocation: (row.user_location as UserLocation) ?? null,
   };
 }
 
@@ -102,10 +126,28 @@ export function ConversationsProvider({ children }: { children: React.ReactNode 
   // Conversations queued before auth resolved — kept in state so changes trigger a re-run
   const [pendingSaves, setPendingSaves] = useState<SavedConversation[]>([]);
 
+  const isProd = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+
+  // User location — fetched once per session, best-effort
+  const userLocationRef = useRef<UserLocation | null>(null);
+  useEffect(() => {
+    fetch('https://ipapi.co/json/')
+      .then(r => r.json())
+      .then(d => {
+        userLocationRef.current = {
+          countryCode: d.country_code,
+          countryName: d.country_name,
+          city: d.city,
+          region: d.region,
+        };
+      })
+      .catch(() => { /* location is optional */ });
+  }, []);
+
   // ── Initial load from Supabase when user is ready ─────────────────────────
 
   useEffect(() => {
-    if (authLoading || !user) return;
+    if (authLoading || !user || !isProd) return;
 
     const initialLoad = async () => {
       // Legacy sessionStorage recovery (pre-anonymous-auth sessions)
@@ -140,7 +182,7 @@ export function ConversationsProvider({ children }: { children: React.ReactNode 
   // ── Flush pending saves the moment both user and pending items are available
 
   useEffect(() => {
-    if (!user || authLoading || pendingSaves.length === 0) return;
+    if (!user || authLoading || pendingSaves.length === 0 || !isProd) return;
 
     const toFlush = pendingSaves;
     setPendingSaves([]); // clear queue immediately to avoid double-flush
@@ -159,22 +201,32 @@ export function ConversationsProvider({ children }: { children: React.ReactNode 
   // ── CRUD ──────────────────────────────────────────────────────────────────
 
   const saveConversation = useCallback(
-    (conv: Omit<SavedConversation, 'id' | 'createdAt' | 'updatedAt'>): string => {
+    (conv: Omit<SavedConversation, 'id' | 'createdAt' | 'updatedAt' | 'isLoggedIn' | 'isReturningUser' | 'userLocation'>): string => {
       const id = `conv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const now = Date.now();
-      const newConv: SavedConversation = { ...conv, id, createdAt: now, updatedAt: now };
+      const newConv: SavedConversation = {
+        ...conv,
+        id,
+        createdAt: now,
+        updatedAt: now,
+        isLoggedIn: !(user?.is_anonymous ?? true),
+        isReturningUser: conversations.length > 0,
+        userLocation: userLocationRef.current,
+      };
       setConversations(prev => [newConv, ...prev]);
 
-      if (user) {
-        supabase.from('conversations').insert(convToRow(newConv, user.id))
-          .then(({ error }) => {
-            if (error) console.error('[Supabase] insert failed:', error);
-            else console.log('[Supabase] insert ok:', newConv.id);
-          });
-      } else {
-        // Auth not ready yet — queue in state so the flush effect re-runs
-        console.warn('[Supabase] no user yet, queuing save for:', newConv.id);
-        setPendingSaves(prev => [...prev, newConv]);
+      if (isProd) {
+        if (user) {
+          supabase.from('conversations').insert(convToRow(newConv, user.id))
+            .then(({ error }) => {
+              if (error) console.error('[Supabase] insert failed:', error);
+              else console.log('[Supabase] insert ok:', newConv.id);
+            });
+        } else {
+          // Auth not ready yet — queue in state so the flush effect re-runs
+          console.warn('[Supabase] no user yet, queuing save for:', newConv.id);
+          setPendingSaves(prev => [...prev, newConv]);
+        }
       }
 
       return id;
@@ -187,7 +239,7 @@ export function ConversationsProvider({ children }: { children: React.ReactNode 
       setConversations(prev => {
         const next = prev.map(c => c.id === id ? { ...c, ...updates, updatedAt: Date.now() } : c);
 
-        if (user) {
+        if (isProd && user) {
           const updatedConv = next.find(c => c.id === id);
           if (updatedConv) {
             supabase

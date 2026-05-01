@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
       try {
         posthog.init('phc_oihA0NMmOGGbVSLA2ytz83NGR1ooBwmP07hK6iw6RP', {
           api_host: 'https://us.i.posthog.com',
