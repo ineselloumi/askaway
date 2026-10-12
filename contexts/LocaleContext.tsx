@@ -7,10 +7,32 @@ import es from '@/messages/es.json';
 import de from '@/messages/de.json';
 import it from '@/messages/it.json';
 import pt from '@/messages/pt.json';
+import guidedEn from '@/messages/guided/en.json';
+import guidedFr from '@/messages/guided/fr.json';
+import guidedEs from '@/messages/guided/es.json';
+import guidedDe from '@/messages/guided/de.json';
+import guidedIt from '@/messages/guided/it.json';
+import guidedPt from '@/messages/guided/pt.json';
 
 export type Locale = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt';
 
-const messages: Record<Locale, typeof en> = { en, fr, es, de, it, pt };
+// Strings for the guided first-prompt flow live in messages/guided/<locale>.json
+// and are mounted under the `guided.` prefix.
+const guided: Record<Locale, unknown> = {
+  en: guidedEn,
+  fr: guidedFr,
+  es: guidedEs,
+  de: guidedDe,
+  it: guidedIt,
+  pt: guidedPt,
+};
+
+const messages = Object.fromEntries(
+  Object.entries({ en, fr, es, de, it, pt }).map(([code, base]) => [
+    code,
+    { ...base, guided: guided[code as Locale] },
+  ]),
+) as unknown as Record<Locale, Record<string, unknown>>;
 
 // Resolve a dot-path key like "assist.ui.send" through a nested object
 function resolve(obj: Record<string, unknown>, path: string): string {
@@ -59,9 +81,9 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const t = useCallback((key: string, vars?: Record<string, string | number>): string => {
-    let str = resolve(messages[locale] as unknown as Record<string, unknown>, key);
+    let str = resolve(messages[locale], key);
     // Fallback to English if the key is missing in the current locale
-    if (str === key) str = resolve(messages.en as unknown as Record<string, unknown>, key);
+    if (str === key) str = resolve(messages.en, key);
     if (vars) {
       Object.entries(vars).forEach(([k, v]) => {
         str = str.replace(`{${k}}`, String(v));

@@ -1,0 +1,867 @@
+{
+  "nav": {
+    "home": "ask away",
+    "newChat": "Nouvelle discussion",
+    "history": "Historique",
+    "language": "Langue",
+    "about": "À propos",
+    "terms": "Conditions",
+    "privacy": "Confidentialité",
+    "close": "Fermer",
+    "back": "Retour"
+  },
+  "pill": "TRAVAILLE EN AUTONOMIE",
+  "setup": {
+    "title": "Qu'avez-vous à faire en ce moment ?",
+    "sub": "Choisissez une option, on s'occupe du reste.",
+    "justType": "Je préfère écrire directement ›",
+    "strip": "Ce que vous pouvez faire",
+    "cards": {
+      "write": {
+        "title": "Écrire quelque chose",
+        "desc": "un e-mail, un mot, une publication"
+      },
+      "understand": {
+        "title": "Y voir plus clair",
+        "desc": "expliquer, résumer, traduire"
+      },
+      "agentic": {
+        "title": "Faire les choses pour moi",
+        "desc": "prépare un diaporama, mène la recherche, compare les options"
+      }
+    },
+    "ideas": {
+      "austin": {
+        "label": "Que faire à Lyon ce week-end",
+        "prompt": "Trouve des choses à faire à Lyon ce week-end."
+      },
+      "emails": {
+        "label": "Organiser mes e-mails",
+        "prompt": "Aide-moi à organiser mes e-mails. Propose-moi un système simple à mettre en place aujourd'hui."
+      },
+      "birthday": {
+        "label": "Écrire un mot d'anniversaire à ma cousine",
+        "prompt": "Écris un mot d'anniversaire pour ma cousine."
+      },
+      "paris": {
+        "label": "Préparer un voyage de quatre jours à Rome",
+        "prompt": "Prépare un voyage de quatre jours à Rome."
+      },
+      "flights": {
+        "label": "Chercher les vols les moins chers",
+        "prompt": "Cherche les vols les moins chers pour mon voyage."
+      },
+      "deck": {
+        "label": "Créer un diaporama pour ma présentation",
+        "prompt": "Crée un diaporama pour ma présentation."
+      },
+      "sheet": {
+        "label": "Résumer les enseignements d'un tableur",
+        "prompt": "Résume les enseignements de mon tableur."
+      },
+      "translate": {
+        "label": "Traduire cet article en français",
+        "prompt": "Traduis cet article en français :"
+      }
+    }
+  },
+  "builder": {
+    "lastTitle": "J'ai tout ce qu'il me faut.",
+    "lastSub": "Autre chose à savoir ? Ajoutez-le ci-dessous, ou envoyez tel quel.",
+    "prefillTitle": "C'est un bon début.",
+    "prefillSub": "Ajoutez un ou deux détails ci-dessous, ou envoyez tel quel.",
+    "typeInstead": "Écrire ma réponse",
+    "addYourOwn": "Ajouter le mien",
+    "doneMulti": "C'est tout →",
+    "typePlaceholder": "Écrivez votre réponse",
+    "add": "Ajouter",
+    "skip": "Rester général",
+    "change": "Modifier cette réponse",
+    "goNow": "ou envoyer maintenant avec ce que j'ai",
+    "helperMulti": "Choisissez-en autant que vous voulez. Chacun est une limite à ne pas franchir.",
+    "helperLast": "Ajoutez ce que vous voulez : un détail ici évite souvent un aller-retour.",
+    "helperEmpty": "Choisissez une réponse ci-dessus, ou écrivez d'abord votre demande ici.",
+    "promptLabel": "Votre demande",
+    "attach": "Joindre un tableur (.csv)",
+    "attached": "{name} joint",
+    "removeAttachment": "Retirer",
+    "attachError": "Ce fichier est trop volumineux ou n'est pas un fichier texte. Essayez un export .csv de moins de 60 000 caractères.",
+    "listSep": ", ",
+    "listAnd": " et ",
+    "andMore": ", et …",
+    "readiness": {
+      "add": "Ajoutez des détails pour une meilleure réponse",
+      "getting": "On y arrive",
+      "almost": "Presque prêt",
+      "done": "J'ai terminé"
+    }
+  },
+  "flows": {
+    "write": {
+      "title": "Écrivons quelque chose ensemble.",
+      "sub": "Deux petites questions et je m'occupe du reste.",
+      "subOne": "Encore une et je m'occupe du reste.",
+      "helper": "Votre message s'écrit tout seul. Modifiez-le quand vous voulez.",
+      "empty": "Écris-moi …, à … à propos de …",
+      "q1": {
+        "label": "Qu'écrivez-vous ?",
+        "options": {
+          "message": {
+            "label": "Un message",
+            "fragment": "un message"
+          },
+          "essay": {
+            "label": "Une rédaction",
+            "fragment": "une rédaction"
+          },
+          "summary": {
+            "label": "Un résumé",
+            "fragment": "un résumé"
+          }
+        },
+        "typePlaceholder": "ex. une carte de remerciement"
+      },
+      "variants": {
+        "message": {
+          "frame": "Écris-moi {q1}",
+          "closer": " à propos de ",
+          "closerGhost": " à propos de …",
+          "closerHint": "ce que vous voulez dire …",
+          "questions": {
+            "who": {
+              "label": "C'est pour qui ?",
+              "options": {
+                "colleague": {
+                  "label": "Mon collègue",
+                  "fragment": "mon collègue"
+                },
+                "landlord": {
+                  "label": "Mon propriétaire",
+                  "fragment": "mon propriétaire"
+                },
+                "friend": {
+                  "label": "Mon ami",
+                  "fragment": "mon ami"
+                }
+              },
+              "clause": ", à {v},",
+              "ghost": ", à …",
+              "typePlaceholder": "ex. ma sœur"
+            }
+          },
+          "suggestions": {
+            "deadline": {
+              "label": "une échéance à connaître",
+              "starter": "L'échéance est "
+            },
+            "reach": {
+              "label": "comment me joindre",
+              "starter": "On peut me joindre "
+            },
+            "tone": {
+              "label": "le ton souhaité",
+              "starter": ", sur un ton "
+            }
+          }
+        },
+        "essay": {
+          "frame": "Écris-moi {q1}",
+          "closer": " sur ",
+          "closerGhost": " sur …",
+          "closerHint": "le sujet …",
+          "questions": {
+            "who": {
+              "label": "Qui va la lire ?",
+              "options": {
+                "teacher": {
+                  "label": "Mon professeur",
+                  "fragment": "mon professeur"
+                },
+                "class": {
+                  "label": "Ma classe",
+                  "fragment": "ma classe"
+                },
+                "general": {
+                  "label": "Un lecteur non spécialiste",
+                  "fragment": "un lecteur non spécialiste"
+                }
+              },
+              "clause": ", pour {v},",
+              "ghost": ", pour …",
+              "typePlaceholder": "ex. un jury de bourse"
+            }
+          },
+          "suggestions": {
+            "length": {
+              "label": "la longueur souhaitée",
+              "starter": "La longueur souhaitée est d'environ "
+            },
+            "points": {
+              "label": "les points à aborder",
+              "starter": "Elle doit aborder "
+            },
+            "tone": {
+              "label": "le ton souhaité",
+              "starter": ", sur un ton "
+            }
+          }
+        },
+        "summary": {
+          "frame": "Écris-moi {q1}",
+          "closer": " de ",
+          "closerGhost": " de …",
+          "closerHint": "collez ou décrivez ce qu'il faut résumer …",
+          "questions": {
+            "who": {
+              "label": "C'est pour qui ?",
+              "options": {
+                "manager": {
+                  "label": "Mon responsable",
+                  "fragment": "mon responsable"
+                },
+                "team": {
+                  "label": "Mon équipe",
+                  "fragment": "mon équipe"
+                },
+                "me": {
+                  "label": "Juste moi",
+                  "fragment": "moi-même"
+                }
+              },
+              "clause": ", pour {v},",
+              "ghost": ", pour …",
+              "typePlaceholder": "ex. un client"
+            }
+          },
+          "suggestions": {
+            "length": {
+              "label": "la longueur souhaitée",
+              "starter": "La longueur souhaitée est d'environ "
+            },
+            "focus": {
+              "label": "sur quoi insister",
+              "starter": "Insiste sur "
+            },
+            "tone": {
+              "label": "le ton souhaité",
+              "starter": ", sur un ton "
+            }
+          }
+        },
+        "custom": {
+          "frame": "Écris-moi {q1}",
+          "closer": " à propos de ",
+          "closerGhost": " à propos de …",
+          "closerHint": "ce que vous voulez dire …",
+          "questions": {
+            "who": {
+              "label": "C'est pour qui ?",
+              "options": {
+                "work": {
+                  "label": "Quelqu'un au travail",
+                  "fragment": "quelqu'un au travail"
+                },
+                "friend": {
+                  "label": "Un ami ou un proche",
+                  "fragment": "un ami ou un proche"
+                },
+                "company": {
+                  "label": "Une entreprise",
+                  "fragment": "une entreprise"
+                }
+              },
+              "clause": ", pour {v},",
+              "ghost": ", pour …",
+              "typePlaceholder": "ex. mon voisin"
+            }
+          },
+          "suggestions": {
+            "length": {
+              "label": "la longueur souhaitée",
+              "starter": "La longueur souhaitée est d'environ "
+            },
+            "points": {
+              "label": "les points à aborder",
+              "starter": "Il faut aborder "
+            },
+            "tone": {
+              "label": "le ton souhaité",
+              "starter": ", sur un ton "
+            }
+          }
+        }
+      }
+    },
+    "understand": {
+      "title": "Voyons-y plus clair.",
+      "sub": "Deux petites questions et je m'occupe du reste.",
+      "subOne": "Encore une et je m'occupe du reste.",
+      "helper": "Votre demande s'écrit toute seule. Modifiez-la quand vous voulez.",
+      "empty": "… ceci pour moi …",
+      "q1": {
+        "label": "De quoi avez-vous besoin ?",
+        "options": {
+          "explain": {
+            "label": "Une explication",
+            "fragment": "Explique-moi"
+          },
+          "summary": {
+            "label": "Un résumé",
+            "fragment": "Résume-moi"
+          },
+          "translate": {
+            "label": "Une traduction",
+            "fragment": "Traduis-moi"
+          }
+        },
+        "typePlaceholder": "ex. un avis sur ma rédaction"
+      },
+      "variants": {
+        "explain": {
+          "frame": "{q1} ceci",
+          "closer": " : ",
+          "closerGhost": " : …",
+          "closerHint": "collez-le ou décrivez-le ici …",
+          "questions": {
+            "how": {
+              "label": "Comment dois-je l'expliquer ?",
+              "options": {
+                "plain": {
+                  "label": "Avec des mots simples",
+                  "fragment": "avec des mots simples"
+                },
+                "steps": {
+                  "label": "Étape par étape",
+                  "fragment": "étape par étape"
+                },
+                "example": {
+                  "label": "Avec un exemple",
+                  "fragment": "avec un exemple"
+                }
+              },
+              "clause": " {v}",
+              "ghost": " …",
+              "typePlaceholder": "ex. comme si j'avais dix ans"
+            }
+          },
+          "suggestions": {
+            "know": {
+              "label": "ce que je sais déjà",
+              "starter": "Je sais déjà "
+            },
+            "why": {
+              "label": "pourquoi je pose la question",
+              "starter": "Je pose la question parce que "
+            },
+            "length": {
+              "label": "la longueur de la réponse",
+              "starter": "La réponse doit être "
+            }
+          }
+        },
+        "summary": {
+          "frame": "{q1} ceci",
+          "closer": " : ",
+          "closerGhost": " : …",
+          "closerHint": "collez le texte ou un lien ici …",
+          "questions": {
+            "how": {
+              "label": "Quelle longueur ?",
+              "options": {
+                "bullets": {
+                  "label": "Quelques points clés",
+                  "fragment": "en quelques points clés"
+                },
+                "paragraph": {
+                  "label": "Un paragraphe",
+                  "fragment": "en un paragraphe"
+                },
+                "sentence": {
+                  "label": "Une phrase",
+                  "fragment": "en une phrase"
+                }
+              },
+              "clause": " {v}",
+              "ghost": " …",
+              "typePlaceholder": "ex. en moins de 100 mots"
+            }
+          },
+          "suggestions": {
+            "focus": {
+              "label": "sur quoi insister",
+              "starter": "Insiste sur "
+            },
+            "reader": {
+              "label": "qui va le lire",
+              "starter": "C'est pour "
+            },
+            "skip": {
+              "label": "ce qu'il faut laisser de côté",
+              "starter": "Laisse de côté "
+            }
+          }
+        },
+        "translate": {
+          "frame": "{q1} ceci",
+          "closer": " : ",
+          "closerGhost": " : …",
+          "closerHint": "collez le texte ici …",
+          "questions": {
+            "lang": {
+              "label": "Dans quelle langue ?",
+              "options": {
+                "english": {
+                  "label": "Anglais",
+                  "fragment": "anglais"
+                },
+                "spanish": {
+                  "label": "Espagnol",
+                  "fragment": "espagnol"
+                },
+                "french": {
+                  "label": "Français",
+                  "fragment": "français"
+                }
+              },
+              "clause": " en {v}",
+              "ghost": " en …",
+              "typePlaceholder": "ex. portugais"
+            }
+          },
+          "suggestions": {
+            "tone": {
+              "label": "le ton souhaité",
+              "starter": ", sur un ton "
+            },
+            "reader": {
+              "label": "qui va le lire",
+              "starter": "C'est pour "
+            },
+            "keep": {
+              "label": "ce qu'il faut garder tel quel",
+              "starter": "Garde tels quels : "
+            }
+          }
+        },
+        "custom": {
+          "frame": "Il me faut {q1}",
+          "closer": " : ",
+          "closerHint": "collez-le ou décrivez-le ici …",
+          "suggestions": {
+            "know": {
+              "label": "ce que je sais déjà",
+              "starter": "Je sais déjà "
+            },
+            "why": {
+              "label": "pourquoi je pose la question",
+              "starter": "Je pose la question parce que "
+            },
+            "length": {
+              "label": "la longueur de la réponse",
+              "starter": "La réponse doit être "
+            }
+          }
+        }
+      }
+    },
+    "agentic": {
+      "title": "Confiez-moi quelque chose.",
+      "sub": "Trois petites questions, puis je m'en occupe.",
+      "subOne": "Encore une et je m'en occupe.",
+      "helper": "Votre demande s'écrit toute seule. Modifiez-la quand vous voulez.",
+      "empty": "… pour moi, pour … qui …",
+      "q1": {
+        "label": "Que dois-je faire ?",
+        "options": {
+          "research": {
+            "label": "Rechercher et comparer",
+            "fragment": "Recherche et compare"
+          },
+          "deck": {
+            "label": "Créer un diaporama",
+            "fragment": "Crée un diaporama"
+          },
+          "sheet": {
+            "label": "Analyser un tableur",
+            "fragment": "Analyse un tableur"
+          }
+        },
+        "typePlaceholder": "ex. préparer un week-end à Lisbonne"
+      },
+      "variants": {
+        "research": {
+          "frame": "{q1} {what} pour moi",
+          "placeholders": {
+            "what": "des options"
+          },
+          "end": ".",
+          "closer": " ",
+          "closerHint": "Autre chose à savoir …",
+          "questions": {
+            "what": {
+              "label": "Que comparez-vous ?",
+              "options": {
+                "tools": {
+                  "label": "Des outils ou logiciels",
+                  "fragment": "des outils ou logiciels",
+                  "refine": "Quel type ? ex. des outils de gestion de projet"
+                },
+                "places": {
+                  "label": "Des destinations",
+                  "fragment": "des destinations",
+                  "refine": "Quel type ? ex. des villes de bord de mer au Portugal"
+                },
+                "suppliers": {
+                  "label": "Des fournisseurs",
+                  "fragment": "des fournisseurs",
+                  "refine": "De quoi ? ex. des fournisseurs de café en grains"
+                }
+              },
+              "typePlaceholder": "ex. des vélos électriques"
+            },
+            "must": {
+              "label": "Qu'est-ce qui est indispensable ?",
+              "options": {
+                "budget": {
+                  "label": "Dans mon budget",
+                  "fragment": "respecter mon budget"
+                },
+                "reviewed": {
+                  "label": "Bien noté",
+                  "fragment": "avoir de bons avis"
+                },
+                "easy": {
+                  "label": "Facile à prendre en main",
+                  "fragment": "être facile à prendre en main"
+                },
+                "commit": {
+                  "label": "Sans engagement long",
+                  "fragment": "être sans engagement de longue durée"
+                }
+              },
+              "clause": ". Chaque option doit {v}",
+              "ghost": ", qui …",
+              "typePlaceholder": "ex. fonctionner hors ligne"
+            }
+          },
+          "suggestions": {
+            "handback": {
+              "label": "ce que je veux recevoir",
+              "starter": "Donne-moi en retour "
+            },
+            "now": {
+              "label": "ce qu'on utilise aujourd'hui",
+              "starter": "Aujourd'hui, nous utilisons "
+            },
+            "when": {
+              "label": "pour quand j'en ai besoin",
+              "starter": "J'en ai besoin pour "
+            }
+          }
+        },
+        "deck": {
+          "frame": "{q1} pour {for}",
+          "placeholders": {
+            "for": "une présentation"
+          },
+          "end": ".",
+          "closer": " Le sujet est ",
+          "closerHint": "de quoi il s'agit …",
+          "questions": {
+            "for": {
+              "label": "C'est pour quoi ?",
+              "options": {
+                "work": {
+                  "label": "Une présentation au travail",
+                  "fragment": "une présentation au travail"
+                },
+                "class": {
+                  "label": "Un cours ou un exposé",
+                  "fragment": "un cours ou un exposé"
+                },
+                "pitch": {
+                  "label": "Un pitch",
+                  "fragment": "un pitch"
+                }
+              },
+              "typePlaceholder": "ex. un séminaire d'équipe"
+            },
+            "include": {
+              "label": "Que doit-il contenir ?",
+              "options": {
+                "story": {
+                  "label": "Un fil conducteur clair",
+                  "fragment": "un fil conducteur clair"
+                },
+                "numbers": {
+                  "label": "Les chiffres clés",
+                  "fragment": "les chiffres clés"
+                },
+                "notes": {
+                  "label": "Des notes pour l'orateur",
+                  "fragment": "des notes pour l'orateur"
+                },
+                "short": {
+                  "label": "Dix diapositives maximum",
+                  "fragment": "dix diapositives maximum"
+                }
+              },
+              "clause": ". Il doit contenir {v}",
+              "ghost": ", avec …",
+              "typePlaceholder": "ex. un appel à l'action à la fin"
+            }
+          },
+          "suggestions": {
+            "audience": {
+              "label": "qui sera dans la salle",
+              "starter": "Le public est "
+            },
+            "length": {
+              "label": "le temps dont je dispose",
+              "starter": "Je dispose de "
+            },
+            "when": {
+              "label": "pour quand j'en ai besoin",
+              "starter": "J'en ai besoin pour "
+            }
+          }
+        },
+        "sheet": {
+          "frame": "{q1} pour moi. Il contient {what}",
+          "placeholders": {
+            "what": "mes données"
+          },
+          "end": ".",
+          "closer": " ",
+          "closerHint": "Joignez le fichier ci-dessous, ou collez les lignes ici …",
+          "questions": {
+            "what": {
+              "label": "Que contient-il ?",
+              "options": {
+                "sales": {
+                  "label": "Des ventes ou des revenus",
+                  "fragment": "des chiffres de ventes ou de revenus"
+                },
+                "budget": {
+                  "label": "Un budget",
+                  "fragment": "un budget"
+                },
+                "survey": {
+                  "label": "Des réponses à un sondage",
+                  "fragment": "des réponses à un sondage"
+                }
+              },
+              "typePlaceholder": "ex. les visites du site web"
+            },
+            "want": {
+              "label": "Qu'attendez-vous ?",
+              "options": {
+                "takeaways": {
+                  "label": "Les points essentiels",
+                  "fragment": "les points essentiels"
+                },
+                "unusual": {
+                  "label": "Tout ce qui est inhabituel",
+                  "fragment": "un signalement de tout ce qui est inhabituel"
+                },
+                "trends": {
+                  "label": "Les tendances dans le temps",
+                  "fragment": "les tendances dans le temps"
+                },
+                "share": {
+                  "label": "Un court résumé à partager",
+                  "fragment": "un court résumé à partager"
+                }
+              },
+              "clause": ". Je veux {v}",
+              "ghost": ", et je veux …",
+              "typePlaceholder": "ex. les cinq meilleurs clients"
+            }
+          },
+          "suggestions": {
+            "columns": {
+              "label": "ce que signifient les colonnes",
+              "starter": "Les colonnes sont "
+            },
+            "decide": {
+              "label": "la décision que je dois prendre",
+              "starter": "J'essaie de décider "
+            },
+            "when": {
+              "label": "pour quand j'en ai besoin",
+              "starter": "J'en ai besoin pour "
+            }
+          }
+        },
+        "custom": {
+          "frame": "{q1} pour moi",
+          "end": ".",
+          "closer": " ",
+          "closerHint": "Autre chose à savoir …",
+          "questions": {
+            "must": {
+              "label": "Qu'est-ce qui est indispensable ?",
+              "options": {
+                "budget": {
+                  "label": "Dans mon budget",
+                  "fragment": "respecter mon budget"
+                },
+                "reviewed": {
+                  "label": "Bien noté",
+                  "fragment": "avoir de bons avis"
+                },
+                "easy": {
+                  "label": "Facile à prendre en main",
+                  "fragment": "être facile à prendre en main"
+                },
+                "commit": {
+                  "label": "Sans engagement long",
+                  "fragment": "être sans engagement de longue durée"
+                }
+              },
+              "clause": ". Le résultat doit {v}",
+              "ghost": ", qui …",
+              "typePlaceholder": "ex. fonctionner hors ligne"
+            }
+          },
+          "suggestions": {
+            "handback": {
+              "label": "ce que je veux recevoir",
+              "starter": "Donne-moi en retour "
+            },
+            "now": {
+              "label": "ce qu'on utilise aujourd'hui",
+              "starter": "Aujourd'hui, nous utilisons "
+            },
+            "when": {
+              "label": "pour quand j'en ai besoin",
+              "starter": "J'en ai besoin pour "
+            }
+          }
+        }
+      }
+    }
+  },
+  "chat": {
+    "askEyebrow": "LA DEMANDE QUE VOUS VENEZ D'ÉCRIRE",
+    "yourAsk": "VOTRE DEMANDE",
+    "copy": "Copier",
+    "copied": "Copié",
+    "nudge": "Bien joué ! La prochaine fois, vous pouvez l'écrire directement dans la zone ci-dessous.",
+    "nudgeAgentic": "Bien joué ! La prochaine fois, vous pouvez écrire une mission comme celle-ci directement dans la zone ci-dessous.",
+    "reading": "Je lis votre demande…",
+    "thinking": "Je réfléchis…",
+    "placeholderPlain": "Qu'avez-vous à faire ?",
+    "placeholderWaiting": "Demandez une modification une fois la réponse arrivée",
+    "placeholderWrite": "Demandez une modification : « plus court », « plus chaleureux », « plus formel »",
+    "placeholderUnderstand": "Posez une autre question : « plus simple », « donne-moi un exemple »",
+    "placeholderAgentic": "Demandez-moi d'approfondir l'un de ces points",
+    "placeholderGeneral": "Demandez une modification, ou posez une nouvelle question",
+    "send": "Envoyer",
+    "addPhoto": "Ajouter une photo",
+    "removePhoto": "Retirer la photo",
+    "photoAlt": "Photo jointe",
+    "photoLimit": "Vous pouvez ajouter jusqu'à {max} photos à la fois.",
+    "attachment": "Pièce jointe : {name}",
+    "error": "Désolé, une erreur s'est produite. Veuillez réessayer.",
+    "errorBusy": "Beaucoup de monde pose des questions en ce moment. Patientez un instant et réessayez.",
+    "declined": "Je ne peux pas vous aider sur ce point. Essayez de le formuler autrement.",
+    "retry": "Réessayer",
+    "disclaimer": "L'IA peut se tromper. Vérifiez ce qui est important.",
+    "badge": "Réponse de {model}. {reason}",
+    "sources": "Sources",
+    "copyAnswer": "Copier la réponse",
+    "you": "Vous",
+    "plainTitle": "Qu'avez-vous à faire ?",
+    "reasons": {
+      "write": "Idéal pour les textes courts.",
+      "understand": "Doué pour expliquer simplement.",
+      "image": "Doué pour lire les photos.",
+      "general": "Rapide pour les questions du quotidien."
+    }
+  },
+  "agent": {
+    "permission": {
+      "title": "Avant de commencer, voici ce que je vais faire.",
+      "sub": "Un seul oui couvre toute la mission. Vous pouvez m'arrêter à tout moment.",
+      "willWeb": "Lire des pages publiques sur le web : tarifs, avis, comparatifs",
+      "willSave": "Enregistrer mes notes et le compte rendu final dans cette discussion",
+      "willData": "Lire le tableur que vous avez joint ou collé, et rien d'autre",
+      "wontSignIn": "Me connecter où que ce soit, ou dépenser le moindre centime",
+      "wontSend": "Envoyer quoi que ce soit à qui que ce soit, ou toucher à vos e-mails",
+      "allow": "Autoriser et commencer",
+      "notNow": "Pas maintenant",
+      "declined": "Pas de problème. Rien n'a été lancé.",
+      "changeAsk": "Modifiez la demande avant que je commence",
+      "askAgain": "Lancer cette mission"
+    },
+    "working": {
+      "title": "Je m'en occupe.",
+      "titleData": "Je parcours vos données.",
+      "eta": "Cela prend généralement une minute ou deux",
+      "pause": "Pause",
+      "resume": "Reprendre",
+      "keepOpen": "Gardez cet onglet ouvert pendant que je travaille.",
+      "paused": "En pause",
+      "pausedNote": "La reprise relance la mission depuis le début.",
+      "placeholder": "Changez quelque chose pendant que je travaille : « ignore les gratuits », « prix en euros uniquement »",
+      "placeholderData": "Changez quelque chose pendant que je travaille : « ignore la ligne des totaux »",
+      "noted": "Ajouté : {note}",
+      "failed": "J'ai rencontré un problème en cours de route. Rien n'a été envoyé nulle part. Vous pouvez réessayer.",
+      "retry": "Réessayer"
+    },
+    "steps": {
+      "plan": {
+        "pending": "Définir ce qu'il faut chercher",
+        "current": "Je définis ce qu'il faut chercher",
+        "done": "J'ai défini ce qu'il faut chercher"
+      },
+      "search": {
+        "pending": "Faire des recherches",
+        "current": "Je fais des recherches",
+        "currentDetail": "Je cherche « {query} »",
+        "done": "Recherches faites : {n}",
+        "doneOne": "Recherches faites"
+      },
+      "read": {
+        "pending": "Lire ce que j'ai trouvé",
+        "current": "Je lis ce que j'ai trouvé",
+        "currentDetail": "Je lis ce que j'ai trouvé : {n} pages pour l'instant",
+        "done": "{n} pages lues",
+        "doneNone": "J'ai lu ce que j'ai trouvé"
+      },
+      "data": {
+        "pending": "Parcourir vos données",
+        "current": "Je parcours vos données",
+        "done": "J'ai parcouru vos données"
+      },
+      "write": {
+        "pending": "Rédiger le compte rendu",
+        "current": "Je rédige le compte rendu",
+        "done": "Compte rendu rédigé"
+      }
+    },
+    "checkIn": {
+      "status": "En pause : j'attends votre réponse",
+      "note": "C'est le seul point qui me bloque.",
+      "placeholder": "Ou dites-le-moi avec vos mots"
+    },
+    "receipt": "A travaillé en autonomie avec {model} · {pages} pages lues en {time}",
+    "receiptNoPages": "A travaillé en autonomie avec {model} · durée : {time}",
+    "minutes": "{n} min",
+    "seconds": "{n} s"
+  },
+  "graduation": {
+    "title": "Vous avez écrit deux demandes vous-même.",
+    "body": "Félicitations, vous êtes maintenant prêt à tout aborder.",
+    "footer": "Continuez à demander en ajoutant des détails. La zone ci-dessous est tout ce qu'il vous faut désormais.",
+    "gotIt": "Compris",
+    "bringBack": "Retrouvez l'accompagnement guidé quand vous voulez ›",
+    "bringBackPlain": "Retrouver l'accompagnement guidé ›",
+    "close": "Fermer"
+  },
+  "history": {
+    "title": "Conversations",
+    "empty": "Vos conversations apparaîtront ici une fois que vous aurez commencé à discuter."
+  }
+}

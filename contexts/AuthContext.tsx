@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabase/client';
+import { createClient, supabaseConfigured } from '@/lib/supabase/client';
 
 interface AuthContextValue {
   user: User | null;
@@ -24,6 +24,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
   useEffect(() => {
+    // No Supabase project configured: run signed-out, without saved history.
+    if (!supabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
     const initAuth = async () => {
       // 1. Check localStorage first (instant, no network call) — handles returning users
       const { data: sessionData } = await supabase.auth.getSession();
