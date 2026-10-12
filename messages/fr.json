@@ -83,6 +83,8 @@
       "sidebarFootnote":      "Ces conversations disparaîtront lorsque vous fermerez cet onglet.",
       "signUpNudge":          "Inscrivez-vous pour sauvegarder vos conversations.",
       "signInGoogle":         "Continuer avec Google",
+      "signingInGoogle": "Ouverture de Google…",
+      "signInError": "Impossible d’ouvrir la connexion Google. Veuillez réessayer.",
       "signOut":              "Se déconnecter"
     },
     "tips": {

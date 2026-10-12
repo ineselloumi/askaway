@@ -83,6 +83,8 @@
       "sidebarFootnote":      "Queste conversazioni scompariranno quando chiuderai questa scheda.",
       "signUpNudge":          "Registrati per salvare le tue conversazioni.",
       "signInGoogle":         "Continua con Google",
+      "signingInGoogle": "Apertura di Google…",
+      "signInError": "Impossibile aprire l’accesso con Google. Riprova.",
       "signOut":              "Disconnettiti"
     },
     "tips": {

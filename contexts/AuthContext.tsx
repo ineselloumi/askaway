@@ -1,12 +1,14 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
+  signingIn: boolean;
+  signInError: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -16,6 +18,9 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [signingIn, setSigningIn] = useState(false);
+  const [signInError, setSignInError] = useState(false);
+  const signInPending = useRef(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -59,17 +64,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithGoogle = async () => {
-    // If anonymous, upgrade by linking Google identity (preserves user_id + data)
-    if (user?.is_anonymous) {
-      await supabase.auth.linkIdentity({
-        provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
-      });
-    } else {
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
-      });
+    if (signInPending.current) return;
+    signInPending.current = true;
+    setSigningIn(true);
+    setSignInError(false);
+
+    try {
+      const credentials = {
+        provider: 'google' as const,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          skipBrowserRedirect: true,
+        },
+      };
+      // Preserve guest conversations by linking whenever the project supports it.
+      let result = user?.is_anonymous
+        ? await supabase.auth.linkIdentity(credentials)
+        : await supabase.auth.signInWithOAuth(credentials);
+
+      // A project may allow anonymous users while disabling manual linking.
+      // Regular sign-in remains available, but does not migrate guest history.
+      if (result.error?.code === 'manual_linking_disabled') {
+        result = await supabase.auth.signInWithOAuth(credentials);
+      }
+      if (result.error) throw result.error;
+      if (!result.data.url) throw new Error('Missing Google sign-in URL');
+      window.location.assign(result.data.url);
+    } catch (error) {
+      console.error('[Auth] Google sign-in failed:', error);
+      setSignInError(true);
+    } finally {
+      signInPending.current = false;
+      setSigningIn(false);
     }
   };
 
@@ -81,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signingIn, signInError, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );

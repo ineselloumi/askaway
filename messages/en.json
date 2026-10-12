@@ -83,6 +83,8 @@
       "sidebarFootnote":      "These conversations will disappear when you close this tab.",
       "signUpNudge":          "Sign up to save your conversations.",
       "signInGoogle":         "Continue with Google",
+      "signingInGoogle": "Opening Google…",
+      "signInError": "We couldn’t open Google sign-in. Please try again.",
       "signOut":              "Sign out"
     },
     "tips": {

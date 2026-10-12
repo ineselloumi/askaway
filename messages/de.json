@@ -83,6 +83,8 @@
       "sidebarFootnote":      "Diese Gespräche verschwinden, wenn du diesen Tab schließt.",
       "signUpNudge":          "Registriere dich, um deine Gespräche zu speichern.",
       "signInGoogle":         "Mit Google fortfahren",
+      "signingInGoogle": "Google wird geöffnet…",
+      "signInError": "Die Google-Anmeldung konnte nicht geöffnet werden. Bitte versuche es erneut.",
       "signOut":              "Abmelden"
     },
     "tips": {

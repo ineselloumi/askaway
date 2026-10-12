@@ -29,7 +29,7 @@ interface Props {
 
 export default function ConversationSidebar({ open, onClose, onNewConversation }: Props) {
   const { conversations, activeConversationId, requestLoadConversation } = useConversations();
-  const { user, loading: authLoading, signInWithGoogle, signOut } = useAuth();
+  const { user, loading: authLoading, signingIn, signInError, signInWithGoogle, signOut } = useAuth();
   const { t, locale } = useLocale();
 
   // Anonymous users are treated as "guests" for UI purposes
@@ -95,10 +95,11 @@ export default function ConversationSidebar({ open, onClose, onNewConversation }
           {isGuest && hasConversations && (
             <div className={styles.authSection}>
               <p className={styles.signInText}>{t('assist.ui.signUpNudge')}</p>
-              <button className={styles.signInButton} onClick={signInWithGoogle}>
+              <button type="button" className={styles.signInButton} onClick={signInWithGoogle} disabled={signingIn} aria-busy={signingIn}>
                 <GoogleIcon />
-                {t('assist.ui.signInGoogle')}
+                {t(signingIn ? 'assist.ui.signingInGoogle' : 'assist.ui.signInGoogle')}
               </button>
+              {signInError && <p className={styles.signInError} role="alert">{t('assist.ui.signInError')}</p>}
             </div>
           )}
         </div>
