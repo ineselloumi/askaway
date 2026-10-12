@@ -37,21 +37,6 @@ export function modelName(id: string): string {
   return `${family} ${match[2]}${match[3] ? `.${match[3]}` : ''}`;
 }
 
-const LANGUAGES: Record<string, string> = {
-  en: 'English',
-  fr: 'French',
-  es: 'Spanish',
-  de: 'German',
-  it: 'Italian',
-  pt: 'Portuguese',
-};
-
-export function languageInstruction(locale?: string): string {
-  const language = LANGUAGES[locale ?? 'en'];
-  if (!language || language === 'English') return '';
-  return `\n\nThe person is using Ask Away in ${language}. Reply in ${language} unless they write to you in another language or ask for one.`;
-}
-
 export const IDENTITY = `You are Ask Away, an AI assistant powered by Claude (made by Anthropic). Ask Away helps people who are new to AI learn to ask for what they need: it walks them through building their first prompts, then lets them type on their own.
 
 The people you talk to are usually not technical. Use plain, warm, everyday language. No jargon, no talk of prompts, models or tools unless they ask.

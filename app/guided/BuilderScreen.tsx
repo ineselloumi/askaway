@@ -6,9 +6,11 @@ import { track } from '@/lib/guided/analytics';
 import { builderReducer, builderView, initBuilder } from '@/lib/guided/builder';
 import { asList, opt } from '@/lib/guided/compose';
 import { FLOWS, variantKey } from '@/lib/guided/flows';
+import { nextHint, qualityReadiness } from '@/lib/guided/quality';
 import { readinessStep, type Readiness } from '@/lib/guided/readiness';
 import type { AnswerValue, QuestionDef, Segment, TaskCategory } from '@/lib/guided/types';
 import styles from './guided.module.css';
+import { useQuality } from './useQuality';
 
 export interface Attachment {
   name: string;
@@ -20,6 +22,8 @@ export interface BuiltPrompt {
   category: TaskCategory;
   variant: string;
   readiness: Readiness;
+  /** True when the readiness came from the quality check rather than the answer count. */
+  scored: boolean;
   edited: boolean;
   via: 'button' | 'link';
   attachment?: Attachment;
@@ -44,6 +48,14 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const agentic = category === 'agentic';
   const flowKey = `guided.flows.${category}`;
+
+  // Readiness: a fast model checks what the prompt actually says. Until its
+  // first answer (or when it is unavailable) the fill counts answered questions.
+  const typingRef = useRef(false);
+  const checkedText = attachment ? `${view.sendText}\n\n[Attached file: ${attachment.name}]` : view.sendText;
+  const met = useQuality(checkedText, category, typingRef.current);
+  const readiness: Readiness = met ? qualityReadiness(category, met) : view.readiness;
+  const hint = met ? nextHint(category, met) : null;
 
   // On the last step the cursor waits at the end of the prompt (screens 1d / 2c).
   // Skipped on touch screens, where it would open the keyboard over the page.
@@ -73,6 +85,7 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
   };
 
   const answer = (question: QuestionDef, value: AnswerValue) => {
+    typingRef.current = false;
     setNudged(false);
     track('question_answered', { category, question: question.id, option: value.optionId ?? 'typed' });
     dispatch({ type: question.multi ? 'toggle' : 'answer', questionId: question.id, value });
@@ -88,7 +101,8 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
       prompt: view.sendText,
       category,
       variant: view.variantId ?? 'custom',
-      readiness: view.readiness,
+      readiness,
+      scored: !!met,
       edited: state.promptEdited,
       via,
       attachment: attachment ?? undefined,
@@ -127,12 +141,14 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
   const helper = nudged
     ? t('guided.builder.helperEmpty')
     : view.atLastStep
-      ? t('guided.builder.helperLast')
+      ? hint
+        ? t(`guided.builder.hints.${hint}`)
+        : t('guided.builder.helperLast')
       : activeQuestion?.multi
         ? t('guided.builder.helperMulti')
         : t(`${flowKey}.helper`);
 
-  const step = readinessStep(view.readiness);
+  const step = readinessStep(readiness);
   const suggestionBase = view.variantId ? `${variantKey(category, view.variantId)}.suggestions` : '';
 
   return (
@@ -172,6 +188,7 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
             ghost={view.ghost}
             label={t('guided.builder.promptLabel')}
             onChange={(text) => {
+              typingRef.current = true;
               setNudged(false);
               dispatch({ type: 'edit', text });
             }}
@@ -186,6 +203,7 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
                   type="button"
                   className={styles.suggestion}
                   onClick={() => {
+                    typingRef.current = false;
                     dispatch({
                       type: 'append',
                       starter: t(`${suggestionBase}.${id}.starter`),

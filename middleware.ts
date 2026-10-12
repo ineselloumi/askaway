@@ -20,8 +20,6 @@ function legacyRedirect(request: NextRequest): NextResponse | null {
   const query = from.get('query');
   if (query) url.searchParams.set('q', query);
   else url.searchParams.set('start', SITUATION_START[from.get('situation') ?? ''] ?? 'chat');
-  const lang = from.get('lang');
-  if (lang) url.searchParams.set('lang', lang);
   return NextResponse.redirect(url);
 }
 

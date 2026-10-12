@@ -1,13 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import styles from '../page.module.css';
 import HomeQueryInput from './HomeQueryInput';
 import TilesCarousel from './TilesCarousel';
 import StoryCarousel from './StoryCarousel';
-import { useLocale, type Locale } from '@/contexts/LocaleContext';
+import { useLocale } from '@/contexts/LocaleContext';
 
 const situationIds = {
   primary: ['explain', 'summarize', 'write', 'image', 'translate', 'decide'] as const,
@@ -25,39 +23,15 @@ const situationMeta: Record<string, { icon: string; href: string; color: string 
   recipe:    { icon: '🍳', href: '/assist?situation=recipe',    color: '#FFF0F3' },
 };
 
-const LOCALES: { code: Locale; flag: string; nativeName: string }[] = [
-  { code: 'en', flag: '🇬🇧', nativeName: 'English' },
-  { code: 'fr', flag: '🇫🇷', nativeName: 'Français' },
-  { code: 'es', flag: '🇪🇸', nativeName: 'Español' },
-  { code: 'de', flag: '🇩🇪', nativeName: 'Deutsch' },
-  { code: 'it', flag: '🇮🇹', nativeName: 'Italiano' },
-  { code: 'pt', flag: '🇧🇷', nativeName: 'Português' },
-];
-
 // The original Ask Away home page. Shown only when the guided flow is switched off
 // (NEXT_PUBLIC_GUIDED_FLOW=off).
 export default function LegacyHome() {
-  const { t, locale, setLocale } = useLocale();
-  const router = useRouter();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const { t } = useLocale();
 
   const buildSituations = (ids: readonly string[]) =>
     ids.map((id) => ({
       id,
       ...situationMeta[id],
-      href: `${situationMeta[id].href}&lang=${locale}`,
       title: t(`situations.${id}.title`),
       description: t(`situations.${id}.description`),
     }));
@@ -72,44 +46,8 @@ export default function LegacyHome() {
           {t('home.title')} <span className={styles.titleTagline}>{t('home.tagline')}</span>
         </h1>
 
-        <div className={styles.langDropdown} ref={dropdownRef}>
-          <button
-            className={styles.langDropdownTrigger}
-            onClick={() => setDropdownOpen((o) => !o)}
-            aria-haspopup="listbox"
-            aria-expanded={dropdownOpen}
-          >
-            <span>{LOCALES.find((l) => l.code === locale)?.flag}</span>
-            <span className={styles.langDropdownTriggerName}>
-              {LOCALES.find((l) => l.code === locale)?.nativeName}
-            </span>
-            <span className={styles.langDropdownCaret}>{dropdownOpen ? '▲' : '▼'}</span>
-          </button>
-
-          {dropdownOpen && (
-            <ul className={styles.langDropdownMenu} role="listbox">
-              {LOCALES.map(({ code, flag, nativeName }) => (
-                <li
-                  key={code}
-                  role="option"
-                  aria-selected={locale === code}
-                  className={`${styles.langDropdownItem} ${locale === code ? styles.langDropdownItemActive : ''}`}
-                  onClick={() => {
-                    setLocale(code);
-                    setDropdownOpen(false);
-                    const params = new URLSearchParams(window.location.search);
-                    params.set('lang', code);
-                    router.replace(`?${params.toString()}`, { scroll: false });
-                  }}
-                >
-                  <span className={styles.langDropdownFlag}>{flag}</span>
-                  <span className={styles.langDropdownName}>{nativeName.toUpperCase()}</span>
-                  {locale === code && <span className={styles.langDropdownCheck}>✓</span>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        {/* Right spacer — keeps title centred */}
+        <div className={styles.headerSpacer} />
       </header>
 
       <div className={styles.content}>
@@ -126,7 +64,7 @@ export default function LegacyHome() {
       </div>
 
       <footer className={styles.footer}>
-        <Link href={`/about?lang=${locale}`} className={styles.footerLink}>{t('home.footerAbout')}</Link>
+        <Link href="/about" className={styles.footerLink}>{t('home.footerAbout')}</Link>
         <Link href="/terms"   className={styles.footerLink}>{t('home.footerTerms')}</Link>
         <Link href="/privacy" className={styles.footerLink}>{t('home.footerPrivacy')}</Link>
       </footer>

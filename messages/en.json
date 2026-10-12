@@ -80,12 +80,7 @@
       "justNow":              "just now",
       "minutesAgo":           "{n}m ago",
       "hoursAgo":             "{n}h ago",
-      "sidebarFootnote":      "These conversations will disappear when you close this tab.",
-      "signUpNudge":          "Sign up to save your conversations.",
-      "signInGoogle":         "Continue with Google",
-      "signingInGoogle": "Opening Google…",
-      "signInError": "We couldn’t open Google sign-in. Please try again.",
-      "signOut":              "Sign out"
+      "sidebarFootnote":      "These conversations will disappear when you close this tab."
     },
     "tips": {
       "1bold": "Say it in your own words:",

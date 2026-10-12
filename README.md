@@ -12,7 +12,7 @@ AskAway is my attempt to fix that first interaction.
 
 - No blank input box: people pick what is on their plate (write something, make sense of something, or hand a job off)
 - Two or three tap-to-answer questions build the prompt live, in the spot where the chat box normally sits, so people learn where to type next time
-- A readiness fill rewards added context and never blocks sending
+- A readiness fill reads the prompt, rewards the details that make an answer useful, and never blocks sending
 - The prompt goes over as the person's own message
 - After two guided prompts, people **graduate** to the plain chat box. The goal is that they no longer need AskAway
 
@@ -54,8 +54,9 @@ runs the unit tests for the guided flow.
 |---|---|
 | `app/guided/` | The screens: setup, prompt builder, conversation, agent run, graduation |
 | `lib/guided/` | The logic, with tests: prompt composition, readiness, graduation gate, agent-run state machine |
-| `messages/guided/` | All copy, question options and prompt templates, one file per language |
+| `messages/guided/` | All copy, question options and prompt templates (English only) |
 | `app/api/chat` | The conversation. Picks the model on the server |
+| `app/api/readiness` | Scores the prompt in progress against four yes/no checks, so the readiness fill reflects what the prompt says. Jev (TypeSafe AI) first, Claude Haiku as fallback |
 | `app/api/agent` | "Do things for me" jobs: web research streamed as plain-English steps, with a check-in when the job hits a real fork |
 
 **Rolling back.** The original Ask Away (home page plus `/assist`) is still in the codebase. Set `NEXT_PUBLIC_GUIDED_FLOW=off` and redeploy to switch back. The pre-overhaul version is also preserved as the `v1-askaway` tag and the `legacy/askaway-v1` branch.

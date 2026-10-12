@@ -1,15 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import de from '@/messages/guided/de.json';
 import en from '@/messages/guided/en.json';
-import es from '@/messages/guided/es.json';
-import fr from '@/messages/guided/fr.json';
-import itMessages from '@/messages/guided/it.json';
-import pt from '@/messages/guided/pt.json';
 import { builderReducer, builderView, initBuilder } from '../builder';
 import { FLOWS, variantKey } from '../flows';
 import type { AnswerValue, TaskCategory, Translate } from '../types';
 
-const LOCALES: Record<string, unknown> = { en, fr, es, de, it: itMessages, pt };
+const LOCALES: Record<string, unknown> = { en };
 
 const translator = (messages: unknown): Translate => (key, vars) => {
   const found = key
@@ -21,20 +16,8 @@ const translator = (messages: unknown): Translate => (key, vars) => {
   return out;
 };
 
-function keysOf(value: unknown, prefix = ''): string[] {
-  if (!value || typeof value !== 'object') return [prefix];
-  return Object.entries(value).flatMap(([key, child]) => keysOf(child, prefix ? `${prefix}.${key}` : key));
-}
-
-describe('guided flow translations', () => {
-  it('every locale defines exactly the English keys', () => {
-    const expected = keysOf(en).sort();
-    for (const [code, messages] of Object.entries(LOCALES)) {
-      expect(keysOf(messages).sort(), code).toEqual(expected);
-    }
-  });
-
-  it('every flow composes a complete prompt in every locale', () => {
+describe('guided flow copy', () => {
+  it('every flow and option composes a complete prompt', () => {
     for (const [code, messages] of Object.entries(LOCALES)) {
       const t = translator(messages);
       const option = (prefix: string, id: string): AnswerValue => ({

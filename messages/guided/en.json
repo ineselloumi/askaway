@@ -3,7 +3,6 @@
     "home": "ask away",
     "newChat": "New chat",
     "history": "History",
-    "language": "Language",
     "about": "About",
     "terms": "Terms",
     "privacy": "Privacy",
@@ -94,7 +93,17 @@
       "almost": "Almost there",
       "done": "I'm done"
     },
-    "andMore": ", and …"
+    "andMore": ", and …",
+    "hints": {
+      "task": "Say what you want made or done.",
+      "subject": "Say what it's about. That is the detail that helps most.",
+      "audience": "Say who it's for.",
+      "preference": "Add a preference: the tone, the length, or something it must include.",
+      "manner": "Say how you want it: plain words, a length, a language.",
+      "context": "Add a line about why you're asking or what you already know.",
+      "constraints": "Add something it has to meet: a budget, a size, a must-have.",
+      "handback": "Say what you want handed back, or when you need it."
+    }
   },
   "flows": {
     "write": {

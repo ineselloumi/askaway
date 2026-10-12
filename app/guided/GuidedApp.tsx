@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { useConversations, type ChatMessage, type SavedConversation } from '@/contexts/ConversationsContext';
-import { useLocale, type Locale } from '@/contexts/LocaleContext';
+import { useLocale } from '@/contexts/LocaleContext';
 import { agentReducer, askWithNotes, createRun, type AgentAction, type AgentRun, type CheckIn } from '@/lib/guided/agentRun';
 import { track, trackPromptSent } from '@/lib/guided/analytics';
 import { FLOWS, IDEAS } from '@/lib/guided/flows';
@@ -32,20 +31,11 @@ type View =
 
 const CATEGORIES: TaskCategory[] = ['write', 'understand', 'agentic'];
 
-const LOCALES: { code: Locale; name: string }[] = [
-  { code: 'en', name: 'English' },
-  { code: 'fr', name: 'Français' },
-  { code: 'es', name: 'Español' },
-  { code: 'de', name: 'Deutsch' },
-  { code: 'it', name: 'Italiano' },
-  { code: 'pt', name: 'Português' },
-];
-
 let counter = 0;
 const newId = () => `msg-${Date.now()}-${++counter}`;
 
 export default function GuidedApp() {
-  const { t, locale, localeReady, setLocale } = useLocale();
+  const { t, locale } = useLocale();
   const { saveConversation, updateConversation, setActiveConversationId, pendingLoad, clearPendingLoad } = useConversations();
 
   const [progress, setProgress] = useState<GuidedProgress>(initialProgress);
@@ -119,7 +109,7 @@ export default function GuidedApp() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: turns, category: metaRef.current.category, locale }),
+        body: JSON.stringify({ messages: turns, category: metaRef.current.category }),
         signal: controller.signal,
       });
       const data = await response.json().catch(() => ({}));
@@ -157,7 +147,7 @@ export default function GuidedApp() {
       const response = await fetch('/api/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...payload, kind: metaRef.current.kind, job: metaRef.current.job, locale }),
+        body: JSON.stringify({ ...payload, kind: metaRef.current.kind, job: metaRef.current.job }),
         signal: controller.signal,
       });
       if (!response.ok || !response.body) {
@@ -333,6 +323,7 @@ export default function GuidedApp() {
       variant: built.variant,
       guided: true,
       readiness: built.readiness,
+      scored: built.scored,
       edited: built.edited,
       via: built.via,
     });
@@ -392,7 +383,7 @@ export default function GuidedApp() {
   // ── First load: stored progress and deep links ────────────────────────────
 
   useEffect(() => {
-    if (!localeReady || ready) return;
+    if (ready) return;
     const stored = loadProgress();
     progressRef.current = stored;
     setProgress(stored);
@@ -414,7 +405,7 @@ export default function GuidedApp() {
       newChat();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localeReady]);
+  }, []);
 
   // ── History: save as the conversation grows, restore from the drawer ──────
 
@@ -451,7 +442,7 @@ export default function GuidedApp() {
       fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'title', messages: [{ role: 'user', content: firstText.slice(0, 2000) }], locale }),
+        body: JSON.stringify({ action: 'title', messages: [{ role: 'user', content: firstText.slice(0, 2000) }] }),
       })
         .then((response) => response.json())
         .then((data) => {
@@ -516,18 +507,6 @@ export default function GuidedApp() {
           </button>
         </div>
         <div className={styles.topRight}>
-          <select
-            className={styles.langSelect}
-            value={locale}
-            aria-label={t('guided.nav.language')}
-            onChange={(event) => setLocale(event.target.value as Locale)}
-          >
-            {LOCALES.map(({ code, name }) => (
-              <option key={code} value={code}>
-                {name}
-              </option>
-            ))}
-          </select>
           {view.name !== 'setup' && (
             <button type="button" className={styles.topPill} onClick={newChat}>
               + <span className={styles.topPillLabel}>{t('guided.nav.newChat')}</span>
@@ -580,7 +559,7 @@ interface SetupProps {
 }
 
 function Setup({ onPick, onJustType }: SetupProps) {
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
   const [picked, setPicked] = useState<TaskCategory | null>(null);
 
   const pick = (category: TaskCategory) => {
@@ -642,7 +621,7 @@ function Setup({ onPick, onJustType }: SetupProps) {
         </div>
       </div>
       <nav className={styles.legal} aria-label="Legal">
-        <Link href={`/about?lang=${locale}`}>{t('guided.nav.about')}</Link>
+        <Link href="/about">{t('guided.nav.about')}</Link>
         <Link href="/terms">{t('guided.nav.terms')}</Link>
         <Link href="/privacy">{t('guided.nav.privacy')}</Link>
       </nav>
@@ -655,8 +634,6 @@ function Setup({ onPick, onJustType }: SetupProps) {
 function HistoryDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t, locale } = useLocale();
   const { conversations, activeConversationId, requestLoadConversation } = useConversations();
-  const { user, loading, signingIn, signInError, signInWithGoogle, signOut } = useAuth();
-  const guest = !loading && (!user || user.is_anonymous);
 
   useEffect(() => {
     if (!open) return;
@@ -702,25 +679,8 @@ function HistoryDrawer({ open, onClose }: { open: boolean; onClose: () => void }
           ))}
         </nav>
         <div className={styles.drawerFoot}>
-          {guest && conversations.length > 0 && (
-            <>
-              <span>{t('assist.ui.signUpNudge')}</span>
-              <button type="button" className={styles.drawerSignIn} onClick={signInWithGoogle} disabled={signingIn} aria-busy={signingIn}>
-                {t(signingIn ? 'assist.ui.signingInGoogle' : 'assist.ui.signInGoogle')}
-              </button>
-              {signInError && <span role="alert">{t('assist.ui.signInError')}</span>}
-            </>
-          )}
-          {!loading && user && !user.is_anonymous && (
-            <div className={styles.drawerUser}>
-              <span>{user.user_metadata?.full_name || user.email}</span>
-              <button type="button" className={styles.linkButton} onClick={signOut}>
-                {t('assist.ui.signOut')}
-              </button>
-            </div>
-          )}
           <div className={styles.drawerLinks}>
-            <Link href={`/about?lang=${locale}`}>{t('guided.nav.about')}</Link>
+            <Link href="/about">{t('guided.nav.about')}</Link>
             <Link href="/terms">{t('guided.nav.terms')}</Link>
             <Link href="/privacy">{t('guided.nav.privacy')}</Link>
           </div>

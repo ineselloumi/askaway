@@ -1,24 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { useLocale } from '@/contexts/LocaleContext';
 import styles from './page.module.css';
 
 export default function AboutPage() {
-  const { t, locale, localeReady } = useLocale();
-  const router = useRouter();
-
-  // Sync ?lang= in URL once locale is ready
-  useEffect(() => {
-    if (!localeReady) return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('lang') !== locale) {
-      params.set('lang', locale);
-      router.replace(`?${params.toString()}`, { scroll: false });
-    }
-  }, [locale, localeReady, router]);
+  const { t } = useLocale();
 
   const principles = [
     { icon: t('about.principles.p1icon'), title: t('about.principles.p1title'), description: t('about.principles.p1desc') },
@@ -30,7 +17,7 @@ export default function AboutPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <Link href={`/?lang=${locale}`} className={styles.backButton}>
+          <Link href="/" className={styles.backButton}>
             {t('about.backButton')}
           </Link>
         </div>
@@ -71,7 +58,7 @@ export default function AboutPage() {
 
         <div className={styles.cta}>
           <h2 className={styles.ctaTitle}>{t('about.cta.title')}</h2>
-          <Link href={`/?lang=${locale}`} className={styles.ctaButton}>
+          <Link href="/" className={styles.ctaButton}>
             {t('about.cta.button')}
           </Link>
         </div>

@@ -7,7 +7,6 @@ import {
   claude,
   clientIp,
   isMock,
-  languageInstruction,
   modelName,
   sleep,
 } from '@/lib/server/claude';
@@ -35,7 +34,6 @@ interface ChatRequest {
   action?: 'answer' | 'title';
   messages?: Turn[];
   category?: string;
-  locale?: string;
 }
 
 const FORMAT = `How to answer:
@@ -108,7 +106,7 @@ export async function POST(request: NextRequest) {
         model: MODELS.chat,
         max_tokens: 1000,
         output_config: { effort: 'low' },
-        system: `Write a title of 3 to 6 words for a conversation that starts with the message below. Plain words, no quotes, no trailing punctuation. Reply with the title only.${languageInstruction(body.locale)}`,
+        system: `Write a title of 3 to 6 words for a conversation that starts with the message below. Plain words, no quotes, no trailing punctuation. Reply with the title only.`,
         messages: [{ role: 'user', content: last.content.slice(0, 2000) }],
       });
       const title = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text')?.text.trim();
@@ -140,7 +138,7 @@ export async function POST(request: NextRequest) {
       model,
       max_tokens: 16000,
       output_config: { effort: 'low' },
-      system: `${IDENTITY}\n\n${FORMAT}${languageInstruction(body.locale)}`,
+      system: `${IDENTITY}\n\n${FORMAT}`,
       messages: turns.map((turn) => ({ role: turn.role, content: toContent(turn) })),
     });
 

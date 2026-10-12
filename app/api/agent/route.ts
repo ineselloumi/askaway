@@ -7,7 +7,6 @@ import {
   claude,
   clientIp,
   isMock,
-  languageInstruction,
   modelName,
   sleep,
 } from '@/lib/server/claude';
@@ -44,7 +43,6 @@ interface AgentRequest {
   ask?: string;
   kind?: Kind;
   job?: string;
-  locale?: string;
   attachment?: { name: string; text: string };
   history?: { role: 'user' | 'assistant'; content: string }[];
   resume?: { messages: Anthropic.MessageParam[]; toolUseId: string; answer: string };
@@ -101,7 +99,7 @@ const JOBS: Record<string, string> = {
   custom: 'Work out what the job needs, do it, and hand back something the person can use straight away.',
 };
 
-function systemPrompt(kind: Kind, job: string, locale?: string): string {
+function systemPrompt(kind: Kind, job: string): string {
   const today = new Date().toISOString().slice(0, 10);
   const reach =
     kind === 'web'
@@ -115,7 +113,7 @@ ${JOBS[job] ?? JOBS.custom}
 
 ${reach}
 
-${RESULT_FORMAT}${languageInstruction(locale)}`;
+${RESULT_FORMAT}`;
 }
 
 function tools(kind: Kind): Anthropic.ToolUnion[] {
@@ -220,7 +218,7 @@ async function runJob(body: AgentRequest, kind: Kind, emit: Emit, signal: AbortS
         model: MODELS.agent,
         max_tokens: 16000,
         output_config: { effort: 'medium' },
-        system: systemPrompt(kind, job, body.locale),
+        system: systemPrompt(kind, job),
         tools: tools(kind),
         messages,
       },

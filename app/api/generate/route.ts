@@ -47,17 +47,9 @@ interface GenerateRequest {
   images?: string[]; // Base64 encoded image data (multiple)
 }
 
-const languageInstructions: Record<string, string> = {
-  fr: 'IMPORTANT: Réponds entièrement en français.',
-  es: 'IMPORTANT: Responde completamente en español.',
-  de: 'IMPORTANT: Antworte vollständig auf Deutsch.',
-  it: 'IMPORTANT: Rispondi completamente in italiano.',
-  pt: 'IMPORTANT: Responde completamente em português.',
-};
-
-function getLanguageInstruction(locale?: string): string {
-  if (!locale || locale === 'en') return '';
-  return languageInstructions[locale] ? `\n\n${languageInstructions[locale]}` : '';
+// Ask Away is English only; kept as a no-op so the prompt builders below stay unchanged.
+function getLanguageInstruction(_locale?: string): string {
+  return '';
 }
 
 function getProvider() {
@@ -95,51 +87,8 @@ const firstQuestionsEn: Record<string, string> = {
   'other':     "What can I help you with?",
 };
 
-const firstQuestionsFr: Record<string, string> = {
-  'write':     "Qu'est-ce que vous devez rédiger ? Dites-moi pour qui et ce que vous voulez dire.",
-  'explain':   "Collez ou décrivez ce que vous aimeriez que j'explique.",
-  'summarize': "Collez un texte à résumer. Vous pouvez aussi coller des liens de sites web.",
-  'trip':      "Où pensez-vous aller, et comment puis-je vous aider ?",
-  'translate': "Que souhaitez-vous traduire, et quelles langues sont concernées ?",
-  'health':    "Quel sujet de santé puis-je vous aider à aborder ?",
-  'recipe':    "Qu'avez-vous envie de cuisiner ? Des ingrédients ou préférences particulières ?",
-  'decide':    "Quelle décision cherchez-vous à prendre ?",
-  'other':     "De quoi avez-vous besoin ?",
-};
-
-const firstQuestionsEs: Record<string, string> = {
-  'write':     "¿Qué necesitas escribir? Dime para quién es y qué quieres decir.",
-  'explain':   "Pega o describe lo que te gustaría que explique.",
-  'summarize': "Pega un texto que te gustaría que resuma. También puedes pegar enlaces de sitios web.",
-  'trip':      "¿A dónde estás pensando ir y en qué necesitas ayuda?",
-  'translate': "¿Qué te gustaría traducir y qué idiomas están involucrados?",
-  'health':    "¿Con qué tema de salud puedo ayudarte?",
-  'recipe':    "¿Qué quieres cocinar? ¿Algún ingrediente o preferencia dietética?",
-  'decide':    "¿Qué decisión estás tratando de tomar?",
-  'other':     "¿En qué puedo ayudarte?",
-};
-
-const firstQuestionsDe: Record<string, string> = {
-  'write':     "Was musst du schreiben? Sag mir, für wen es ist und was du sagen möchtest.",
-  'explain':   "Füge ein oder beschreibe, was ich erklären soll.",
-  'summarize': "Füge einen Text ein, den ich zusammenfassen soll. Du kannst auch Website-Links direkt einfügen.",
-  'trip':      "Wohin denkst du zu gehen und wobei brauchst du Hilfe?",
-  'translate': "Was möchtest du übersetzen und welche Sprachen sind beteiligt?",
-  'health':    "Bei welchem Gesundheitsthema kann ich dir helfen?",
-  'recipe':    "Was möchtest du kochen? Bestimmte Zutaten oder Ernährungspräferenzen?",
-  'decide':    "Welche Entscheidung versuchst du zu treffen?",
-  'other':     "Wobei kann ich dir helfen?",
-};
-
-const firstQuestionsByLocale: Record<string, Record<string, string>> = {
-  en: firstQuestionsEn,
-  fr: firstQuestionsFr,
-  es: firstQuestionsEs,
-  de: firstQuestionsDe,
-};
-
-function getFirstQuestion(situation: string, locale?: string): { question: string; suggestions: string[]; isContentQuestion: boolean } {
-  const map = firstQuestionsByLocale[locale || 'en'] || firstQuestionsEn;
+function getFirstQuestion(situation: string, _locale?: string): { question: string; suggestions: string[]; isContentQuestion: boolean } {
+  const map = firstQuestionsEn;
   const question = map[situation] || map['other'];
   return { question, suggestions: [], isContentQuestion: true };
 }

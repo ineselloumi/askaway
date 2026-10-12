@@ -111,21 +111,6 @@
 .topPill:hover {
   border-color: var(--g-muted);
 }
-.root .langSelect {
-  appearance: none;
-  width: auto;
-  font: 400 12.5px/1 var(--g-sans);
-  color: var(--g-secondary);
-  background: none;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  padding: 9px 10px;
-  cursor: pointer;
-}
-.root .langSelect:hover,
-.root .langSelect:focus {
-  border-color: var(--g-border);
-}
 
 /* ── History drawer ──────────────────────────────────────────────────────── */
 
@@ -212,35 +197,6 @@
   gap: 10px;
   font: 400 12.2px/1.4 var(--g-sans);
   color: var(--g-secondary);
-}
-.drawerSignIn {
-  appearance: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font: 600 13.1px/1 var(--g-sans);
-  background: var(--g-surface);
-  border: 1px solid var(--g-border);
-  border-radius: 999px;
-  padding: 10.2px 16px;
-}
-.drawerSignIn:disabled {
-  opacity: 0.65;
-  cursor: wait;
-}
-.drawerUser {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--g-ink);
-}
-.drawerUser span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .drawerLinks {
   display: flex;
@@ -1399,10 +1355,18 @@
 .bringBack {
   margin-top: 17px;
 }
-.plainTitle {
-  font: 500 26.1px/1.15 var(--g-serif);
-  letter-spacing: -0.02em;
-  text-align: center;
+/* The plain start screen: its heading uses the setup title's type and sits at
+   the same height on the page. The setup title is centred together with the
+   cards above the ideas strip, which works out to 50dvh - 155px from the top
+   of the viewport; the thread's own content starts 86px down. */
+.plainEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: max(0px, calc(50dvh - 241.3px));
+}
+.plainLink {
+  font-size: 13.1px;
 }
 
 /* ── Small screens and reduced motion (not in the handoff; see README open question 4) ── */
@@ -1417,6 +1381,10 @@
   }
   .setupTitle {
     font-size: 30px;
+  }
+  .plainEmpty {
+    /* Matches the setup screen, whose title starts 28px below the top bar here. */
+    padding-top: 16px;
   }
   .cards {
     grid-template-columns: 1fr;

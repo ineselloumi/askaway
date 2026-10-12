@@ -67,9 +67,9 @@ export default function Conversation(props: Props) {
           (showGraduation ? (
             <Graduation progress={progress} onDismiss={props.onDismissGraduation} onBringBack={props.onBringBack} />
           ) : (
-            <div className={styles.center}>
-              <h1 className={styles.plainTitle}>{t('guided.chat.plainTitle')}</h1>
-              <button type="button" className={`${styles.linkButton} ${styles.bringBack}`} onClick={props.onBringBack}>
+            <div className={styles.plainEmpty}>
+              <h1 className={styles.setupTitle}>{t('guided.chat.plainTitle')}</h1>
+              <button type="button" className={`${styles.linkButton} ${styles.plainLink}`} onClick={props.onBringBack}>
                 {t('guided.graduation.bringBackPlain')}
               </button>
             </div>

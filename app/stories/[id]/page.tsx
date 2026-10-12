@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { stories } from '../storyData';
-import { storyLocalizedMessages } from '../storyLocalizedMessages';
 import { useLocale } from '@/contexts/LocaleContext';
 import ConversationSidebar from '@/app/assist/components/ConversationSidebar';
 import styles from './page.module.css';
@@ -89,7 +88,7 @@ export default function StoryPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const story = stories[id];
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [faqSidebarVisible, setFaqSidebarVisible] = useState(false);
@@ -103,13 +102,7 @@ export default function StoryPage() {
     );
   }
 
-  const localized = storyLocalizedMessages[locale]?.[id];
-  const displayMessages = localized
-    ? story.messages.map(msg => ({
-        ...msg,
-        content: msg.role === 'user' ? localized.user : localized.assistant,
-      }))
-    : story.messages;
+  const displayMessages = story.messages;
 
   const faqItemIds = situationFaqItems[story.situation] ?? [];
   const showFaqPanel = faqItemIds.length > 0;
@@ -126,11 +119,11 @@ export default function StoryPage() {
   const handleFaqClick = (faqId: string) => {
     const displayText = t(`assist.faqItems.${faqId}`);
     setFaqDrawerOpen(false);
-    router.push(`/assist?situation=${story.situation}&query=${encodeURIComponent(displayText)}&lang=${locale}`);
+    router.push(`/assist?situation=${story.situation}&query=${encodeURIComponent(displayText)}`);
   };
 
   const handleNewConversation = () => {
-    router.push(`/assist?situation=other&lang=${locale}`);
+    router.push(`/assist?situation=other`);
   };
 
   return (
@@ -149,7 +142,7 @@ export default function StoryPage() {
                 <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
               </svg>
             </button>
-            <Link href={`/?lang=${locale}`} className={styles.backButton}>{t('assist.ui.startOver')}</Link>
+            <Link href="/" className={styles.backButton}>{t('assist.ui.startOver')}</Link>
           </div>
 
           <Link href="/" className={styles.headerLogo}>ask away</Link>
@@ -221,7 +214,7 @@ export default function StoryPage() {
                 displayMessages[0]?.role === 'user'
                   ? `&prefill=${encodeURIComponent(displayMessages[0].content)}`
                   : ''
-              }&lang=${locale}`}
+              }`}
               className={styles.ctaButton}
             >
               {t('stories.ui.ctaButton')}
