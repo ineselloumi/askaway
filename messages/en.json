@@ -10,77 +10,104 @@
     "footerPrivacy": "Privacy Policy"
   },
   "situations": {
-    "explain":   { "title": "Explain something",      "description": "Help me understand a topic, a document, a news article, etc." },
-    "summarize": { "title": "Summarize",               "description": "Make a document, article or communication more concise." },
-    "write":     { "title": "Write for me",            "description": "Help me write an email, a letter, a text message, etc." },
-    "image":     { "title": "Explain an image",        "description": "Upload a letter, a receipt, a bill, etc." },
-    "health":    { "title": "Get health information",  "description": "Ask about symptoms, medication, nutrition, etc." },
-    "decide":    { "title": "Just chat",                "description": "Perfect when you just need a sounding board or supportive ear." },
-    "translate": { "title": "Translate",               "description": "Decode or translate languages quickly." },
-    "trip":      { "title": "Go somewhere",            "description": "Ask about a city visit, an itinerary or a night out." },
-    "recipe":    { "title": "Find a recipe",           "description": "Suggestions based on your cravings or ingredients." }
+    "explain": {
+      "title": "Explain something",
+      "description": "Help me understand a topic, a document, a news article, etc."
+    },
+    "summarize": {
+      "title": "Summarize",
+      "description": "Make a document, article or communication more concise."
+    },
+    "write": {
+      "title": "Write for me",
+      "description": "Help me write an email, a letter, a text message, etc."
+    },
+    "image": {
+      "title": "Explain an image",
+      "description": "Upload a letter, a receipt, a bill, etc."
+    },
+    "health": {
+      "title": "Get health information",
+      "description": "Ask about symptoms, medication, nutrition, etc."
+    },
+    "decide": {
+      "title": "Just chat",
+      "description": "Perfect when you just need a sounding board or supportive ear."
+    },
+    "translate": {
+      "title": "Translate",
+      "description": "Decode or translate languages quickly."
+    },
+    "trip": {
+      "title": "Go somewhere",
+      "description": "Ask about a city visit, an itinerary or a night out."
+    },
+    "recipe": {
+      "title": "Find a recipe",
+      "description": "Suggestions based on your cravings or ingredients."
+    }
   },
   "homeInput": {
-    "placeholder":   "What do you need help with today?",
-    "buttonLabel":   "Ask this question",
-    "buttonText":    "Ask →"
+    "placeholder": "What do you need help with today?",
+    "buttonLabel": "Ask this question",
+    "buttonText": "Ask →"
   },
   "assist": {
     "greetings": {
-      "write":     "Hi! I'll help you write something.",
-      "explain":   "Hi! I'll help you understand something.",
+      "write": "Hi! I'll help you write something.",
+      "explain": "Hi! I'll help you understand something.",
       "summarize": "Hi! I'll help make something more concise.",
-      "image":     "Hi! I'll help you understand an image.",
+      "image": "Hi! I'll help you understand an image.",
       "translate": "Hi! I'll help you translate.",
-      "health":    "Hi! I'll help with health information.",
-      "recipe":    "Hi! I'll help you find a recipe.",
-      "trip":      "Hi! I'll help you plan a trip.",
-      "decide":    "Hi! I'll help you think through a decision.",
-      "other":     "Hi! What can I help you with today?"
+      "health": "Hi! I'll help with health information.",
+      "recipe": "Hi! I'll help you find a recipe.",
+      "trip": "Hi! I'll help you plan a trip.",
+      "decide": "Hi! I'll help you think through a decision.",
+      "other": "Hi! What can I help you with today?"
     },
     "situationTitles": {
-      "write":     "Write for me",
-      "explain":   "Explain something",
+      "write": "Write for me",
+      "explain": "Explain something",
       "summarize": "Summarize",
-      "image":     "Explain an image",
+      "image": "Explain an image",
       "translate": "Translate",
-      "health":    "Health information",
-      "recipe":    "Find a recipe",
-      "trip":      "Plan a trip",
-      "other":     "Something else"
+      "health": "Health information",
+      "recipe": "Find a recipe",
+      "trip": "Plan a trip",
+      "other": "Something else"
     },
     "ui": {
-      "startOver":            "← Back",
-      "ideas":                "💡 Ideas",
-      "toggleIdeas":          "Toggle ideas panel",
-      "send":                 "Send",
-      "copy":                 "Copy this answer",
-      "copied":               "✓ Copied",
-      "thinking":             "Thinking...",
-      "writing":              "Writing your response...",
-      "disclaimer":           "AI can make mistakes, double check important information.",
-      "loadingSuggestions":   "Loading suggestions...",
-      "followUpIntro":        "You can ask these follow-ups:",
-      "followUpPlaceholder":  "Ask anything else...",
-      "uploadImages":         "Click to upload images",
-      "uploadHint":           "or drag and drop — up to 5",
-      "howToUseTitle":        "How to use",
-      "exampleQuestionsTitle":"Example questions",
+      "startOver": "← Back",
+      "ideas": "💡 Ideas",
+      "toggleIdeas": "Toggle ideas panel",
+      "send": "Send",
+      "copy": "Copy this answer",
+      "copied": "✓ Copied",
+      "thinking": "Thinking...",
+      "writing": "Writing your response...",
+      "disclaimer": "AI can make mistakes, double check important information.",
+      "loadingSuggestions": "Loading suggestions...",
+      "followUpIntro": "You can ask these follow-ups:",
+      "followUpPlaceholder": "Ask anything else...",
+      "uploadImages": "Click to upload images",
+      "uploadHint": "or drag and drop — up to 5",
+      "howToUseTitle": "How to use",
+      "exampleQuestionsTitle": "Example questions",
       "exampleQuestionsDesc": "Try one of these to get started.",
-      "imageUploadError":     "Sorry, we can only support up to {max} images at a time.",
-      "errorGeneral":         "Sorry, something went wrong. Please try again.",
-      "initialQuestion":      "What would you like help with?",
-      "imagePlaceholder":     "What would you like to know about this image?",
-      "firstPlaceholder":     "Paste or type here...",
-      "answerPlaceholder":    "Type your answer...",
-      "imageAlt":             "Uploaded",
-      "sidebarTitle":         "Conversations",
-      "newConversation":      "New conversation",
-      "sidebarEmpty":         "Your conversations will appear here once you start chatting.",
-      "justNow":              "just now",
-      "minutesAgo":           "{n}m ago",
-      "hoursAgo":             "{n}h ago",
-      "sidebarFootnote":      "These conversations will disappear when you close this tab."
+      "imageUploadError": "Sorry, we can only support up to {max} images at a time.",
+      "errorGeneral": "Sorry, something went wrong. Please try again.",
+      "initialQuestion": "What would you like help with?",
+      "imagePlaceholder": "What would you like to know about this image?",
+      "firstPlaceholder": "Paste or type here...",
+      "answerPlaceholder": "Type your answer...",
+      "imageAlt": "Uploaded",
+      "sidebarTitle": "Conversations",
+      "newConversation": "New conversation",
+      "sidebarEmpty": "Your conversations will appear here once you start chatting.",
+      "justNow": "just now",
+      "minutesAgo": "{n}m ago",
+      "hoursAgo": "{n}h ago",
+      "sidebarFootnote": "These conversations will disappear when you close this tab."
     },
     "tips": {
       "1bold": "Say it in your own words:",
@@ -91,126 +118,128 @@
       "3body": "If the first answer isn't quite right, just say so! You can ask to make it shorter, simpler, or try a different approach."
     },
     "faqItems": {
-      "rewrite-concise":       "Rewrite this to sound more concise",
-      "email-formal":          "Make my email sound more formal",
-      "birthday-note":         "Help me write a birthday note to my friend",
-      "rewrite-assertive":     "Rewrite this to sound more assertive",
-      "bitcoin":               "What is Bitcoin and why does it matter?",
-      "longevity":             "What do we know about longevity?",
-      "epstein":               "What's happening with the Epstein files?",
-      "interest-rates":        "How do interest rates affect markets?",
-      "article-insights":      "Top insights in this article",
-      "summarize-email":       "Summarize this email",
-      "book-learnings":        "Give me the high level learnings from a book",
-      "news-summary":          "What is the summary of today's news?",
-      "translate-spanish":     "Translate this sentence from Spanish",
-      "french-basics":         "What are some basic French sentences to know when visiting?",
-      "translate-en-de":       "Translate this paragraph from English to German",
-      "thank-you-japanese":    "How do you say \"Thank you\" in Japanese?",
-      "improve-sleep":         "How can I improve sleep quality?",
-      "cold-remedies":         "What are some remedies for the common cold?",
-      "insulin-foods":         "Foods to avoid for people with insulin resistance",
-      "understand-symptom":    "Help me understand a symptom",
-      "irs-letter":            "Explain this letter from the IRS",
-      "receipts":              "Sum up these receipts for me",
-      "device-usage":          "How should I use this device?",
-      "blood-test":            "Interpret my blood test results",
-      "chicago-restaurants":   "Help me find nice dinner restaurants in Chicago",
-      "paris-trip":            "Plan a 3-day trip to Paris in June",
-      "honeymoon":             "Affordable honeymoon ideas",
-      "date-night":            "Date night ideas within 15 minutes of my home",
-      "savings":               "How much should I be saving each month?",
-      "switch-jobs":           "Should I switch jobs?",
-      "mattress":              "What mattress brand should I buy",
-      "trip-destinations":     "I'm hesitating between two trip destinations",
-      "soup-winter":           "Easy soup recipes for winter",
-      "lasagna":               "How to make lasagna",
-      "low-sugar-breakfast":   "Low sugar breakfast ideas",
-      "air-fryer":             "Quick air fryer recipes",
-      "back-pain":             "Why does my back hurt every morning?",
-      "carrots-lentils":       "Recipe ideas with carrots and lentils.",
-      "fine-mail":             "I got a fine in the mail, is it legit?",
-      "birthday-niece":        "Write a birthday message to my 10yo niece.",
-      "weekend-chicago":       "Help me plan a weekend in Chicago."
+      "rewrite-concise": "Rewrite this to sound more concise",
+      "email-formal": "Make my email sound more formal",
+      "birthday-note": "Help me write a birthday note to my friend",
+      "rewrite-assertive": "Rewrite this to sound more assertive",
+      "bitcoin": "What is Bitcoin and why does it matter?",
+      "longevity": "What do we know about longevity?",
+      "epstein": "What's happening with the Epstein files?",
+      "interest-rates": "How do interest rates affect markets?",
+      "article-insights": "Top insights in this article",
+      "summarize-email": "Summarize this email",
+      "book-learnings": "Give me the high level learnings from a book",
+      "news-summary": "What is the summary of today's news?",
+      "translate-spanish": "Translate this sentence from Spanish",
+      "french-basics": "What are some basic French sentences to know when visiting?",
+      "translate-en-de": "Translate this paragraph from English to German",
+      "thank-you-japanese": "How do you say \"Thank you\" in Japanese?",
+      "improve-sleep": "How can I improve sleep quality?",
+      "cold-remedies": "What are some remedies for the common cold?",
+      "insulin-foods": "Foods to avoid for people with insulin resistance",
+      "understand-symptom": "Help me understand a symptom",
+      "irs-letter": "Explain this letter from the IRS",
+      "receipts": "Sum up these receipts for me",
+      "device-usage": "How should I use this device?",
+      "blood-test": "Interpret my blood test results",
+      "chicago-restaurants": "Help me find nice dinner restaurants in Chicago",
+      "paris-trip": "Plan a 3-day trip to Paris in June",
+      "honeymoon": "Affordable honeymoon ideas",
+      "date-night": "Date night ideas within 15 minutes of my home",
+      "savings": "How much should I be saving each month?",
+      "switch-jobs": "Should I switch jobs?",
+      "mattress": "What mattress brand should I buy",
+      "trip-destinations": "I'm hesitating between two trip destinations",
+      "soup-winter": "Easy soup recipes for winter",
+      "lasagna": "How to make lasagna",
+      "low-sugar-breakfast": "Low sugar breakfast ideas",
+      "air-fryer": "Quick air fryer recipes",
+      "back-pain": "Why does my back hurt every morning?",
+      "carrots-lentils": "Recipe ideas with carrots and lentils.",
+      "fine-mail": "I got a fine in the mail, is it legit?",
+      "birthday-niece": "Write a birthday message to my 10yo niece.",
+      "weekend-chicago": "Help me plan a weekend in Chicago."
     },
     "clarifyingQuestions": {
-      "rewrite-concise":   "Paste the text you'd like me to rewrite.",
-      "email-formal":      "Paste your email below.",
+      "rewrite-concise": "Paste the text you'd like me to rewrite.",
+      "email-formal": "Paste your email below.",
       "rewrite-assertive": "Paste the text you'd like to rewrite.",
-      "article-insights":  "Paste the article below.",
-      "summarize-email":   "Paste the email you'd like me to summarize.",
-      "book-learnings":    "Which book, or paste a passage you'd like me to summarize?",
-      "irs-letter":        "Please upload the letter you'd like me to explain.",
-      "receipts":          "Please upload the receipts.",
-      "device-usage":      "Please upload a photo of the device.",
-      "blood-test":        "Please upload your blood test results."
+      "article-insights": "Paste the article below.",
+      "summarize-email": "Paste the email you'd like me to summarize.",
+      "book-learnings": "Which book, or paste a passage you'd like me to summarize?",
+      "irs-letter": "Please upload the letter you'd like me to explain.",
+      "receipts": "Please upload the receipts.",
+      "device-usage": "Please upload a photo of the device.",
+      "blood-test": "Please upload your blood test results."
     }
   },
   "about": {
-    "pageTitle": "How ask away works",
+    "pageTitle": "About",
     "backButton": "← Back to home",
-    "whatIsIt": {
-      "title": "What is it?",
-      "p1": "ask away helps you with everyday tasks and questions. Need to reply to a message? Want to understand a confusing letter? Want to learn about a topic? We can help.",
-      "p2": "We use artificial intelligence technology, also called \"AI\", to write responses for you. But we made it simple. No confusing words. No empty boxes where you have to figure out what to type."
-    },
-    "principles": {
-      "title": "Our principles",
-      "intro": "We built this for people who find artificial intelligence tools confusing and need a little extra guidance.",
-      "p1icon": "🎯", "p1title": "Start where you are", "p1desc": "No empty text box staring at you. Pick a situation and we guide you from there.",
-      "p2icon": "💬", "p2title": "Dive deeper, one question at a time", "p2desc": "We ask simple questions in plain words. No confusing tech talk.",
-      "p3icon": "🤝", "p3title": "You are in control", "p3desc": "The tool is at your service, so nothing happens until you say so."
-    },
-    "privacy": {
-      "title": "How we handle your information",
-      "p1": "When you share context or paste a message, we only use it to help you get the answer you need. We do not save your conversations or share them with anyone else.",
-      "p2": "This is a simple tool. You use it, you get your result, that is it."
+    "intro": "Ask Away is a guided onramp to AI. Users pick what's on their plate, answer a question or two, and watch their prompt write itself. They send it, get a real answer, and ask for changes in their own words.",
+    "sections": {
+      "experiment": {
+        "lead": "An experiment.",
+        "body": "Ask Away started from a hunch that some people need a little extra help getting started with AI. Guiding users to a better first prompt does two things: it gets them a better outcome now, and it teaches them to build their next prompts by themselves. The aim is agency, not atrophy. After two guided prompts, users graduate to the plain chat box."
+      },
+      "how": {
+        "lead": "How it works.",
+        "body": "Users go through a few quick questions and real-time checks that help them shape a strong first prompt before they submit it. A combination of models evaluates, routes and answers each prompt. A fast model, Jev by TypeSafe AI, judges how complete the prompt is as the user types. The prompt then goes to the Claude model from Anthropic best suited to the task. The guidance is built into the product, so the same onramp scales to every new user without a human tutor."
+      },
+      "who": {
+        "lead": "Who made it.",
+        "body": "Ask Away was built by an independent developer in San Francisco. It is not tied to Anthropic or any other AI company. Ask Away is free to use."
+      }
     },
     "cta": {
       "title": "Ready to try it?",
       "button": "Get started"
+    },
+    "contact": {
+      "text": "Questions, ideas, or feedback: write to",
+      "email": "ines@askaway.guide"
     }
   },
   "stories": {
     "ui": {
       "ctaQuestion": "Want to ask something similar?",
-      "ctaButton":   "Try it yourself →"
+      "ctaButton": "Try it yourself →"
     },
     "maria": {
-      "label":    "Travel",
-      "story":    "Maria planned her ideal 4-day trip to Paris",
-      "cta":      "See how she did it",
+      "label": "Travel",
+      "story": "Maria planned her ideal 4-day trip to Paris",
+      "cta": "See how she did it",
       "subtitle": "How Maria planned her ideal trip to Paris"
     },
     "tom": {
-      "label":    "Safety",
-      "story":    "Tom caught a scammer targeting his bank account",
-      "cta":      "See what he asked",
+      "label": "Safety",
+      "story": "Tom caught a scammer targeting his bank account",
+      "cta": "See what he asked",
       "subtitle": "How Tom caught a scammer targeting his bank account"
     },
     "hannah": {
-      "label":    "Wellness",
-      "story":    "Hannah learned about habits to improve her sleep",
-      "cta":      "Read the tips here",
+      "label": "Wellness",
+      "story": "Hannah learned about habits to improve her sleep",
+      "cta": "Read the tips here",
       "subtitle": "How Hannah improved her sleep habits"
     },
     "juan": {
-      "label":    "Health",
-      "story":    "Juan received guidance about medical symptoms",
-      "cta":      "See how he asked",
+      "label": "Health",
+      "story": "Juan received guidance about medical symptoms",
+      "cta": "See how he asked",
       "subtitle": "How Juan got guidance about his medical symptoms"
     },
     "nicolas": {
-      "label":    "Nutrition",
-      "story":    "Nicolas found a lasagna recipe adapted to his allergies",
-      "cta":      "See how he did it",
+      "label": "Nutrition",
+      "story": "Nicolas found a lasagna recipe adapted to his allergies",
+      "cta": "See how he did it",
       "subtitle": "How Nicolas found a lasagna recipe adapted to his allergies"
     }
   },
   "error": {
-    "title":   "Something went wrong",
+    "title": "Something went wrong",
     "message": "The page took too long to load. Please try again.",
-    "retry":   "Try again",
-    "home":    "Go home"
+    "retry": "Try again",
+    "home": "Go home"
   }
 }

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { guidedSans, guidedSerif } from '../guided/fonts';
 import styles from '../legal.module.css';
 
 export const metadata = {
@@ -7,7 +8,7 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${guidedSerif.variable} ${guidedSans.variable}`}>
       <Link href="/" className={styles.back}>← Back to AskAway</Link>
 
       <h1 className={styles.title}>Terms of Service</h1>
