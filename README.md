@@ -55,7 +55,7 @@ runs the unit tests for the guided flow.
 | `app/guided/` | The screens: setup, prompt builder, conversation, agent run, graduation |
 | `lib/guided/` | The logic, with tests: prompt composition, readiness, graduation gate, agent-run state machine |
 | `messages/guided/` | All copy, question options and prompt templates (English only) |
-| `app/api/chat` | The conversation. Picks the model on the server |
+| `app/api/chat` | The conversation. Jev describes each request (reasoning needed, stakes, structure, rewording) and `lib/guided/routing.ts` picks Haiku, Sonnet or Opus from that. The badge under the answer says which and why |
 | `app/api/readiness` | Scores the prompt in progress against four yes/no checks, so the readiness fill reflects what the prompt says. Jev (TypeSafe AI) first, Claude Haiku as fallback |
 | `app/api/agent` | "Do things for me" jobs: web research streamed as plain-English steps, with a check-in when the job hits a real fork |
 

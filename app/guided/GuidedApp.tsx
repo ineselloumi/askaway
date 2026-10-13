@@ -105,11 +105,12 @@ export default function GuidedApp() {
     const turns = itemsRef.current
       .filter((item) => item.role !== 'notice')
       .map((item) => ({ role: item.role, content: item.text, images: item.images, attachment: item.attachment }));
+    const previous = [...itemsRef.current].reverse().find((item) => item.role === 'assistant')?.tier;
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: turns, category: metaRef.current.category }),
+        body: JSON.stringify({ messages: turns, category: metaRef.current.category, previous }),
         signal: controller.signal,
       });
       const data = await response.json().catch(() => ({}));
@@ -119,7 +120,8 @@ export default function GuidedApp() {
       } else if (!response.ok || !data.text) {
         pushItem({ role: 'notice', text: t(response.status === 429 ? 'guided.chat.errorBusy' : 'guided.chat.error'), retry: true });
       } else {
-        pushItem({ role: 'assistant', text: data.text, model: data.model, reason: data.reason });
+        pushItem({ role: 'assistant', text: data.text, model: data.model, reason: data.reason, tier: data.tier });
+        track('answer_routed', { tier: data.tier, reason: data.reason, routed: data.routed });
         countGuidedPrompt();
       }
     } catch {

@@ -180,11 +180,11 @@
     "sections": {
       "experiment": {
         "lead": "An experiment.",
-        "body": "Ask Away started from a hunch that some people need a little extra help getting started with AI. Guiding users to a better first prompt does two things: it gets them a better outcome now, and it teaches them to build their next prompts by themselves. The aim is agency, not atrophy. After two guided prompts, users graduate to the plain chat box."
+        "body": "Ask Away started from a hunch that some people need a little extra help getting started with AI. Guiding users to a better first prompt does two things: it gets them a better outcome now, and it teaches them to build their next prompts by themselves. After two guided prompts, users graduate to the plain chat box."
       },
       "how": {
         "lead": "How it works.",
-        "body": "Users go through a few quick questions and real-time checks that help them shape a strong first prompt before they submit it. A combination of models evaluates, routes and answers each prompt. A fast model, Jev by TypeSafe AI, judges how complete the prompt is as the user types. The prompt then goes to the Claude model from Anthropic best suited to the task. The guidance is built into the product, so the same onramp scales to every new user without a human tutor."
+        "body": "Users go through a few quick questions and real-time checks that help them shape a strong first prompt before they submit it. A combination of models evaluates, routes and answers each prompt. A fast model judges how complete the prompt is as the user types. The prompt then goes to the model best suited to the task. The guidance is built into the product, so the same onramp scales to every new user without a human tutor."
       },
       "who": {
         "lead": "Who made it.",

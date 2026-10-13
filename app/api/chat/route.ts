@@ -1,5 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { fallbackRoute, isTier, pickModel, type Facts, type Tier } from '@/lib/guided/routing';
+import { describeRequest, opusAllowed, recordOpusUse } from '@/lib/server/router';
 import {
   IDENTITY,
   MODELS,
@@ -34,7 +36,13 @@ interface ChatRequest {
   action?: 'answer' | 'title';
   messages?: Turn[];
   category?: string;
+  /** The tier that answered the previous turn, so follow-ups stay on the same model. */
+  previous?: string;
 }
+
+const MODEL_FOR: Record<Tier, string> = { haiku: MODELS.chat, sonnet: MODELS.strong, opus: MODELS.deep };
+/** More capable tiers are given more room to think. */
+const EFFORT_FOR: Record<Tier, 'low' | 'medium'> = { haiku: 'low', sonnet: 'medium', opus: 'medium' };
 
 const FORMAT = `How to answer:
 - Start with one short lead-in sentence on its own line (under 15 words) that says what you are handing over, like "Here it is, short enough to paste into a chat:" or "In short: yes, and here is why." Then a blank line, then the answer.
@@ -117,27 +125,38 @@ export async function POST(request: NextRequest) {
   }
 
   const hasImages = turns.some((turn) => turn.role === 'user' && (turn.images?.length ?? 0) > 0);
-  const model = hasImages ? MODELS.vision : MODELS.chat;
-  const reason = hasImages
-    ? 'image'
-    : body.category === 'write' || body.category === 'understand'
-      ? body.category
-      : 'general';
+  const facts: Facts = {
+    chars: last.content.length + (last.attachment?.text.length ?? 0),
+    hasImages,
+    previous: isTier(body.previous) ? body.previous : null,
+    opusAllowed: opusAllowed(),
+  };
 
   if (isMock()) {
     await sleep(900);
     return NextResponse.json({
       text: `Here is a sample answer, because no API key is set:\n\nYou asked: "${last.content.slice(0, 200)}". Add an Anthropic API key to .env.local and this box will hold a real answer.`,
       model: 'Claude (demo)',
-      reason,
+      ...fallbackRoute(facts),
     });
   }
 
+  // Describe the request with the fast decision model, then pick a Claude model for it.
+  const earlier = turns.length > 1 ? turns.slice(-3, -1).map((turn) => `${turn.role}: ${turn.content}`).join('\n') : null;
+  const described = await describeRequest(
+    last.attachment ? `${last.content}\n\n[Attached file: ${last.attachment.name}]` : last.content,
+    earlier,
+    request.signal,
+  );
+  const route = described ? pickModel(described, facts) : fallbackRoute(facts);
+  const model = route.tier === 'sonnet' && hasImages ? MODELS.vision : MODEL_FOR[route.tier];
+
   try {
+    if (route.tier === 'opus') recordOpusUse();
     const response = await claude().messages.create({
       model,
       max_tokens: 16000,
-      output_config: { effort: 'low' },
+      output_config: { effort: EFFORT_FOR[route.tier] },
       system: `${IDENTITY}\n\n${FORMAT}`,
       messages: turns.map((turn) => ({ role: turn.role, content: toContent(turn) })),
     });
@@ -153,7 +172,13 @@ export async function POST(request: NextRequest) {
       .trim();
     if (!text) return bad('empty', 502);
 
-    return NextResponse.json({ text, model: modelName(response.model), reason });
+    return NextResponse.json({
+      text,
+      model: modelName(response.model),
+      tier: route.tier,
+      reason: route.reason,
+      routed: described ? 'scored' : 'rule',
+    });
   } catch (error) {
     if (error instanceof Anthropic.RateLimitError) return bad('busy', 429);
     if (error instanceof Anthropic.APIError) {

@@ -19,12 +19,16 @@ export function claude(): Anthropic {
 }
 
 /**
- * Model choice is made here, on the server. It mirrors the original Ask Away
- * tiering (Haiku for everyday text, Sonnet when there is more to do) on the
- * current model generation. Each one can be overridden per deployment.
+ * Model choice is made on the server. Conversation answers are routed per
+ * request between `chat`, `strong` and `deep` (see lib/guided/routing.ts);
+ * jobs always run on `agent`. Each one can be overridden per deployment.
  */
 export const MODELS = {
   chat: process.env.GUIDED_CHAT_MODEL || 'claude-haiku-5-5',
+  /** Conversation answers that need more: reasoning, structure, care. */
+  strong: process.env.GUIDED_STRONG_MODEL || 'claude-sonnet-5-5',
+  /** Deep reasoning on something that matters. Limited by a daily allowance. */
+  deep: process.env.GUIDED_DEEP_MODEL || 'claude-opus-5-5',
   vision: process.env.GUIDED_VISION_MODEL || 'claude-sonnet-5-5',
   agent: process.env.GUIDED_AGENT_MODEL || 'claude-sonnet-5-5',
 };

@@ -19,6 +19,8 @@ export interface ThreadItem {
   /** Assistant: which model answered, and why it was picked. */
   model?: string;
   reason?: string;
+  /** Which model tier answered, so a follow-up can stay on it. */
+  tier?: string;
   /** Assistant, agent runs: what the job took. */
   receipt?: { pages: number; ms: number };
   sources?: AgentSource[];
