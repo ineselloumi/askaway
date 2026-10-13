@@ -63,7 +63,7 @@ export default function StoryCarousel() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
 
   const checkScroll = () => {
     const el = scrollRef.current;
@@ -94,7 +94,7 @@ export default function StoryCarousel() {
     <div className={styles.wrapper}>
       <div ref={scrollRef} className={styles.track}>
         {STORIES.map((story) => (
-          <Link key={story.id} href={`${story.href}?lang=${locale}`} className={styles.card}>
+          <Link key={story.id} href={story.href} className={styles.card}>
             {/* Image zone */}
             <div
               className={styles.imageZone}

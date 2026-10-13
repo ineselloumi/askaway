@@ -10,9 +10,11 @@
     "eval": "npx tsx evals/run.ts",
     "eval:check-ready": "SUITE=check-ready npx tsx evals/run.ts",
     "eval:draft": "SUITE=draft npx tsx evals/run.ts",
-    "eval:next-question": "SUITE=next-question npx tsx evals/run.ts"
+    "eval:next-question": "SUITE=next-question npx tsx evals/run.ts",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.1",
     "next": "^15.1.0",
@@ -23,6 +25,7 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.7"
   }
 }

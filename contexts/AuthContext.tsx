@@ -2,13 +2,11 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabase/client';
+import { createClient, supabaseConfigured } from '@/lib/supabase/client';
 
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
-  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -19,6 +17,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
   useEffect(() => {
+    // No Supabase project configured: run signed-out, without saved history.
+    if (!supabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
     const initAuth = async () => {
       // 1. Check localStorage first (instant, no network call) — handles returning users
       const { data: sessionData } = await supabase.auth.getSession();
@@ -40,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
       if (anonError) {
         // Anonymous auth not available (e.g. disabled in Supabase dashboard)
-        // App still works — conversations just won't be saved until user signs in with Google
+        // App still works — conversations just won't be saved
         console.warn('[Auth] Anonymous sign-in unavailable:', anonError.message);
       } else {
         setUser(anonData.user ?? null);
@@ -58,30 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithGoogle = async () => {
-    // If anonymous, upgrade by linking Google identity (preserves user_id + data)
-    if (user?.is_anonymous) {
-      await supabase.auth.linkIdentity({
-        provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
-      });
-    } else {
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
-      });
-    }
-  };
-
-  const signOut = async () => {
-    // Sign out then immediately create a fresh anonymous session
-    await supabase.auth.signOut();
-    const { data } = await supabase.auth.signInAnonymously();
-    setUser(data.user ?? null);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, loading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -13,6 +13,8 @@ export interface ChatMessage {
   type: MessageType;
   text: string;
   image?: string;
+  /** Extra per-message data written by the guided flow (model badge, receipt, images…). */
+  meta?: Record<string, unknown>;
 }
 
 export interface Answer {

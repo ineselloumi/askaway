@@ -9,13 +9,13 @@ import styles from '../page.module.css';
 export default function HomeQueryInput() {
   const [query, setQuery] = useState('');
   const router = useRouter();
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
 
   const handleSubmit = () => {
     const trimmed = query.trim();
     if (!trimmed) return;
     trackSearch();
-    router.push(`/assist?situation=other&query=${encodeURIComponent(trimmed)}&lang=${locale}`);
+    router.push(`/assist?situation=other&query=${encodeURIComponent(trimmed)}`);
   };
 
   return (

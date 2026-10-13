@@ -1,0 +1,1481 @@
+/* Guided first-prompt experience. Tokens follow design_handoff_guided_first_prompt/README.md. */
+
+.root {
+  --g-ground: #f5f4ed;
+  --g-subtle: #faf9f5;
+  --g-surface: #fff;
+  --g-ink: #141413;
+  --g-secondary: #6b6a64;
+  --g-tertiary: #8f8d85;
+  --g-muted: #b0aea5;
+  --g-disabled: #cbc8bd;
+  --g-border: #d9d6cb;
+  --g-border-light: #e3e0d6;
+  --g-hairline: #edeae0;
+  --g-hairline-2: #e8e5db;
+  --g-pending: #dedbd0;
+  --g-accent: #c96442;
+  --g-accent-hover: #ae5630;
+  --g-accent-deep: #9a4a2a;
+  --g-tint: #f6e6dd;
+  --g-fill: #ebb79c;
+  --g-underline: #f0c2ab;
+  --g-on-dark: #e8a07f;
+  --g-on-dark-2: #a3a199;
+  --g-serif: var(--font-guided-serif), Georgia, serif;
+  --g-sans: var(--font-guided-sans), system-ui, sans-serif;
+  --g-side: 110.5px;
+  --color-focus: var(--g-accent);
+
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--g-ground);
+  color: var(--g-ink);
+  font-family: var(--g-sans);
+  font-size: 14.8px;
+  line-height: 1.5;
+}
+
+/* Undo the legacy global element styles inside the guided flow. */
+.root button {
+  min-height: 0;
+  min-width: 0;
+  font-family: inherit;
+  color: inherit;
+}
+.root p,
+.root h1,
+.root h2 {
+  margin: 0;
+}
+.root a {
+  color: var(--g-accent);
+}
+.root a:hover {
+  color: var(--g-accent-hover);
+}
+
+/* ── Top bar ─────────────────────────────────────────────────────────────── */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--g-ground);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+}
+.topLeft,
+.topRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.wordmark {
+  appearance: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 6px 8px;
+  font: 500 17px/1 var(--g-serif);
+  letter-spacing: -0.015em;
+  color: var(--g-ink);
+}
+.iconButton {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  cursor: pointer;
+  color: var(--g-secondary);
+}
+.iconButton:hover {
+  background: var(--g-hairline-2);
+  color: var(--g-ink);
+}
+.topPill {
+  appearance: none;
+  cursor: pointer;
+  font: 400 12.5px/1 var(--g-sans);
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: 999px;
+  padding: 9px 14px;
+  color: var(--g-ink);
+}
+.topPill:hover {
+  border-color: var(--g-muted);
+}
+
+/* ── History drawer ──────────────────────────────────────────────────────── */
+
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 19, 0.28);
+  z-index: 40;
+}
+.drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 41;
+  width: min(300px, 86vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--g-subtle);
+  border-right: 1px solid var(--g-border);
+  transform: translateX(-100%);
+  transition: transform 0.24s ease-out;
+  visibility: hidden;
+}
+.drawerOpen {
+  transform: none;
+  visibility: visible;
+}
+.drawerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 10px 20px;
+  font: 700 13.9px/1.3 var(--g-sans);
+  letter-spacing: -0.01em;
+}
+.drawerList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.drawerItem {
+  appearance: none;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.drawerItem:hover {
+  background: var(--g-hairline);
+}
+.drawerItemActive {
+  background: var(--g-tint);
+}
+.drawerTitle {
+  font: 400 13.5px/1.35 var(--g-sans);
+  color: var(--g-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.drawerMeta {
+  font: 400 11.3px/1 var(--g-sans);
+  color: var(--g-tertiary);
+}
+.drawerEmpty {
+  padding: 10px 12px;
+  font: 400 13.1px/1.5 var(--g-sans);
+  color: var(--g-secondary);
+}
+.drawerFoot {
+  border-top: 1px solid var(--g-hairline);
+  padding: 14px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font: 400 12.2px/1.4 var(--g-sans);
+  color: var(--g-secondary);
+}
+.drawerLinks {
+  display: flex;
+  gap: 14px;
+}
+.linkButton {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: 400 12.2px/1.2 var(--g-sans);
+  color: var(--g-accent) !important;
+}
+.linkButton:hover {
+  color: var(--g-accent-hover) !important;
+}
+
+/* ── Shared ──────────────────────────────────────────────────────────────── */
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.frame {
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.pill {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 5px;
+  background: var(--g-tint);
+  border-radius: 999px;
+  padding: 4px 9px;
+  font: 600 9px/1 var(--g-sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--g-accent-deep);
+  white-space: nowrap;
+}
+.pill::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--g-accent);
+}
+
+/* ── 1a Setup ────────────────────────────────────────────────────────────── */
+
+.setup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.setupTop {
+  flex: 1;
+  width: 100%;
+  max-width: 880px;
+  padding: 54px 51px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.setupTitle {
+  font: 500 38.3px/1.08 var(--g-serif);
+  letter-spacing: -0.022em;
+  text-align: center;
+  margin-bottom: 11.9px !important;
+}
+.setupSub {
+  font: 400 16.5px/1.35 var(--g-sans);
+  color: var(--g-secondary);
+  text-align: center;
+  margin-bottom: 35.7px !important;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 212px);
+  gap: 13.6px;
+}
+.card {
+  appearance: none;
+  text-align: left;
+  cursor: pointer;
+  background: var(--g-surface);
+  border: 2px solid transparent;
+  border-radius: 16px;
+  padding: 18.7px 18.7px 20.4px;
+  display: flex;
+  flex-direction: column;
+  gap: 5.1px;
+  min-height: 104px !important;
+  transition: border-color 0.12s ease-out;
+}
+.card:hover {
+  border-color: var(--g-border);
+}
+.cardSelected,
+.cardSelected:hover {
+  border-color: var(--g-accent);
+}
+.cardTitle {
+  font: 700 14.8px/1.25 var(--g-sans);
+  letter-spacing: -0.012em;
+  color: var(--g-ink);
+}
+.cardDesc {
+  font: 400 12.2px/1.35 var(--g-sans);
+  color: var(--g-secondary);
+}
+.cardDark {
+  background: var(--g-ink);
+  border-color: var(--g-ink);
+}
+.cardDark:hover,
+.cardDark.cardSelected {
+  border-color: var(--g-accent);
+}
+.cardDark .cardTitle {
+  color: #fff;
+}
+.cardDark .cardDesc {
+  color: var(--g-on-dark-2);
+}
+.cardPill {
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font: 600 8.5px/1 var(--g-sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--g-on-dark);
+}
+.cardPill::before {
+  content: '';
+  width: 3.5px;
+  height: 3.5px;
+  border-radius: 50%;
+  background: var(--g-accent);
+}
+.justType {
+  margin-top: 27.2px;
+  font-size: 13.1px;
+}
+.strip {
+  width: 100%;
+  margin-top: 38px;
+  padding: 16px 0 18px;
+  border-top: 1px solid var(--g-hairline);
+  background: var(--g-subtle);
+  overflow: hidden;
+}
+.stripLabel {
+  font: 400 10.5px/1 var(--g-sans);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--g-muted);
+  text-align: center;
+  margin-bottom: 12px !important;
+}
+.marquee {
+  display: flex;
+  width: max-content;
+  animation: guided-marquee 42s linear infinite;
+}
+.strip:hover .marquee,
+.strip:focus-within .marquee {
+  animation-play-state: paused;
+}
+.marqueeGroup {
+  display: flex;
+  gap: 8px;
+  padding-right: 8px;
+}
+.idea {
+  appearance: none;
+  cursor: pointer;
+  white-space: nowrap;
+  background: var(--g-ground);
+  border: 1px solid var(--g-border-light);
+  border-radius: 999px;
+  padding: 7px 13px;
+  font: 400 12.5px/1 var(--g-sans);
+  color: var(--g-secondary) !important;
+}
+.idea:hover {
+  border-color: var(--g-muted);
+  color: var(--g-ink) !important;
+}
+@keyframes guided-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.legal {
+  width: 100%;
+  background: var(--g-subtle);
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  padding: 0 16px 14px;
+  font: 400 11.3px/1 var(--g-sans);
+}
+.root .legal a {
+  color: var(--g-tertiary);
+  text-decoration: none;
+}
+.root .legal a:hover {
+  color: var(--g-ink);
+}
+
+/* ── 1c / 1d / 2a–2c Builder ─────────────────────────────────────────────── */
+
+.builderScreen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 28.8px 0 0;
+}
+.questions {
+  flex: 1;
+  padding: 0 102px 24px;
+}
+.screenHead {
+  margin-bottom: 28.9px;
+  display: flex;
+  flex-direction: column;
+  gap: 5.1px;
+}
+.screenHead .pill {
+  margin-bottom: 0.9px;
+}
+.screenTitle {
+  font: 500 26.1px/1.15 var(--g-serif);
+  letter-spacing: -0.02em;
+}
+.screenSub {
+  font: 400 14.8px/1.35 var(--g-sans);
+  color: var(--g-secondary);
+}
+.question {
+  margin-bottom: 25.5px;
+}
+.qLabel {
+  font: 400 13.9px/1.3 var(--g-sans);
+  color: var(--g-muted);
+  margin-bottom: 11px !important;
+}
+.qLabelActive {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--g-ink);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7.7px;
+}
+.chip {
+  appearance: none;
+  cursor: pointer;
+  font: 400 13.1px/1 var(--g-sans);
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: 999px;
+  padding: 9.4px 16.2px;
+  color: var(--g-ink);
+  transition: border-color 0.12s ease-out, background 0.12s ease-out;
+}
+.chip:hover {
+  border-color: var(--g-muted);
+}
+.chipSelected,
+.chipSelected:hover {
+  font-weight: 600;
+  background: var(--g-accent);
+  border-color: var(--g-accent);
+  color: #fff !important;
+}
+.chipDashed {
+  background: none;
+  border-style: dashed;
+  border-color: var(--g-disabled);
+  color: var(--g-secondary) !important;
+}
+.chipUpcoming,
+.chipUpcoming:hover {
+  cursor: default;
+  background: none;
+  border-color: var(--g-hairline-2);
+  color: var(--g-disabled) !important;
+}
+.chipDone {
+  background: none;
+  border-color: transparent;
+  color: var(--g-accent) !important;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.chipDone:hover {
+  border-color: transparent;
+  color: var(--g-accent-hover) !important;
+}
+.typeRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 260px;
+  max-width: 420px;
+  background: var(--g-surface);
+  border: 1px solid var(--g-accent);
+  border-radius: 999px;
+  padding: 3px 4px 3px 16.2px;
+}
+.root .typeInput,
+.root .typeInput:focus {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  border: 0;
+  border-radius: 0;
+  padding: 6px 0;
+  background: none;
+  font: 400 13.1px/1.2 var(--g-sans);
+  color: var(--g-ink);
+  caret-color: var(--g-accent);
+}
+.typeInput::placeholder {
+  color: var(--g-muted);
+}
+.typeAdd {
+  appearance: none;
+  cursor: pointer;
+  border: 0;
+  border-radius: 999px;
+  background: var(--g-accent);
+  color: #fff !important;
+  font: 600 12.2px/1 var(--g-sans);
+  padding: 7.5px 13px;
+}
+.typeAdd:hover {
+  background: var(--g-accent-hover);
+}
+
+/* The prompt box stays pinned to the bottom of the window, where the chat
+   input sits, however long the page above it gets. */
+.dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  background: var(--g-ground);
+  padding: 8px 76.5px 22.1px;
+}
+.promptCard {
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: 18px;
+  padding: 18.7px 20.4px 13.6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.16s ease-out;
+}
+.promptCardFocus,
+.promptCard:focus-within {
+  border-color: var(--g-accent);
+}
+.editor {
+  position: relative;
+  /* Room for the fragment underlines, so they never trigger a scrollbar. */
+  padding-bottom: 3px;
+  margin-bottom: 12.3px;
+  font: 400 17.4px/1.5 var(--g-sans);
+  max-height: 34vh;
+  overflow-y: auto;
+}
+.mirror,
+.root .editorInput {
+  font: inherit;
+  letter-spacing: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+.mirror {
+  min-height: 1.5em;
+  color: transparent;
+  pointer-events: none;
+  user-select: none;
+}
+.frag {
+  border-bottom: 2px solid var(--g-underline);
+}
+.ghost {
+  color: var(--g-muted);
+}
+.root .editorInput,
+.root .editorInput:focus {
+  position: absolute;
+  inset: 0 0 3px 0;
+  width: 100%;
+  height: calc(100% - 3px);
+  min-height: 0;
+  resize: none;
+  overflow: hidden;
+  border-radius: 0;
+  background: transparent;
+  color: var(--g-ink);
+  caret-color: var(--g-accent);
+  outline: none;
+}
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 15.3px;
+}
+.suggestion {
+  appearance: none;
+  cursor: pointer;
+  font: 400 12.2px/1 var(--g-sans);
+  background: var(--g-ground);
+  border: 1px solid var(--g-border-light);
+  border-radius: 999px;
+  padding: 7px 13px;
+  color: var(--g-secondary) !important;
+}
+.suggestion:hover {
+  border-color: var(--g-muted);
+  color: var(--g-ink) !important;
+}
+.divider {
+  height: 1px;
+  background: var(--g-hairline);
+  margin: 0 0 11.9px;
+}
+.promptFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 17px;
+}
+.helper {
+  font: 400 12.2px/1.35 var(--g-sans);
+  color: var(--g-secondary);
+}
+.readiness {
+  appearance: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10.2px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--g-tint);
+  padding: 10.2px 18.7px;
+  font: 600 13.1px/1 var(--g-sans);
+  color: var(--g-accent-deep) !important;
+  transition: background 0.24s ease-out;
+}
+.readinessEmpty {
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  padding: 9.2px 17.7px;
+  font-weight: 400;
+  color: var(--g-tertiary) !important;
+}
+.readinessDone {
+  background: var(--g-accent);
+  color: #fff !important;
+}
+.readinessDone:hover {
+  background: var(--g-accent-hover);
+}
+.readinessFill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--g-fill);
+  transition: width 0.24s ease-out;
+}
+.readinessDone .readinessFill {
+  opacity: 0;
+}
+.readinessLabel,
+.readinessArrow {
+  position: relative;
+}
+.readinessArrow {
+  font-weight: 400;
+  color: var(--g-accent);
+}
+.readinessEmpty .readinessArrow {
+  color: var(--g-disabled);
+}
+.readinessDone .readinessArrow {
+  color: rgba(255, 255, 255, 0.85);
+}
+.goNow {
+  display: block;
+  margin: 11.9px auto 0;
+}
+.attachRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15.3px;
+  font: 400 12.2px/1.3 var(--g-sans);
+  color: var(--g-secondary);
+}
+.hiddenInput {
+  display: none;
+}
+
+/* ── Conversation ────────────────────────────────────────────────────────── */
+
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+/* The page itself scrolls; the input below is pinned to the window's bottom edge. */
+.thread {
+  flex: 1;
+  padding: 28px var(--g-side) 24px;
+  display: flex;
+  flex-direction: column;
+}
+.chatDock {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  background: var(--g-ground);
+  padding: 8px var(--g-side) 22.1px;
+}
+.askCard {
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: 16px;
+  padding: 18.7px 20.4px;
+  margin-bottom: 28.9px;
+}
+.askHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10.2px;
+}
+.eyebrow {
+  font: 700 10px/1 var(--g-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--g-accent);
+}
+.askText {
+  font: 400 14.8px/1.5 var(--g-sans);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.askFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 13.6px;
+  margin-top: 15.3px;
+}
+.nudge {
+  font: 400 12.2px/1.4 var(--g-sans);
+  color: var(--g-secondary);
+  text-align: right;
+}
+.primarySmall {
+  appearance: none;
+  cursor: pointer;
+  flex: none;
+  font: 600 12.2px/1 var(--g-sans);
+  background: var(--g-accent);
+  border: 0;
+  border-radius: 999px;
+  padding: 8.5px 17px;
+  color: #fff !important;
+}
+.primarySmall:hover {
+  background: var(--g-accent-hover);
+}
+.miniAsk {
+  background: var(--g-surface);
+  border: 1px solid var(--g-border-light);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.miniAskText {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font: 400 13.5px/1.4 var(--g-sans);
+  color: var(--g-secondary);
+}
+.userMsg {
+  align-self: flex-end;
+  max-width: 82%;
+  background: var(--g-surface);
+  border: 1px solid var(--g-border-light);
+  border-radius: 14px;
+  padding: 11px 15px;
+  margin: 0 0 24px;
+  font: 400 14.8px/1.5 var(--g-sans);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.userImages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.userImages img,
+.thumb img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--g-border-light);
+  display: block;
+}
+.fileChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  background: var(--g-ground);
+  border: 1px solid var(--g-border-light);
+  border-radius: 999px;
+  padding: 6px 11.9px;
+  font: 400 11.3px/1 var(--g-sans);
+  color: var(--g-secondary);
+}
+.answer {
+  margin-bottom: 28.9px;
+}
+.lead {
+  font: 700 15.7px/1.3 var(--g-sans);
+  letter-spacing: -0.012em;
+  margin-bottom: 13.6px !important;
+}
+.rail {
+  max-width: 600px;
+  border-left: 3px solid var(--g-accent);
+  padding: 2px 0 2px 15.3px;
+  font: 400 14.8px/1.6 var(--g-sans);
+  overflow-wrap: anywhere;
+}
+.rail p + p,
+.rail p + ul,
+.rail ul + p {
+  margin-top: 0.75em;
+}
+.rail ul {
+  margin: 0;
+  padding-left: 1.15em;
+}
+.rail li + li {
+  margin-top: 0.25em;
+}
+.rows {
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 12px 0 0 18.3px;
+  border-top: 1px solid var(--g-border-light);
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font: 400 13.5px/1.4 var(--g-sans);
+}
+.rowFacts {
+  color: var(--g-secondary);
+  text-align: right;
+}
+.rowOut .rowName {
+  color: var(--g-tertiary);
+}
+.rowOut .rowFacts {
+  color: var(--g-muted);
+}
+.answerMeta {
+  margin-top: 13.6px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8.5px 12px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6.8px;
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: 999px;
+  padding: 6px 11.9px;
+  font: 400 11.3px/1.2 var(--g-sans);
+  color: var(--g-secondary);
+}
+.badge::before {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--g-accent);
+}
+.sources {
+  max-width: 600px;
+  margin-top: 12px;
+  font: 400 11.3px/1.5 var(--g-sans);
+  color: var(--g-tertiary);
+}
+.sources a {
+  margin-left: 8px;
+  text-decoration: none;
+}
+.sources a:hover {
+  text-decoration: underline;
+}
+.disclaimer {
+  font: 400 11.3px/1.4 var(--g-sans);
+  color: var(--g-muted);
+  text-align: center;
+  margin-top: 8px !important;
+}
+.status {
+  font: 400 14.8px/1.3 var(--g-sans);
+  color: var(--g-tertiary);
+}
+.shimmer {
+  margin-top: 13.6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8.5px;
+  max-width: 420px;
+  margin-bottom: 24px;
+}
+.shimmer span {
+  height: 11px;
+  border-radius: 6px;
+  background: var(--g-border-light);
+  animation: guided-pulse 1.4s ease-in-out infinite;
+}
+.shimmer span:nth-child(2) {
+  width: 84%;
+  animation-delay: 0.15s;
+}
+.shimmer span:nth-child(3) {
+  width: 52%;
+  background: #ece9df;
+  animation-delay: 0.3s;
+}
+@keyframes guided-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+.notice {
+  font: 400 14.8px/1.5 var(--g-sans);
+  color: var(--g-secondary);
+  margin-bottom: 20px !important;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+.spacer {
+  flex: 1;
+  min-height: 20px;
+  /* When the thread scrolls to its end, stop above the pinned input. */
+  scroll-margin-bottom: 140px;
+}
+
+.inputCard {
+  border: 1px solid var(--g-border);
+  border-radius: 18px;
+  background: var(--g-surface);
+  padding: 13.6px 15.3px 11px;
+  transition: border-color 0.16s ease-out;
+}
+.inputCard:focus-within {
+  border-color: #b3b1a8;
+}
+.inputDisabled {
+  opacity: 0.75;
+}
+.root .inputText,
+.root .inputText:focus {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  max-height: 160px;
+  resize: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: none;
+  font: 400 13.9px/1.4 var(--g-sans);
+  color: var(--g-ink);
+  caret-color: var(--g-accent);
+}
+.inputText::placeholder {
+  color: var(--g-muted);
+}
+.inputRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 11px;
+}
+.plus {
+  appearance: none;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font: 400 18px/1 var(--g-sans);
+  color: var(--g-tertiary) !important;
+}
+.plus:hover:not(:disabled) {
+  background: var(--g-hairline);
+  color: var(--g-ink) !important;
+}
+.plus:disabled {
+  cursor: default;
+  color: var(--g-disabled) !important;
+}
+.send {
+  appearance: none;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--g-accent);
+  color: #fff !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.send:hover:not(:disabled) {
+  background: var(--g-accent-hover);
+}
+.send:disabled {
+  cursor: default;
+  background: var(--g-hairline-2);
+}
+.thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.thumb {
+  position: relative;
+}
+.thumbRemove {
+  appearance: none;
+  cursor: pointer;
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--g-border);
+  background: var(--g-surface);
+  font: 400 12px/1 var(--g-sans);
+  color: var(--g-secondary) !important;
+}
+.inputError {
+  font: 400 12.2px/1.4 var(--g-sans);
+  color: var(--g-accent-deep);
+  margin-bottom: 8px !important;
+}
+
+/* ── Agent run ───────────────────────────────────────────────────────────── */
+
+.permission {
+  max-width: 560px;
+  background: var(--g-surface);
+  border: 1px solid var(--g-accent);
+  border-radius: 16px;
+  padding: 20.4px 22.1px;
+  margin-bottom: 24px;
+}
+.cardTitleSerif {
+  font: 500 19px/1.25 var(--g-serif);
+  letter-spacing: -0.016em;
+  margin-bottom: 6px !important;
+}
+.permissionSub {
+  font: 400 13.1px/1.5 var(--g-sans);
+  color: var(--g-secondary);
+  margin-bottom: 16px !important;
+}
+.permList {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.permList li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font: 400 13.5px/1.45 var(--g-sans);
+}
+.permWont li {
+  color: var(--g-secondary);
+}
+.disc {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  text-align: center;
+  font: 700 10px/16px var(--g-sans);
+  margin-top: 1.5px;
+}
+.discDone {
+  background: var(--g-accent);
+  color: #fff;
+}
+.discNo {
+  border: 1px solid var(--g-border);
+  color: var(--g-muted);
+  line-height: 14px;
+}
+.discCurrent {
+  border: 2px solid var(--g-accent);
+}
+.discPending {
+  border: 1px solid var(--g-pending);
+}
+.permActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+.primary {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10.2px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--g-accent);
+  padding: 10.2px 18.7px;
+  font: 600 13.1px/1 var(--g-sans);
+  color: #fff !important;
+}
+.primary:hover {
+  background: var(--g-accent-hover);
+}
+.primary span {
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.85);
+}
+.workHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.workTitle {
+  font: 500 22px/1.15 var(--g-serif);
+  letter-spacing: -0.02em;
+}
+.small {
+  font: 400 12.5px/1.4 var(--g-sans);
+  color: var(--g-tertiary);
+}
+.steps {
+  list-style: none;
+  margin: 0 0 16px;
+  background: var(--g-surface);
+  border: 1px solid var(--g-border-light);
+  border-radius: 16px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.step {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  font: 400 14px/1.4 var(--g-sans);
+  color: var(--g-muted);
+}
+.stepDone {
+  color: var(--g-secondary);
+}
+.stepCurrent {
+  font-weight: 600;
+  color: var(--g-ink);
+}
+.stepCurrent .discCurrent {
+  animation: guided-pulse 1.4s ease-in-out infinite;
+}
+.workActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 20px;
+}
+.ghostPill {
+  appearance: none;
+  cursor: pointer;
+  font: 400 12.5px/1 var(--g-sans);
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: 999px;
+  padding: 9px 16px;
+  color: var(--g-ink);
+}
+.ghostPill:hover {
+  border-color: var(--g-muted);
+}
+.notes {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  font: 400 12.5px/1.5 var(--g-sans);
+  color: var(--g-secondary);
+}
+.checkIn {
+  background: var(--g-surface);
+  border: 1px solid var(--g-accent);
+  border-radius: 16px;
+  padding: 22px 24px;
+}
+.checkInDetail {
+  font: 400 14px/1.5 var(--g-sans);
+  color: var(--g-secondary);
+  margin: 2px 0 16px !important;
+}
+.checkIn .qLabel {
+  margin-bottom: 11px !important;
+}
+
+/* ── 1h Graduation ───────────────────────────────────────────────────────── */
+
+.center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 0;
+}
+.gradCard {
+  width: 100%;
+  max-width: 580px;
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: 18px;
+  padding: 23.8px 25.5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+.gradHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 17px;
+  margin-bottom: 6.8px;
+}
+.gradTitle {
+  font: 500 20.9px/1.18 var(--g-serif);
+  letter-spacing: -0.018em;
+}
+.gradClose {
+  appearance: none;
+  flex: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0 2px;
+  font: 400 15.7px/1 var(--g-sans);
+  color: var(--g-muted) !important;
+}
+.gradBody {
+  font: 400 13.1px/1.5 var(--g-sans);
+  color: var(--g-secondary);
+  margin-bottom: 18.7px !important;
+}
+.gradQuotes {
+  display: flex;
+  flex-direction: column;
+  gap: 10.2px;
+  margin-bottom: 18.7px;
+}
+.gradQuote {
+  border-left: 3px solid var(--g-accent);
+  padding: 2px 0 2px 13.6px;
+  font: 400 13.1px/1.5 var(--g-sans);
+}
+.gradFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 13.6px;
+}
+.gradFoot p {
+  font: 400 12.2px/1.4 var(--g-sans);
+  color: var(--g-secondary);
+}
+.gradFoot .primarySmall {
+  padding: 10.2px 18.7px;
+}
+.bringBack {
+  margin-top: 17px;
+}
+/* The plain start screen: its heading uses the setup title's type and sits at
+   the same height on the page. The setup title is centred together with the
+   cards above the ideas strip, which works out to 50dvh - 155px from the top
+   of the viewport; the thread's own content starts 86px down. */
+.plainEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: max(0px, calc(50dvh - 241.3px));
+}
+.plainLink {
+  font-size: 13.1px;
+}
+
+/* ── Small screens and reduced motion (not in the handoff; see README open question 4) ── */
+
+@media (max-width: 820px) {
+  .root {
+    --g-side: 20px;
+  }
+  .setupTop {
+    padding: 28px 20px 0;
+    justify-content: flex-start;
+  }
+  .setupTitle {
+    font-size: 30px;
+  }
+  .plainEmpty {
+    /* Matches the setup screen, whose title starts 28px below the top bar here. */
+    padding-top: 16px;
+  }
+  .cards {
+    grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 420px;
+  }
+  .card {
+    min-height: 0 !important;
+  }
+  .cardPill {
+    align-self: flex-start;
+    margin-top: 6px;
+  }
+  .questions {
+    padding: 0 20px 20px;
+  }
+  .dock {
+    padding: 8px 12px 14px;
+  }
+  .builderScreen {
+    padding-top: 12px;
+  }
+  .chip {
+    padding: 11.5px 16.2px;
+  }
+  .promptFoot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .readiness {
+    justify-content: center;
+  }
+  .askFoot {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+  }
+  .gradFoot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .nudge {
+    text-align: left;
+  }
+  .thread {
+    padding-top: 12px;
+  }
+  .row {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .rowFacts {
+    text-align: left;
+  }
+  .topPillLabel {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    animation: none;
+    width: auto;
+    justify-content: center;
+  }
+  .marqueeGroup {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0 16px;
+  }
+  .marqueeGroup[aria-hidden='true'] {
+    display: none;
+  }
+  .shimmer span,
+  .stepCurrent .discCurrent {
+    animation: none;
+  }
+  .readiness,
+  .readinessFill,
+  .drawer {
+    transition: none;
+  }
+}
