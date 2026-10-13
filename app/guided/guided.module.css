@@ -59,6 +59,10 @@
 /* ── Top bar ─────────────────────────────────────────────────────────────── */
 
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--g-ground);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -221,7 +225,6 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;
 }
 .frame {
   width: 100%;
@@ -230,7 +233,6 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;
 }
 
 .pill {
@@ -435,8 +437,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 28.8px 0 22.1px;
-  min-height: 0;
+  padding: 28.8px 0 0;
 }
 .questions {
   flex: 1;
@@ -564,8 +565,14 @@
   background: var(--g-accent-hover);
 }
 
+/* The prompt box stays pinned to the bottom of the window, where the chat
+   input sits, however long the page above it gets. */
 .dock {
-  padding: 0 76.5px;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  background: var(--g-ground);
+  padding: 8px 76.5px 22.1px;
 }
 .promptCard {
   background: var(--g-surface);
@@ -740,18 +747,20 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  padding: 0 0 22.1px;
 }
+/* The page itself scrolls; the input below is pinned to the window's bottom edge. */
 .thread {
   flex: 1;
-  overflow-y: auto;
   padding: 28px var(--g-side) 24px;
   display: flex;
   flex-direction: column;
 }
 .chatDock {
-  padding: 0 var(--g-side);
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  background: var(--g-ground);
+  padding: 8px var(--g-side) 22.1px;
 }
 .askCard {
   background: var(--g-surface);
@@ -1003,6 +1012,8 @@
 .spacer {
   flex: 1;
   min-height: 20px;
+  /* When the thread scrolls to its end, stop above the pinned input. */
+  scroll-margin-bottom: 140px;
 }
 
 .inputCard {
@@ -1402,7 +1413,7 @@
     padding: 0 20px 20px;
   }
   .dock {
-    padding: 0 12px;
+    padding: 8px 12px 14px;
   }
   .builderScreen {
     padding-top: 12px;
