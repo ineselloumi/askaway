@@ -6,6 +6,7 @@ import { track } from '@/lib/guided/analytics';
 import { builderReducer, builderView, initBuilder } from '@/lib/guided/builder';
 import { asList, opt } from '@/lib/guided/compose';
 import { FLOWS, variantKey } from '@/lib/guided/flows';
+import { chipPool, chooseHint, defaultChips, defaultHint, hintPool, rankChips } from '@/lib/guided/library';
 import { nextHint, qualityReadiness } from '@/lib/guided/quality';
 import { readinessStep, type Readiness } from '@/lib/guided/readiness';
 import type { AnswerValue, QuestionDef, Segment, TaskCategory } from '@/lib/guided/types';
@@ -31,7 +32,7 @@ export interface BuiltPrompt {
 
 interface Props {
   category: TaskCategory;
-  prefill?: { variant: string; text: string };
+  prefill?: { variant: string; text: string; idea?: string };
   onSubmit: (built: BuiltPrompt) => void;
 }
 
@@ -42,6 +43,8 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
   const [state, dispatch] = useReducer(builderReducer, undefined, () => initBuilder(category, prefill));
   const view = useMemo(() => builderView(state, t), [state, t]);
   const [nudged, setNudged] = useState(false);
+  // First press of return asks for confirmation; a second press sends.
+  const [confirmingEnter, setConfirmingEnter] = useState(false);
   const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [attachError, setAttachError] = useState(false);
   const editorRef = useRef<HTMLTextAreaElement>(null);
@@ -53,9 +56,27 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
   // first answer (or when it is unavailable) the fill counts answered questions.
   const typingRef = useRef(false);
   const checkedText = attachment ? `${view.sendText}\n\n[Attached file: ${attachment.name}]` : view.sendText;
-  const met = useQuality(checkedText, category, typingRef.current);
+  const ideaId = prefill?.idea ?? null;
+  const pools = useMemo(() => ({ chips: chipPool(category, ideaId), hints: hintPool(category, ideaId) }), [category, ideaId]);
+  const quality = useQuality(checkedText, category, typingRef.current, pools);
+  const met = quality.met;
   const readiness: Readiness = met ? qualityReadiness(category, met) : view.readiness;
-  const hint = met ? nextHint(category, met) : null;
+
+  // Helper line: the decision model's pick for this prompt; failing that, the
+  // first unmet check; before any answer, an idea's own hand-written hint.
+  // A hint that mirrors one of the four checks is dropped once that check passes.
+  const openHints = met ? pools.hints.filter((id) => !met[id as keyof typeof met]) : pools.hints;
+  const hint = quality.hint
+    ? chooseHint(quality.hint, openHints)
+    : met
+      ? nextHint(category, met)
+      : defaultHint(ideaId);
+
+  // Chips: the library ranked for this prompt, minus any already used.
+  const [usedChips, setUsedChips] = useState<string[]>([]);
+  const chipIds = quality.chips
+    ? rankChips(quality.chips, pools.chips.filter((id) => !usedChips.includes(id)))
+    : defaultChips(view.variant?.suggestions ?? [], ideaId).filter((id) => !usedChips.includes(id));
 
   // On the last step the cursor waits at the end of the prompt (screens 1d / 2c).
   // Skipped on touch screens, where it would open the keyboard over the page.
@@ -142,14 +163,13 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
     ? t('guided.builder.helperEmpty')
     : view.atLastStep
       ? hint
-        ? t(`guided.builder.hints.${hint}`)
+        ? t(`guided.hints.${hint}`)
         : t('guided.builder.helperLast')
       : activeQuestion?.multi
         ? t('guided.builder.helperMulti')
         : t(`${flowKey}.helper`);
 
   const step = readinessStep(readiness);
-  const suggestionBase = view.variantId ? `${variantKey(category, view.variantId)}.suggestions` : '';
 
   return (
     <div className={styles.builderScreen}>
@@ -181,6 +201,11 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
 
       <div className={styles.dock}>
         <div className={`${styles.promptCard} ${view.atLastStep ? styles.promptCardFocus : ''}`}>
+          {confirmingEnter && (
+            <div className={styles.enterHint} role="status">
+              {t('guided.builder.enterHint')}
+            </div>
+          )}
           <PromptEditor
             ref={editorRef}
             text={view.editorText}
@@ -190,14 +215,26 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
             onChange={(text) => {
               typingRef.current = true;
               setNudged(false);
+              setConfirmingEnter(false);
               dispatch({ type: 'edit', text });
             }}
             onSubmit={() => submit('button')}
+            onReturn={() => {
+              if (confirmingEnter) {
+                setConfirmingEnter(false);
+                submit('button');
+              } else {
+                setConfirmingEnter(true);
+                track('return_pressed');
+              }
+            }}
+            onOtherKey={() => setConfirmingEnter(false)}
+            onBlur={() => setConfirmingEnter(false)}
           />
 
-          {view.atLastStep && view.variant && (
+          {view.atLastStep && chipIds.length > 0 && (
             <div className={styles.suggestions}>
-              {view.variant.suggestions.map((id) => (
+              {chipIds.map((id) => (
                 <button
                   key={id}
                   type="button"
@@ -206,14 +243,15 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
                     typingRef.current = false;
                     dispatch({
                       type: 'append',
-                      starter: t(`${suggestionBase}.${id}.starter`),
+                      starter: t(`guided.chips.${id}.starter`),
                       composedText: view.composedText,
                     });
-                    track('suggestion_used', { category, suggestion: id });
+                    setUsedChips((used) => [...used, id]);
+                    track('suggestion_used', { category, suggestion: id, ranked: !!quality.chips });
                     focusAfterUpdate.current = true;
                   }}
                 >
-                  {t(`${suggestionBase}.${id}.label`)}
+                  {t(`guided.chips.${id}.label`)}
                 </button>
               ))}
             </div>
@@ -422,6 +460,10 @@ interface EditorProps {
   label: string;
   onChange: (text: string) => void;
   onSubmit: () => void;
+  /** Plain return. Shift+return still adds a new line. */
+  onReturn: () => void;
+  onOtherKey: () => void;
+  onBlur: () => void;
 }
 
 /**
@@ -429,7 +471,7 @@ interface EditorProps {
  * a mirror that draws what a textarea cannot: the underlines under
  * answer-derived fragments and the muted hint after the text.
  */
-function PromptEditor({ ref, text, segments, ghost, label, onChange, onSubmit }: EditorProps) {
+function PromptEditor({ ref, text, segments, ghost, label, onChange, onSubmit, onReturn, onOtherKey, onBlur }: EditorProps) {
   const composedLength = segments.reduce((n, s) => n + s.text.length, 0);
   return (
     <div className={styles.editor}>
@@ -457,10 +499,20 @@ function PromptEditor({ ref, text, segments, ghost, label, onChange, onSubmit }:
         spellCheck
         maxLength={20000}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+          if (e.key !== 'Enter' || e.nativeEvent.isComposing) {
+            if (!['Shift', 'Meta', 'Control', 'Alt'].includes(e.key)) onOtherKey();
+            return;
+          }
+          if (e.metaKey || e.ctrlKey) {
             e.preventDefault();
             onSubmit();
+          } else if (!e.shiftKey) {
+            e.preventDefault();
+            onReturn();
+          } else {
+            onOtherKey();
           }
         }}
       />

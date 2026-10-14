@@ -575,12 +575,41 @@
   padding: 8px 76.5px 22.1px;
 }
 .promptCard {
+  position: relative;
   background: var(--g-surface);
   border: 1px solid var(--g-border);
   border-radius: 18px;
   padding: 18.7px 20.4px 13.6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: border-color 0.16s ease-out;
+}
+/* Shown after the first press of return in the prompt box. */
+.enterHint {
+  position: absolute;
+  right: 16px;
+  bottom: calc(100% + 10px);
+  max-width: min(320px, calc(100% - 32px));
+  background: var(--g-ink);
+  color: #fff;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font: 400 12.2px/1.4 var(--g-sans);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  animation: guided-pop 0.14s ease-out;
+}
+.enterHint::after {
+  content: '';
+  position: absolute;
+  right: 28px;
+  top: 100%;
+  border: 6px solid transparent;
+  border-top-color: var(--g-ink);
+}
+@keyframes guided-pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 .promptCardFocus,
 .promptCard:focus-within {
@@ -1470,7 +1499,8 @@
     display: none;
   }
   .shimmer span,
-  .stepCurrent .discCurrent {
+  .stepCurrent .discCurrent,
+  .enterHint {
     animation: none;
   }
   .readiness,

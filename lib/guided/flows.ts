@@ -11,28 +11,32 @@ const MUST: QuestionDef = {
   id: 'must',
   multi: true,
   custom: true,
-  options: o('budget', 'reviewed', 'easy', 'commit'),
+  options: o('budget', 'enterprise', 'integrates', 'commit'),
 };
 
 export const FLOWS: Record<TaskCategory, FlowDef> = {
   write: {
     category: 'write',
-    q1: { id: 'q1', custom: true, options: o('message', 'essay', 'summary') },
+    q1: { id: 'q1', custom: true, options: o('email', 'report', 'summary', 'plan') },
     variants: {
-      message: {
-        questions: [{ id: 'who', custom: true, options: o('colleague', 'landlord', 'friend') }],
-        suggestions: ['deadline', 'reach', 'tone'],
+      email: {
+        questions: [{ id: 'who', custom: true, options: o('manager', 'customer', 'colleague') }],
+        suggestions: ['deadline', 'ask', 'tone'],
       },
-      essay: {
-        questions: [{ id: 'who', custom: true, options: o('teacher', 'class', 'general') }],
-        suggestions: ['length', 'points', 'tone'],
+      report: {
+        questions: [{ id: 'who', custom: true, options: o('leadership', 'team', 'client') }],
+        suggestions: ['length', 'points', 'data'],
       },
       summary: {
-        questions: [{ id: 'who', custom: true, options: o('manager', 'team', 'me') }],
-        suggestions: ['length', 'focus', 'tone'],
+        questions: [{ id: 'who', custom: true, options: o('manager', 'team', 'stakeholders') }],
+        suggestions: ['length', 'focus', 'decisions'],
+      },
+      plan: {
+        questions: [{ id: 'who', custom: true, options: o('manager', 'team', 'client') }],
+        suggestions: ['goal', 'timeline', 'methods'],
       },
       custom: {
-        questions: [{ id: 'who', custom: true, options: o('work', 'friend', 'company') }],
+        questions: [{ id: 'who', custom: true, options: o('manager', 'team', 'client') }],
         suggestions: ['length', 'points', 'tone'],
       },
     },
@@ -42,20 +46,20 @@ export const FLOWS: Record<TaskCategory, FlowDef> = {
     q1: { id: 'q1', custom: true, options: o('explain', 'summary', 'translate') },
     variants: {
       explain: {
-        questions: [{ id: 'how', custom: true, options: o('plain', 'steps', 'example') }],
-        suggestions: ['know', 'why', 'length'],
+        questions: [{ id: 'how', custom: true, options: o('plain', 'steps', 'implications') }],
+        suggestions: ['role', 'purpose', 'answerLength'],
       },
       summary: {
-        questions: [{ id: 'how', custom: true, options: o('bullets', 'paragraph', 'sentence') }],
+        questions: [{ id: 'how', custom: true, options: o('takeaways', 'executive', 'actions') }],
         suggestions: ['focus', 'reader', 'skip'],
       },
       translate: {
-        questions: [{ id: 'lang', custom: true, options: o('english', 'spanish', 'french') }],
-        suggestions: ['tone', 'reader', 'keep'],
+        questions: [{ id: 'lang', custom: true, options: o('english', 'spanish', 'mandarin') }],
+        suggestions: ['register', 'reader', 'keep'],
       },
       custom: {
         questions: [],
-        suggestions: ['know', 'why', 'length'],
+        suggestions: ['role', 'purpose', 'answerLength'],
       },
     },
   },
@@ -66,31 +70,31 @@ export const FLOWS: Record<TaskCategory, FlowDef> = {
       research: {
         web: true,
         questions: [
-          { id: 'what', custom: true, options: refine('tools', 'places', 'suppliers') },
+          { id: 'what', custom: true, options: refine('tools', 'partners', 'suppliers') },
           MUST,
         ],
-        suggestions: ['handback', 'now', 'when'],
+        suggestions: ['handback', 'current', 'when'],
       },
       deck: {
         web: true,
         questions: [
-          { id: 'for', custom: true, options: o('work', 'class', 'pitch') },
-          { id: 'include', multi: true, custom: true, options: o('story', 'numbers', 'notes', 'short') },
+          { id: 'for', custom: true, options: o('leadership', 'pitch', 'team') },
+          { id: 'include', multi: true, custom: true, options: o('story', 'metrics', 'recs', 'short') },
         ],
-        suggestions: ['audience', 'length', 'when'],
+        suggestions: ['audience', 'presentLength', 'when'],
       },
       sheet: {
         attach: true,
         questions: [
-          { id: 'what', custom: true, options: o('sales', 'budget', 'survey') },
-          { id: 'want', multi: true, custom: true, options: o('takeaways', 'unusual', 'trends', 'share') },
+          { id: 'what', custom: true, options: o('sales', 'forecast', 'feedback') },
+          { id: 'want', multi: true, custom: true, options: o('insights', 'risks', 'trends', 'share') },
         ],
         suggestions: ['columns', 'decide', 'when'],
       },
       custom: {
         web: true,
         questions: [MUST],
-        suggestions: ['handback', 'now', 'when'],
+        suggestions: ['handback', 'current', 'when'],
       },
     },
   },
@@ -115,12 +119,12 @@ export const variantKey = (category: TaskCategory, id: string) => `guided.flows.
  * matching flow with a starter prompt already in the builder.
  */
 export const IDEAS: { id: string; category: TaskCategory; variant: string }[] = [
-  { id: 'austin', category: 'agentic', variant: 'custom' },
-  { id: 'emails', category: 'understand', variant: 'custom' },
-  { id: 'birthday', category: 'write', variant: 'message' },
-  { id: 'paris', category: 'agentic', variant: 'custom' },
-  { id: 'flights', category: 'agentic', variant: 'research' },
+  { id: 'followup', category: 'write', variant: 'email' },
+  { id: 'status', category: 'write', variant: 'email' },
+  { id: 'competitors', category: 'agentic', variant: 'research' },
   { id: 'deck', category: 'agentic', variant: 'deck' },
   { id: 'sheet', category: 'agentic', variant: 'sheet' },
-  { id: 'translate', category: 'understand', variant: 'translate' },
+  { id: 'contract', category: 'understand', variant: 'explain' },
+  { id: 'notes', category: 'understand', variant: 'summary' },
+  { id: 'plan', category: 'write', variant: 'plan' },
 ];

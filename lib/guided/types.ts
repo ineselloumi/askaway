@@ -22,7 +22,7 @@ export interface QuestionDef {
 
 export interface VariantDef {
   questions: QuestionDef[];
-  /** Ids of the "anything else worth knowing" suggestion chips shown on the last step. */
+  /** Default chips (ids in lib/guided/library.ts), shown until the decision model ranks the library. */
   suggestions: string[];
   /** Agentic only: the job reads public web pages. */
   web?: boolean;

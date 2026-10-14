@@ -26,7 +26,7 @@ import { PLAIN_META, type ConversationMeta, type ThreadItem } from './types';
 
 type View =
   | { name: 'setup' }
-  | { name: 'builder'; category: TaskCategory; prefill?: { variant: string; text: string }; key: number }
+  | { name: 'builder'; category: TaskCategory; prefill?: { variant: string; text: string; idea?: string }; key: number }
   | { name: 'chat' };
 
 const CATEGORIES: TaskCategory[] = ['write', 'understand', 'agentic'];
@@ -357,7 +357,7 @@ export default function GuidedApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const openBuilder = (category: TaskCategory, prefill?: { variant: string; text: string }) => {
+  const openBuilder = (category: TaskCategory, prefill?: { variant: string; text: string; idea?: string }) => {
     track('category_picked', { category, prefilled: !!prefill });
     setView({ name: 'builder', category, prefill, key: ++builderKey.current });
   };
@@ -556,7 +556,7 @@ export default function GuidedApp() {
 // ── Setup (screens 1a / 1b) ──────────────────────────────────────────────────
 
 interface SetupProps {
-  onPick: (category: TaskCategory, prefill?: { variant: string; text: string }) => void;
+  onPick: (category: TaskCategory, prefill?: { variant: string; text: string; idea?: string }) => void;
   onJustType: () => void;
 }
 
@@ -581,7 +581,7 @@ function Setup({ onPick, onJustType }: SetupProps) {
           tabIndex={hidden ? -1 : undefined}
           onClick={() => {
             track('idea_picked', { idea: idea.id });
-            onPick(idea.category, { variant: idea.variant, text: t(`guided.setup.ideas.${idea.id}.prompt`) });
+            onPick(idea.category, { variant: idea.variant, text: t(`guided.setup.ideas.${idea.id}.prompt`), idea: idea.id });
           }}
         >
           {t(`guided.setup.ideas.${idea.id}.label`)}

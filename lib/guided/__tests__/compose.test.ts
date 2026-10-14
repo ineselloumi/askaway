@@ -10,30 +10,30 @@ describe('prompt composition from answers', () => {
   it('shows only a muted outline before anything is answered', () => {
     const composed = composePrompt('write', {}, t);
     expect(composed.text).toBe('');
-    expect(composed.ghost).toBe('Write … for me, to … about …');
+    expect(composed.ghost).toBe('Write … to … about …');
   });
 
   it('writes the first answer into the frame and ghosts the rest (screen 1c)', () => {
-    const composed = composePrompt('write', { q1: pick(WRITE_Q1, 'message') }, t);
-    expect(composed.text).toBe('Write a message for me');
-    expect(composed.ghost).toBe(', to … about …');
-    expect(composed.segments.filter((s) => s.kind === 'answer').map((s) => s.text)).toEqual(['a message']);
+    const composed = composePrompt('write', { q1: pick(WRITE_Q1, 'email') }, t);
+    expect(composed.text).toBe('Write an email');
+    expect(composed.ghost).toBe(' to … about …');
+    expect(composed.segments.filter((s) => s.kind === 'answer').map((s) => s.text)).toEqual(['an email']);
   });
 
   it('appends a clause per answer and offers a closer once complete', () => {
     const composed = composePrompt(
       'write',
-      { q1: pick(WRITE_Q1, 'message'), who: pick(WRITE_WHO, 'colleague') },
+      { q1: pick(WRITE_Q1, 'email'), who: pick(WRITE_WHO, 'colleague') },
       t,
     );
-    expect(composed.text).toBe('Write a message for me, to my colleague');
+    expect(composed.text).toBe('Write an email to a colleague');
     expect(composed.closer).toBe(' about ');
-    expect(composed.ghost).toBe('what you want to say …');
+    expect(composed.ghost).toBe('what you need to say …');
   });
 
   it('uses typed answers verbatim', () => {
     const composed = composePrompt('write', { q1: typed('a thank-you card'), who: typed('my aunt') }, t);
-    expect(composed.text).toBe('Write a thank-you card for me, for my aunt');
+    expect(composed.text).toBe('Write a thank-you card for my aunt');
   });
 
   it('underlines a stand-in word for an unanswered frame slot (screen 2a)', () => {
@@ -49,12 +49,12 @@ describe('prompt composition from answers', () => {
       {
         q1: pick(AGENT_Q1, 'research'),
         what: typed('project management tools'),
-        must: [pick(`${RESEARCH}.must`, 'budget'), pick(`${RESEARCH}.must`, 'reviewed'), pick(`${RESEARCH}.must`, 'commit')],
+        must: [pick(`${RESEARCH}.must`, 'budget'), pick(`${RESEARCH}.must`, 'enterprise'), pick(`${RESEARCH}.must`, 'commit')],
       },
       t,
     );
     expect(composed.text).toBe(
-      'Research and compare project management tools for me. Each one has to fit my budget, be well reviewed and come with no long commitment.',
+      'Research and compare project management tools for me. Each one has to fit our budget, be ready for enterprise use and offer a flexible contract.',
     );
   });
 
@@ -79,24 +79,24 @@ describe('prompt builder state', () => {
     let state = initBuilder('write');
     expect(builderView(state, t).activeId).toBe('q1');
 
-    state = run(state, { type: 'answer', questionId: 'q1', value: pick(WRITE_Q1, 'message') });
+    state = run(state, { type: 'answer', questionId: 'q1', value: pick(WRITE_Q1, 'email') });
     let view = builderView(state, t);
     expect(view.activeId).toBe('who');
     expect(view.atLastStep).toBe(false);
-    expect(view.sendText).toBe('Write a message for me');
+    expect(view.sendText).toBe('Write an email');
 
     state = run(state, { type: 'answer', questionId: 'who', value: pick(WRITE_WHO, 'colleague') });
     view = builderView(state, t);
     expect(view.atLastStep).toBe(true);
     // The editor offers the lead-in, but it is not sent unless the user continues it.
-    expect(view.editorText).toBe('Write a message for me, to my colleague about ');
-    expect(view.sendText).toBe('Write a message for me, to my colleague');
+    expect(view.editorText).toBe('Write an email to a colleague about ');
+    expect(view.sendText).toBe('Write an email to a colleague');
   });
 
   it('stops rewriting the prompt once the user edits it', () => {
-    let state = run(initBuilder('write'), { type: 'answer', questionId: 'q1', value: pick(WRITE_Q1, 'message') });
+    let state = run(initBuilder('write'), { type: 'answer', questionId: 'q1', value: pick(WRITE_Q1, 'email') });
     state = run(state, { type: 'edit', text: 'Write a short note to Sam' });
-    state = run(state, { type: 'answer', questionId: 'who', value: pick(WRITE_WHO, 'landlord') });
+    state = run(state, { type: 'answer', questionId: 'who', value: pick(WRITE_WHO, 'customer') });
     const view = builderView(state, t);
     expect(view.sendText).toBe('Write a short note to Sam');
     expect(view.segments).toEqual([]);
@@ -109,20 +109,20 @@ describe('prompt builder state', () => {
       { type: 'answer', questionId: 'q1', value: pick(AGENT_Q1, 'research') },
       { type: 'answer', questionId: 'what', value: typed('electric bikes') },
       { type: 'toggle', questionId: 'must', value: pick(must, 'budget') },
-      { type: 'toggle', questionId: 'must', value: pick(must, 'reviewed') },
+      { type: 'toggle', questionId: 'must', value: pick(must, 'enterprise') },
     );
     expect(builderView(state, t).activeId).toBe('must');
 
     state = run(state, { type: 'toggle', questionId: 'must', value: pick(must, 'budget') });
     // While picks are still being made the sentence stays open (screen 2b).
     let view = builderView(state, t);
-    expect(view.sendText).toBe('Research and compare electric bikes for me. Each one has to be well reviewed');
+    expect(view.sendText).toBe('Research and compare electric bikes for me. Each one has to be ready for enterprise use');
     expect(view.ghost).toBe(', and …');
 
     state = run(state, { type: 'confirm', questionId: 'must' });
     view = builderView(state, t);
     expect(view.atLastStep).toBe(true);
-    expect(view.sendText).toBe('Research and compare electric bikes for me. Each one has to be well reviewed.');
+    expect(view.sendText).toBe('Research and compare electric bikes for me. Each one has to be ready for enterprise use.');
   });
 
   it('starts the follow-up questions over when the kind of task changes', () => {
@@ -141,11 +141,11 @@ describe('prompt builder state', () => {
   });
 
   it('opens an idea chip straight on the last step with its starter prompt', () => {
-    const state = initBuilder('agentic', { variant: 'custom', text: 'Plan a four day trip to Paris.' });
+    const state = initBuilder('agentic', { variant: 'custom', text: 'Map the market for a new product.' });
     const view = builderView(state, t);
     expect(view.atLastStep).toBe(true);
     expect(view.questions).toEqual([]);
-    expect(view.sendText).toBe('Plan a four day trip to Paris.');
+    expect(view.sendText).toBe('Map the market for a new product.');
     expect(view.readiness).toBe(3);
   });
 });

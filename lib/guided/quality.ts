@@ -127,7 +127,13 @@ export function qualityReadiness(category: TaskCategory, met: Met): Readiness {
   return CHECKS[category].filter(({ id }) => met[id]).length as Readiness;
 }
 
-/** The most useful thing to add next: the first check that is not met yet. */
+/**
+ * Checks that still count towards the fill but never become the helper line:
+ * the guided questions already ask who the piece is for and what it is about.
+ */
+export const SILENT_CHECKS: ReadonlySet<CheckId> = new Set<CheckId>(['subject', 'audience']);
+
+/** The most useful thing to add next: the first unmet check that has a hint. */
 export function nextHint(category: TaskCategory, met: Met): CheckId | null {
-  return CHECKS[category].find(({ id }) => !met[id])?.id ?? null;
+  return CHECKS[category].find(({ id }) => !met[id] && !SILENT_CHECKS.has(id))?.id ?? null;
 }

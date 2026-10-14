@@ -24,6 +24,6 @@ export function pick(prefix: string, optionId: string): AnswerValue {
 export const typed = (text: string): AnswerValue => ({ label: text, fragment: text });
 
 export const WRITE_Q1 = 'guided.flows.write.q1';
-export const WRITE_WHO = 'guided.flows.write.variants.message.questions.who';
+export const WRITE_WHO = 'guided.flows.write.variants.email.questions.who';
 export const AGENT_Q1 = 'guided.flows.agentic.q1';
 export const RESEARCH = 'guided.flows.agentic.variants.research.questions';

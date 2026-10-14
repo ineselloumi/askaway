@@ -38,9 +38,9 @@ describe('readiness step mapping', () => {
   it('advances one step per answer through the real flows', () => {
     let write = initBuilder('write');
     const writeSteps = [builderView(write, t).readiness];
-    write = builderReducer(write, { type: 'answer', questionId: 'q1', value: pick(WRITE_Q1, 'message') });
+    write = builderReducer(write, { type: 'answer', questionId: 'q1', value: pick(WRITE_Q1, 'email') });
     writeSteps.push(builderView(write, t).readiness);
-    write = builderReducer(write, { type: 'answer', questionId: 'who', value: pick(WRITE_WHO, 'friend') });
+    write = builderReducer(write, { type: 'answer', questionId: 'who', value: pick(WRITE_WHO, 'manager') });
     writeSteps.push(builderView(write, t).readiness);
     expect(writeSteps).toEqual([0, 2, 4]);
 
@@ -54,7 +54,7 @@ describe('readiness step mapping', () => {
     step({ type: 'answer', questionId: 'what', value: typed('electric bikes') });
     step({ type: 'toggle', questionId: 'must', value: pick(`${RESEARCH}.must`, 'budget') });
     // A second pick in the same multi-select question does not add a step.
-    step({ type: 'toggle', questionId: 'must', value: pick(`${RESEARCH}.must`, 'easy') });
+    step({ type: 'toggle', questionId: 'must', value: pick(`${RESEARCH}.must`, 'integrates') });
     step({ type: 'confirm', questionId: 'must' });
     expect(agentSteps).toEqual([1, 2, 3, 3, 4]);
   });

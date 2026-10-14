@@ -57,7 +57,7 @@ describe('guided flow copy', () => {
           expect(view.sendText, where).not.toMatch(/[,;:]$/);
           expect(view.sendText.length, where).toBeGreaterThan(10);
           for (const id of flow.variants[q1.id].suggestions) {
-            expect(t(`${variantKey(category, q1.id)}.suggestions.${id}.starter`), where).not.toMatch(/guided\./);
+            expect(t(`guided.chips.${id}.starter`), where).not.toMatch(/guided\./);
           }
         }
       }

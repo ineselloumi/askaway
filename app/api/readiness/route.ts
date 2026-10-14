@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { CHIPS, HINTS, NO_HINT, NO_HINT_ABOUT, validIds } from '@/lib/guided/library';
 import { CHECKS, type CheckDef, type Scores } from '@/lib/guided/quality';
 import { MODELS, allowRequest, claude, clientIp, getAnthropicKey } from '@/lib/server/claude';
 
@@ -11,6 +12,10 @@ import { MODELS, allowRequest, claude, clientIp, getAnthropicKey } from '@/lib/s
 //      probability per question in a single call.
 //   2. Claude Haiku as a fallback when Jev is not configured, slow or down.
 //   3. `scores: null`, and the client keeps its count-based fill.
+//
+// When the client sends candidate chips and hints, Jev also ranks them in the
+// same call: which details would most improve this particular prompt, and the
+// single most important thing missing. The Claude fallback only scores.
 
 export const runtime = 'nodejs';
 export const maxDuration = 15;
@@ -27,7 +32,34 @@ function typesafeKey(): string | undefined {
   return process.env.TYPESAFE_API_KEY || process.env.AskAway_API_Key;
 }
 
-async function askJev(text: string, checks: CheckDef[], signal: AbortSignal): Promise<Scores | null> {
+type Probabilities = Record<string, number>;
+
+interface Pools {
+  chips: string[];
+  hints: string[];
+}
+
+interface JevResult {
+  scores: Scores;
+  chips: Probabilities | null;
+  hint: Probabilities | null;
+}
+
+const choice = (instructions: string, ids: string[], about: (id: string) => string) => ({
+  type: 'choice',
+  instructions,
+  criteria: Object.fromEntries(ids.map((id) => [id, about(id)])),
+});
+
+function readProbabilities(answer: unknown): Probabilities | null {
+  const p = (answer as { probabilities?: unknown } | undefined)?.probabilities;
+  if (!p || typeof p !== 'object') return null;
+  const out: Probabilities = {};
+  for (const [id, value] of Object.entries(p)) if (typeof value === 'number') out[id] = value;
+  return out;
+}
+
+async function askJev(text: string, checks: CheckDef[], pools: Pools, signal: AbortSignal): Promise<JevResult | null> {
   const key = typesafeKey();
   if (!key) return null;
   const response = await fetch(JEV_URL, {
@@ -36,12 +68,28 @@ async function askJev(text: string, checks: CheckDef[], signal: AbortSignal): Pr
     body: JSON.stringify({
       model: process.env.GUIDED_READINESS_MODEL || 'jev-latest',
       state: text,
-      questions: Object.fromEntries(
-        checks.map((check) => [
-          check.id,
-          { type: 'noul', instructions: check.question, criteria: { true: check.yes, false: check.no } },
-        ]),
-      ),
+      questions: {
+        ...Object.fromEntries(
+          checks.map((check) => [
+            check.id,
+            { type: 'noul', instructions: check.question, criteria: { true: check.yes, false: check.no } },
+          ]),
+        ),
+        ...(pools.chips.length > 1 && {
+          _chips: choice(
+            'Which one detail, if the person added it, would most improve this prompt? Ignore details the prompt already gives.',
+            pools.chips,
+            (id) => CHIPS[id].about,
+          ),
+        }),
+        ...(pools.hints.length > 0 && {
+          _hint: choice(
+            'What is the single most important thing missing from this prompt?',
+            [...pools.hints, NO_HINT],
+            (id) => (id === NO_HINT ? NO_HINT_ABOUT : HINTS[id].about),
+          ),
+        }),
+      },
     }),
     signal: AbortSignal.any([signal, AbortSignal.timeout(JEV_TIMEOUT_MS)]),
   });
@@ -56,7 +104,7 @@ async function askJev(text: string, checks: CheckDef[], signal: AbortSignal): Pr
     if (typeof value !== 'number') return null;
     scores[check.id] = value;
   }
-  return scores;
+  return { scores, chips: readProbabilities(data.answers?._chips), hint: readProbabilities(data.answers?._hint) };
 }
 
 async function askClaude(text: string, checks: CheckDef[], signal: AbortSignal): Promise<Scores | null> {
@@ -109,7 +157,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ scores: null }, { status: 429 });
   }
 
-  let body: { text?: unknown; category?: unknown };
+  let body: { text?: unknown; category?: unknown; chips?: unknown; hints?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -120,20 +168,26 @@ export async function POST(request: NextRequest) {
   if (typeof body.text !== 'string' || !checks?.length || body.text.length > MAX_TEXT) {
     return NextResponse.json({ error: 'invalid' }, { status: 400 });
   }
+  const chips = body.chips === undefined ? [] : validIds(body.chips, CHIPS);
+  const hints = body.hints === undefined ? [] : validIds(body.hints, HINTS);
+  if (!chips || !hints) return NextResponse.json({ error: 'invalid' }, { status: 400 });
+
   const text = body.text.trim();
   if (!text || process.env.GUIDED_MOCK === '1') return NextResponse.json({ scores: null });
 
-  for (const [source, ask] of [
-    ['jev', askJev],
-    ['claude', askClaude],
-  ] as const) {
-    try {
-      const scores = await ask(text, checks, request.signal);
-      if (scores) return NextResponse.json({ scores, source });
-    } catch (error) {
-      if (request.signal.aborted) return NextResponse.json({ scores: null });
-      console.warn(`[readiness] ${source} failed:`, error instanceof Error ? error.message : error);
-    }
+  try {
+    const result = await askJev(text, checks, { chips, hints }, request.signal);
+    if (result) return NextResponse.json({ ...result, source: 'jev' });
+  } catch (error) {
+    if (request.signal.aborted) return NextResponse.json({ scores: null });
+    console.warn('[readiness] jev failed:', error instanceof Error ? error.message : error);
+  }
+  try {
+    const scores = await askClaude(text, checks, request.signal);
+    if (scores) return NextResponse.json({ scores, chips: null, hint: null, source: 'claude' });
+  } catch (error) {
+    if (request.signal.aborted) return NextResponse.json({ scores: null });
+    console.warn('[readiness] claude failed:', error instanceof Error ? error.message : error);
   }
   return NextResponse.json({ scores: null });
 }
