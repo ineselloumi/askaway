@@ -43,8 +43,10 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
   const [state, dispatch] = useReducer(builderReducer, undefined, () => initBuilder(category, prefill));
   const view = useMemo(() => builderView(state, t), [state, t]);
   const [nudged, setNudged] = useState(false);
-  // First press of return asks for confirmation; a second press sends.
+  // First press of return adds a new line and asks whether they meant to send;
+  // a second press sends the prompt as it was before that new line.
   const [confirmingEnter, setConfirmingEnter] = useState(false);
+  const beforeReturn = useRef<{ text: string; edited: boolean } | null>(null);
   const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [attachError, setAttachError] = useState(false);
   const editorRef = useRef<HTMLTextAreaElement>(null);
@@ -100,7 +102,14 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
 
   // After a suggestion chip adds a starter, continue typing right after it.
   const focusAfterUpdate = useRef(false);
+  // After return adds a new line, the cursor goes to the start of it.
+  const caretAfterUpdate = useRef<number | null>(null);
   useEffect(() => {
+    const caret = caretAfterUpdate.current;
+    if (caret !== null) {
+      caretAfterUpdate.current = null;
+      editorRef.current?.setSelectionRange(caret, caret);
+    }
     if (!focusAfterUpdate.current) return;
     focusAfterUpdate.current = false;
     focusEnd();
@@ -119,19 +128,20 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
     dispatch({ type: question.multi ? 'toggle' : 'answer', questionId: question.id, value });
   };
 
-  const submit = (via: 'button' | 'link') => {
-    if (!view.sendText) {
+  const submit = (via: 'button' | 'link', before?: { text: string; edited: boolean } | null) => {
+    const prompt = before ? before.text.trim() : view.sendText;
+    if (!prompt) {
       setNudged(true);
       editorRef.current?.focus();
       return;
     }
     onSubmit({
-      prompt: view.sendText,
+      prompt,
       category,
       variant: view.variantId ?? 'custom',
       readiness,
       scored: !!met,
-      edited: state.promptEdited,
+      edited: before ? before.edited : state.promptEdited,
       via,
       attachment: attachment ?? undefined,
     });
@@ -255,8 +265,15 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
                 }
               } else if (confirmingEnter) {
                 setConfirmingEnter(false);
-                submit('button');
+                submit('button', beforeReturn.current);
               } else {
+                // They may just want a new line: add it, and ask whether they meant to send.
+                const el = editorRef.current;
+                if (!el) return;
+                const at = el.selectionStart;
+                beforeReturn.current = { text: el.value, edited: state.promptEdited };
+                caretAfterUpdate.current = at + 1;
+                dispatch({ type: 'edit', text: `${el.value.slice(0, at)}\n${el.value.slice(el.selectionEnd)}` });
                 setConfirmingEnter(true);
                 track('return_pressed');
               }

@@ -101,7 +101,7 @@
       "done": "I'm done"
     },
     "andMore": ", and …",
-    "enterHint": "Are you done adding details? If so, press \"return\" again to submit your prompt."
+    "enterHint": "Did you mean to submit this prompt? If so, press \"return\" again to submit it."
   },
   "flows": {
     "write": {
