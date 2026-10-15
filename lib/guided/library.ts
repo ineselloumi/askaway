@@ -64,7 +64,9 @@ export const HINTS: Record<string, LibraryEntry> = {
   context: { categories: ['understand'], about: "It gives no background about the person or why they are asking" },
   constraints: { categories: ['agentic'], about: "It is choosing something to buy or use but states no requirement such as a budget or a must-have" },
   handback: { categories: ['agentic'], about: "It does not say what result to hand back, or when it is needed" },
-  material: { categories: ['write', 'understand'], about: "It refers to a document, text, notes or data that has not been included" },
+  material: { categories: ['write', 'understand'], about: "It is missing the background or source material the job depends on: the text, notes, data or situation it refers to" },
+  contractText: { categories: ['understand'], about: "It asks about a contract but the contract text has not been pasted in" },
+  notesText: { categories: ['understand'], about: "It works from meeting notes but the notes have not been pasted in" },
   whoWeAre: { categories: ['agentic'], about: "It says \"our\" or \"we\" but never says what the company is or which market it is in" },
   compareOn: { categories: ['agentic'], about: "It asks for a comparison but does not say what to compare on" },
   readerAction: { categories: ['write'], about: "It is a message but does not say what the reader should do after reading it" },
@@ -84,8 +86,8 @@ export const IDEA_CONTENT: Record<string, { chips: string[]; hints: string[] }> 
   competitors: { chips: ['whoWeAre', 'shortlist', 'compareOn', 'purpose'], hints: ['whoWeAre', 'compareOn'] },
   deck: { chips: ['audience', 'keyMessage', 'metrics', 'presentLength'], hints: ['keyMessage'] },
   sheet: { chips: ['columns', 'decide', 'period', 'when'], hints: ['dataShape'] },
-  contract: { chips: ['role', 'question', 'concern', 'answerLength'], hints: ['material', 'question'] },
-  notes: { chips: ['attendees', 'owners', 'focus', 'skip'], hints: ['material'] },
+  contract: { chips: ['role', 'question', 'concern', 'answerLength'], hints: ['contractText', 'question'] },
+  notes: { chips: ['attendees', 'owners', 'focus', 'skip'], hints: ['notesText'] },
   plan: { chips: ['goal', 'timeline', 'methods', 'context'], hints: ['researchGoal'] },
 };
 /** Jev's option for "nothing important is missing". */
