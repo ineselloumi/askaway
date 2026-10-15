@@ -80,6 +80,7 @@ export const FLOWS: Record<TaskCategory, FlowDef> = {
       },
       deck: {
         web: true,
+        attach: true,
         questions: [
           TOPIC,
           { id: 'for', custom: true, options: o('leadership', 'pitch', 'team') },

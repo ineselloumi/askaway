@@ -13,7 +13,8 @@ export type CheckId =
   | 'manner'
   | 'context'
   | 'constraints'
-  | 'handback';
+  | 'handback'
+  | 'material';
 
 export interface CheckDef {
   id: CheckId;
@@ -98,6 +99,27 @@ export const CHECKS: Record<TaskCategory | 'chat', CheckDef[]> = {
   chat: [],
 };
 
+/**
+ * Checks that never add to the fill but hold it short of done while unmet.
+ * A job that rests on the person's own numbers or notes cannot be done
+ * well until they paste or attach them, however clear the rest of it is.
+ */
+export const GATES: Partial<Record<TaskCategory, CheckDef[]>> = {
+  agentic: [
+    {
+      id: 'material',
+      question: 'If the job needs the person\'s own numbers, notes or details, are they written in the request or attached?',
+      yes: 'The actual figures, notes or details appear in the request or an attached file, or the job only needs public information anyone could look up',
+      no: 'It mentions the person\'s own numbers, files, notes or company details, such as "our sales numbers", but does not include them',
+    },
+  ],
+};
+
+/** Every check scored for a task type: the four that fill, then any gates. */
+export function scoredChecks(category: TaskCategory): CheckDef[] {
+  return [...CHECKS[category], ...(GATES[category] ?? [])];
+}
+
 export type Scores = Partial<Record<CheckId, number>>;
 export type Met = Partial<Record<CheckId, boolean>>;
 
@@ -111,10 +133,12 @@ export const OFF = 0.4;
  */
 export function applyScores(category: TaskCategory, scores: Scores, previous: Met | null): Met {
   const met: Met = {};
-  for (const { id } of CHECKS[category]) {
+  const gates = new Set((GATES[category] ?? []).map(({ id }) => id));
+  for (const { id } of scoredChecks(category)) {
     const score = scores[id];
     if (typeof score !== 'number' || Number.isNaN(score)) {
-      met[id] = previous?.[id] ?? false;
+      // An unscored gate never holds the fill back.
+      met[id] = previous?.[id] ?? gates.has(id);
       continue;
     }
     met[id] = previous?.[id] ? score >= OFF : score >= ON;
@@ -122,9 +146,23 @@ export function applyScores(category: TaskCategory, scores: Scores, previous: Me
   return met;
 }
 
-/** The fill is simply how many of the four checks are met. */
+/** The fill is how many of the four checks are met, kept short of done while a gate is unmet. */
 export function qualityReadiness(category: TaskCategory, met: Met): Readiness {
-  return CHECKS[category].filter(({ id }) => met[id]).length as Readiness;
+  const count = CHECKS[category].filter(({ id }) => met[id]).length;
+  return (missingMaterial(category, met) ? Math.min(count, 3) : count) as Readiness;
+}
+
+/** True when the job rests on the person's own information and it is not in the prompt yet. */
+export function missingMaterial(category: TaskCategory, met: Met): boolean {
+  return (GATES[category] ?? []).some(({ id }) => met[id] === false);
+}
+
+const NUMBER_WORDS =
+  /\b(numbers?|figures?|data|stats?|statistics|metrics?|kpis?|sales|revenue|profits?|margins?|budgets?|costs?|spend(ing)?|prices?|pricing|forecasts?|growth|results|spreadsheets?|percent(age)?s?)\b/i;
+
+/** Whether the missing information is most likely numbers, which decides the helper line's wording. */
+export function asksForNumbers(text: string): boolean {
+  return NUMBER_WORDS.test(text);
 }
 
 /**

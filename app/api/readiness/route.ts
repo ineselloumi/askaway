@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CHIPS, HINTS, NO_HINT, NO_HINT_ABOUT, validIds } from '@/lib/guided/library';
-import { CHECKS, type CheckDef, type Scores } from '@/lib/guided/quality';
+import { CHECKS, scoredChecks, type CheckDef, type Scores } from '@/lib/guided/quality';
 import { MODELS, allowRequest, clientIp, complete, providerKey } from '@/lib/server/llm';
 
 // Scores a prompt-in-progress against four yes/no checks, so the readiness
 // fill reflects how useful the prompt is rather than how many chips were
-// tapped. Called at every pause in typing, so it has to be fast:
+// tapped. Gates (lib/guided/quality.ts) are scored in the same call. Called
+// at every pause in typing, so it has to be fast:
 //
 //   1. Jev (TypeSafe AI), a decision model that returns a calibrated yes
 //      probability per question in a single call.
@@ -157,14 +158,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid' }, { status: 400 });
   }
   const category = body.category as Category;
-  const checks = CHECKS[category];
-  if (typeof body.text !== 'string' || !checks?.length || body.text.length > MAX_TEXT) {
+  if (typeof body.text !== 'string' || !CHECKS[category]?.length || body.text.length > MAX_TEXT) {
     return NextResponse.json({ error: 'invalid' }, { status: 400 });
   }
   const chips = body.chips === undefined ? [] : validIds(body.chips, CHIPS);
   const hints = body.hints === undefined ? [] : validIds(body.hints, HINTS);
   if (!chips || !hints) return NextResponse.json({ error: 'invalid' }, { status: 400 });
 
+  const checks = scoredChecks(category);
   const text = body.text.trim();
   if (!text || process.env.GUIDED_MOCK === '1') return NextResponse.json({ scores: null });
 

@@ -305,7 +305,8 @@ export default function GuidedApp() {
       category: built.category,
       agentic,
       job: built.variant,
-      kind: agentic && variant?.attach ? 'data' : 'web',
+      // A job that can also read the web only switches to the data job once a file is attached.
+      kind: agentic && variant?.attach && (!variant.web || built.attachment) ? 'data' : 'web',
       granted: false,
       guidedPrompt: built.prompt,
     });

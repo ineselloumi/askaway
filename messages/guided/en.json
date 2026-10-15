@@ -82,8 +82,13 @@
     "helperBlank": "Type right after the cursor, then press return.",
     "helperLast": "Add anything else. The more details the better the answer.",
     "helperEmpty": "Pick an answer above, or type your prompt here first.",
+    "needTitle": "Almost there.",
+    "needSub": "I just need one more thing from you.",
+    "needNumbers": "Paste or type your numbers so I have something to work with.",
+    "needContext": "Paste or type the context here so I have something to work with.",
     "promptLabel": "Your prompt",
     "attach": "Attach a spreadsheet (.csv)",
+    "attachFile": "Attach a file (.csv or .txt)",
     "attached": "{name} attached",
     "removeAttachment": "Remove",
     "attachError": "That file is too big or not a text file. Try a .csv export under 60,000 characters.",
@@ -101,9 +106,8 @@
   "flows": {
     "write": {
       "title": "Let's write something together.",
-      "sub": "Two quick questions and I'll take it from there.",
-      "subOne": "One more and I'll take it from there.",
-      "helper": "Your prompt is writing itself. Type over it any time.",
+      "sub": "A few questions before we dive in.",
+      "helper": "Let's write this together. Type over it to make it yours.",
       "empty": "Write … to … about …",
       "q1": {
         "label": "What are you writing?",
@@ -272,9 +276,8 @@
     },
     "understand": {
       "title": "Let's make sense of something.",
-      "sub": "Two quick questions and I'll take it from there.",
-      "subOne": "One more and I'll take it from there.",
-      "helper": "Your prompt is writing itself. Type over it any time.",
+      "sub": "A few questions before we dive in.",
+      "helper": "Let's write this together. Type over it to make it yours.",
       "empty": "… this …",
       "q1": {
         "label": "What do you need?",
@@ -388,9 +391,8 @@
     },
     "agentic": {
       "title": "Let's hand something off.",
-      "sub": "A few quick questions, then I'll go do it.",
-      "subOne": "One more and I'll go do it.",
-      "helper": "Your prompt is writing itself. Type over it any time.",
+      "sub": "A few questions before I get started.",
+      "helper": "Let's write this together. Type over it to make it yours.",
       "empty": "… for me, for … that …",
       "q1": {
         "label": "What should I go do?",

@@ -7,7 +7,7 @@ import { builderReducer, builderView, initBuilder } from '@/lib/guided/builder';
 import { asList, opt } from '@/lib/guided/compose';
 import { FLOWS, variantKey } from '@/lib/guided/flows';
 import { chipPool, chooseHint, defaultChips, defaultHint, hintPool, rankChips } from '@/lib/guided/library';
-import { nextHint, qualityReadiness } from '@/lib/guided/quality';
+import { asksForNumbers, missingMaterial, nextHint, qualityReadiness } from '@/lib/guided/quality';
 import { readinessStep, type Readiness } from '@/lib/guided/readiness';
 import type { AnswerValue, QuestionDef, Segment, TaskCategory } from '@/lib/guided/types';
 import styles from './guided.module.css';
@@ -154,24 +154,30 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
   };
 
   const activeQuestion = view.questions.find((q) => q.id === view.activeId);
-  const title = prefill
+  // A job that rests on the person's own numbers or notes asks for them before anything else.
+  const needsMaterial = view.atLastStep && !!met && missingMaterial(category, met);
+  const title = needsMaterial
+    ? t('guided.builder.needTitle')
+    : prefill
     ? t('guided.builder.prefillTitle')
     : view.atLastStep
       ? t('guided.builder.lastTitle')
       : t(`${flowKey}.title`);
-  const sub = prefill
+  const sub = needsMaterial
+    ? t('guided.builder.needSub')
+    : prefill
     ? t('guided.builder.prefillSub')
     : view.atLastStep
       ? t('guided.builder.lastSub')
-      : view.remaining === 1 && view.questions.length > 1
-        ? t(`${flowKey}.subOne`)
-        : t(`${flowKey}.sub`);
+      : t(`${flowKey}.sub`);
   const helper = nudged
     ? t('guided.builder.helperEmpty')
     : view.blank
       ? t('guided.builder.helperBlank')
       : view.atLastStep
-      ? hint
+      ? needsMaterial
+        ? t(asksForNumbers(view.sendText) ? 'guided.builder.needNumbers' : 'guided.builder.needContext')
+        : hint
         ? t(`guided.hints.${hint}`)
         : t('guided.builder.helperLast')
       : activeQuestion?.multi
@@ -294,7 +300,7 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
                 </>
               ) : (
                 <button type="button" className={`${styles.chip} ${styles.chipDashed}`} onClick={() => fileRef.current?.click()}>
-                  + {t('guided.builder.attach')}
+                  + {t(view.variant.web ? 'guided.builder.attachFile' : 'guided.builder.attach')}
                 </button>
               )}
               {attachError && <span role="alert">{t('guided.builder.attachError')}</span>}

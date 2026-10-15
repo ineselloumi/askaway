@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import en from '@/messages/guided/en.json';
-import { CHECKS, OFF, ON, SILENT_CHECKS, applyScores, nextHint, qualityReadiness } from '../quality';
+import { CHECKS, OFF, ON, SILENT_CHECKS, applyScores, asksForNumbers, missingMaterial, nextHint, qualityReadiness } from '../quality';
 import type { TaskCategory } from '../types';
 
 describe('quality-driven readiness', () => {
@@ -50,5 +50,29 @@ describe('quality-driven readiness', () => {
   it('keeps the previous answer when a score is missing', () => {
     expect(applyScores('write', {}, { task: true }).task).toBe(true);
     expect(applyScores('write', {}, null).task).toBe(false);
+  });
+
+  it('holds a job short of done while the information it rests on is missing', () => {
+    // "Build a slide deck about our sales numbers of this week for a client pitch…": every check passes, no numbers.
+    const all = { task: 0.99, subject: 0.95, constraints: 0.9, handback: 0.9 };
+    const missing = applyScores('agentic', { ...all, material: 0.08 }, null);
+    expect(missingMaterial('agentic', missing)).toBe(true);
+    expect(qualityReadiness('agentic', missing)).toBe(3);
+
+    const included = applyScores('agentic', { ...all, material: 0.9 }, null);
+    expect(missingMaterial('agentic', included)).toBe(false);
+    expect(qualityReadiness('agentic', included)).toBe(4);
+
+    // An unscored gate never blocks, and other task types have none.
+    expect(qualityReadiness('agentic', applyScores('agentic', all, null))).toBe(4);
+    expect(missingMaterial('write', applyScores('write', { task: 0.9 }, null))).toBe(false);
+  });
+
+  it('asks for numbers or for context, depending on the job', () => {
+    expect(asksForNumbers('Build a slide deck about our sales numbers of this week')).toBe(true);
+    expect(asksForNumbers('Analyze our Q3 revenue and margins')).toBe(true);
+    expect(asksForNumbers('Build a slide deck about our new hiring process for the team')).toBe(false);
+    expect(en.builder.needNumbers).toBeTruthy();
+    expect(en.builder.needContext).toBeTruthy();
   });
 });

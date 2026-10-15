@@ -99,11 +99,15 @@ Name | why it was ruled out | out
 - Plain text only. "-" bullets and **bold** are fine when they help. No headings, no tables, no links in the text.
 - Be honest about what you could not confirm.`;
 
+// The guided builder asks for this before the job starts; this is the backstop
+// for a prompt sent without it.
+const OWN_INFORMATION = `If the job rests on the person's own information (their numbers, files, notes, or details about their company, such as "our sales this week") and it is not in their message or an attached file, do not search for it and never make it up. Do not do the job. Instead, hand back two or three short, friendly sentences that say what you need and ask them to paste or type it into their reply, for example "Paste or type your numbers so I have something to work with."`;
+
 const JOBS: Record<string, string> = {
   research:
     'The job is to research and compare options. Look at several, check them against what the person said has to be true, and recommend one with a runner-up.',
   deck:
-    'The job is to build a slide deck. You cannot create a file, so write the deck out in this chat: one line per slide in the form "Slide 1: Title", each followed by two to four short "-" bullets. Add speaker notes only if asked. Look things up when the topic needs real facts or numbers.',
+    'The job is to build a slide deck. You cannot create a file, so write the deck out in this chat: one line per slide in the form "Slide 1: Title", each followed by two to four short "-" bullets. Add speaker notes only if asked. Look things up when the topic needs public facts.',
   sheet:
     'The job is to make sense of spreadsheet data the person attached or pasted. Work only from that data. If there is no data in the ask, say so and ask them to paste the rows or attach a .csv file.',
   custom: 'Work out what the job needs, do it, and hand back something the person can use straight away.',
@@ -122,6 +126,8 @@ Right now you are doing a job for the person on your own, while they wait. Today
 ${JOBS[job] ?? JOBS.custom}
 
 ${reach}
+
+${OWN_INFORMATION}
 
 ${RESULT_FORMAT}`;
 }
