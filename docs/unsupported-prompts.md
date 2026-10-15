@@ -1,6 +1,8 @@
 # Suggested prompts we can't fully deliver on
 
-An inventory of the suggested prompts, quick answers and card copy that promise more than the app can do today.
+An inventory of the suggested prompts, quick answers and card copy on the current site (the guided flow) that promise more than the app can do today.
+
+Web search exists only in "Do things for me". Write something, Make sense of something and the plain chat have no web access.
 
 ## What the app can actually do
 
@@ -11,7 +13,7 @@ An inventory of the suggested prompts, quick answers and card copy that promise 
 
 Note: "Organize my emails" does not appear anywhere in this codebase. If it shows on the live site, the deployment is running different code from `main`.
 
-## Live home screen (guided flow, on by default)
+## Home screen (guided flow)
 
 ### Not supported
 
@@ -43,17 +45,3 @@ These work, but only from what the person writes. Nothing connects to their cale
 ### Typed jobs aren't screened
 
 In "Do things for me" the person can type their own job (`custom` variant). Nothing stops "organize my inbox" or "book a table". The shared system prompt (`lib/server/claude.ts`, IDENTITY) tells the model to decline these, but only after the person has gone through the permission screen and started a web job.
-
-## Legacy home page and `/assist` (only when `NEXT_PUBLIC_GUIDED_FLOW=off`)
-
-With the guided flow on, `/assist` redirects to the guided flow (`middleware.ts`). The `/api/generate` route behind it has no web access.
-
-| Copy | Gap | Source |
-|---|---|---|
-| "What's happening with the Epstein files?" | A current-events question, and there's no web access | `messages/en.json:127` |
-| "What is the summary of today's news?" | No web access | `messages/en.json:132` |
-| "Help me find nice dinner restaurants in Chicago" | No live listings. It answers from memory, so places may have closed. | `messages/en.json:145` |
-| "Date night ideas within 15 minutes of my home" | No access to the person's location | `messages/en.json:148` |
-| "What mattress brand should I buy" | No current prices or models (partly supported) | `messages/en.json:151` |
-| Explain tile: "a news article" | Can't open links, only pasted text | `messages/en.json:15` |
-| Summarize tile: "Make a document, article …" | No document upload, only pasted text or images | `messages/en.json:19` |
