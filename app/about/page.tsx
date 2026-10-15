@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useLocale } from '@/contexts/LocaleContext';
+import { BRAND } from '@/lib/brand';
 import { guidedSans, guidedSerif } from '../guided/fonts';
 import styles from './page.module.css';
 
@@ -26,7 +27,7 @@ export default function AboutPage() {
 
         {SECTIONS.map((id) => (
           <p key={id} className={styles.paragraph}>
-            <strong className={styles.lead}>{t(`about.sections.${id}.lead`)}</strong> {t(`about.sections.${id}.body`)}
+            <strong className={styles.lead}>{t(`about.sections.${id}.lead`)}</strong> {t(`about.sections.${id}.body`, { provider: BRAND.provider })}
           </p>
         ))}
 

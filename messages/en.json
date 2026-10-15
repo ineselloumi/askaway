@@ -188,7 +188,7 @@
       },
       "who": {
         "lead": "Who made it.",
-        "body": "Ask Away was built by an independent developer in San Francisco. It is not tied to Anthropic or any other AI company. Ask Away is free to use."
+        "body": "Ask Away was built by an independent developer in San Francisco. It is not tied to {provider} or any other AI company. Ask Away is free to use."
       }
     },
     "cta": {
