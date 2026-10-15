@@ -2,6 +2,7 @@
 
 import posthog from 'posthog-js';
 import { useEffect } from 'react';
+import { BRAND } from '@/lib/brand';
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -18,6 +19,8 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
             // Silently ignore network errors (e.g. ad blockers)
           },
         });
+        // Both sites share one PostHog project: tag every event so recordings can be filtered by site.
+        posthog.register({ brand: BRAND.id });
       } catch {
         // PostHog blocked or unavailable — analytics silently disabled
       }
