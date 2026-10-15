@@ -47,6 +47,8 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
   // a second press sends the prompt as it was before that new line.
   const [confirmingEnter, setConfirmingEnter] = useState(false);
   const beforeReturn = useRef<{ text: string; edited: boolean } | null>(null);
+  // Set when return lets the browser add the new line, so that change asks instead of dismissing.
+  const returnLine = useRef(false);
   const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [attachError, setAttachError] = useState(false);
   const editorRef = useRef<HTMLTextAreaElement>(null);
@@ -102,14 +104,7 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
 
   // After a suggestion chip adds a starter, continue typing right after it.
   const focusAfterUpdate = useRef(false);
-  // After return adds a new line, the cursor goes to the start of it.
-  const caretAfterUpdate = useRef<number | null>(null);
   useEffect(() => {
-    const caret = caretAfterUpdate.current;
-    if (caret !== null) {
-      caretAfterUpdate.current = null;
-      editorRef.current?.setSelectionRange(caret, caret);
-    }
     if (!focusAfterUpdate.current) return;
     focusAfterUpdate.current = false;
     focusEnd();
@@ -245,7 +240,8 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
             onChange={(text) => {
               typingRef.current = true;
               setNudged(false);
-              setConfirmingEnter(false);
+              setConfirmingEnter(returnLine.current);
+              returnLine.current = false;
               const blank = view.blank;
               // Typing after a blank's lead-in answers it; changing anything before it is a free edit.
               if (blank && text.startsWith(view.editorText.slice(0, blank.at))) {
@@ -267,18 +263,19 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
                 setConfirmingEnter(false);
                 submit('button', beforeReturn.current);
               } else {
-                // They may just want a new line: add it, and ask whether they meant to send.
-                const el = editorRef.current;
-                if (!el) return;
-                const at = el.selectionStart;
-                beforeReturn.current = { text: el.value, edited: state.promptEdited };
-                caretAfterUpdate.current = at + 1;
-                dispatch({ type: 'edit', text: `${el.value.slice(0, at)}\n${el.value.slice(el.selectionEnd)}` });
-                setConfirmingEnter(true);
+                // They may just want a new line: let the browser add it (so the
+                // cursor lands right, on iOS too), and ask whether they meant to send.
+                beforeReturn.current = { text: view.editorText, edited: state.promptEdited };
+                returnLine.current = true;
                 track('return_pressed');
+                return false;
               }
+              return true;
             }}
-            onOtherKey={() => setConfirmingEnter(false)}
+            onOtherKey={() => {
+              returnLine.current = false;
+              setConfirmingEnter(false);
+            }}
             onBlur={() => setConfirmingEnter(false)}
           />
 
@@ -515,8 +512,8 @@ interface EditorProps {
   label: string;
   onChange: (text: string) => void;
   onSubmit: () => void;
-  /** Plain return. Shift+return still adds a new line. */
-  onReturn: () => void;
+  /** Plain return. Shift+return still adds a new line. Returns false to let return add one too. */
+  onReturn: () => boolean;
   onOtherKey: () => void;
   onBlur: () => void;
 }
@@ -564,8 +561,7 @@ function PromptEditor({ ref, text, segments, ghost, label, onChange, onSubmit, o
             e.preventDefault();
             onSubmit();
           } else if (!e.shiftKey) {
-            e.preventDefault();
-            onReturn();
+            if (onReturn()) e.preventDefault();
           } else {
             onOtherKey();
           }
