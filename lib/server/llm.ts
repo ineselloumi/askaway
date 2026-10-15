@@ -162,7 +162,12 @@ function openAIInput(turn: Turn): OpenAI.Responses.EasyInputMessage {
 }
 
 export async function complete(request: CompleteRequest): Promise<Completion> {
-  const options = { signal: request.signal, timeout: request.timeout, maxRetries: request.maxRetries };
+  // Only pass the options that are set: the SDKs reject an explicit `timeout: undefined`.
+  const options = {
+    ...(request.signal && { signal: request.signal }),
+    ...(request.timeout !== undefined && { timeout: request.timeout }),
+    ...(request.maxRetries !== undefined && { maxRetries: request.maxRetries }),
+  };
 
   if (BRAND.id === 'chatgpt') {
     const response = await openai().responses.create(
