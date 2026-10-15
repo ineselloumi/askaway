@@ -35,8 +35,6 @@ export interface ConversationMeta {
   /** Agent job type (research, deck, sheet, custom). */
   job: string;
   kind: 'web' | 'data';
-  /** The user has allowed the agent to work in this conversation. */
-  granted: boolean;
   /** The prompt built in the guided flow, until it has been counted towards graduation. */
   guidedPrompt: string | null;
 }
@@ -46,6 +44,5 @@ export const PLAIN_META: ConversationMeta = {
   agentic: false,
   job: 'custom',
   kind: 'web',
-  granted: false,
   guidedPrompt: null,
 };

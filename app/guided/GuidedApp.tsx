@@ -296,23 +296,8 @@ export default function GuidedApp() {
 
   const beginJob = (ask: string) => {
     setRun(createRun(ask, metaRef.current.kind));
-    dispatchRun({ type: 'request-permission' });
-    // "One yes covers the whole job": follow-ups in the same conversation do not ask again.
-    if (metaRef.current.granted) {
-      dispatchRun({ type: 'allow', at: Date.now() });
-      launchFresh();
-    }
-  };
-
-  const allowJob = () => {
-    setMeta({ ...metaRef.current, granted: true });
-    track('agent_permission', { granted: true });
-    if (dispatchRun({ type: 'allow', at: Date.now() })?.status === 'running') launchFresh();
-  };
-
-  const declineJob = () => {
-    track('agent_permission', { granted: false });
-    dispatchRun({ type: 'decline' });
+    dispatchRun({ type: 'start', at: Date.now() });
+    launchFresh();
   };
 
   const pauseJob = () => {
@@ -349,7 +334,6 @@ export default function GuidedApp() {
         return resumeJob();
       }
       dispatchRun({ type: 'note', text });
-      if (current.status === 'scoping') dispatchRun({ type: 'request-permission' });
       return;
     }
     if (busy) return;
@@ -370,7 +354,6 @@ export default function GuidedApp() {
       agentic,
       job: built.variant,
       kind: agentic && variant?.attach ? 'data' : 'web',
-      granted: false,
       guidedPrompt: built.prompt,
     });
     setItems([{ id: newId(), role: 'user', text: built.prompt, guided: true, agentic, attachment: built.attachment }]);
@@ -592,9 +575,6 @@ export default function GuidedApp() {
                 showGraduation={showGraduation}
                 onSend={send}
                 onRetry={retryChat}
-                onAllow={allowJob}
-                onDecline={declineJob}
-                onStartJob={() => dispatchRun({ type: 'request-permission' })}
                 onPause={pauseJob}
                 onResume={resumeJob}
                 onCheckIn={answerCheckIn}

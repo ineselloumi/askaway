@@ -1152,40 +1152,10 @@
 
 /* ── Agent run ───────────────────────────────────────────────────────────── */
 
-.permission {
-  max-width: 560px;
-  background: var(--g-surface);
-  border: 1px solid var(--g-accent);
-  border-radius: 16px;
-  padding: 20.4px 22.1px;
-  margin-bottom: 24px;
-}
 .cardTitleSerif {
   font: 500 19px/1.25 var(--g-serif);
   letter-spacing: -0.016em;
   margin-bottom: 6px !important;
-}
-.permissionSub {
-  font: 400 13.1px/1.5 var(--g-sans);
-  color: var(--g-secondary);
-  margin-bottom: 16px !important;
-}
-.permList {
-  list-style: none;
-  margin: 0 0 14px;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.permList li {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  font: 400 13.5px/1.45 var(--g-sans);
-}
-.permWont li {
-  color: var(--g-secondary);
 }
 .disc {
   flex: none;
@@ -1201,22 +1171,11 @@
   background: var(--g-accent);
   color: #fff;
 }
-.discNo {
-  border: 1px solid var(--g-border);
-  color: var(--g-muted);
-  line-height: 14px;
-}
 .discCurrent {
   border: 2px solid var(--g-accent);
 }
 .discPending {
   border: 1px solid var(--g-pending);
-}
-.permActions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 18px;
 }
 .primary {
   appearance: none;

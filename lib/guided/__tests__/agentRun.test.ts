@@ -12,20 +12,19 @@ const question: CheckIn = {
 };
 
 const started = () =>
-  play(createRun('Compare project tools', 'web'), { type: 'request-permission' }, { type: 'allow', at: 1_000 });
+  play(createRun('Compare project tools', 'web'), { type: 'start', at: 1_000 });
 
 describe('agent-run state transitions', () => {
-  it('asks permission before doing anything', () => {
+  it('does nothing until the run is started', () => {
     const run = createRun('Compare project tools', 'web');
     expect(run.status).toBe('scoping');
-    // Nothing can start a run that has not been allowed.
-    expect(play(run, { type: 'allow', at: 1 }).status).toBe('scoping');
     expect(play(run, { type: 'phase', phase: 'search' }).currentStep).toBe(0);
 
-    const asked = play(run, { type: 'request-permission' });
-    expect(asked.status).toBe('awaiting-permission');
-    expect(play(asked, { type: 'decline' }).status).toBe('scoping');
-    expect(play(asked, { type: 'allow', at: 5 }).status).toBe('running');
+    const running = play(run, { type: 'start', at: 5 });
+    expect(running.status).toBe('running');
+    expect(running.runningSince).toBe(5);
+    // Starting twice does not reset the clock.
+    expect(play(running, { type: 'start', at: 9 }).runningSince).toBe(5);
   });
 
   it('moves through plain-English steps as work comes in', () => {
@@ -105,7 +104,7 @@ describe('agent-run state transitions', () => {
   });
 
   it('uses a shorter step list for jobs that work on attached data', () => {
-    const run = play(createRun('Summarise my sheet', 'data'), { type: 'request-permission' }, { type: 'allow', at: 0 });
+    const run = play(createRun('Summarise my sheet', 'data'), { type: 'start', at: 0 });
     expect(agentSteps(run).map((s) => s.phase)).toEqual(['plan', 'data', 'write']);
     // Web-only phases do not apply to a data job.
     expect(play(run, { type: 'phase', phase: 'search' }).currentStep).toBe(0);

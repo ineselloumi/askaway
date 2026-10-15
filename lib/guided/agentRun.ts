@@ -3,7 +3,6 @@
 
 export type AgentStatus =
   | 'scoping'
-  | 'awaiting-permission'
   | 'running'
   | 'paused'
   | 'blocked'
@@ -55,9 +54,7 @@ export interface AgentRun {
 }
 
 export type AgentAction =
-  | { type: 'request-permission' }
-  | { type: 'allow'; at: number }
-  | { type: 'decline' }
+  | { type: 'start'; at: number }
   | { type: 'phase'; phase: AgentPhase }
   | { type: 'search'; query: string }
   | { type: 'pages'; count: number }
@@ -96,16 +93,8 @@ function stopClock(run: AgentRun, at: number): Pick<AgentRun, 'durationMs' | 'ru
 /** Transitions that are not allowed from the current status leave the run unchanged. */
 export function agentReducer(run: AgentRun, action: AgentAction): AgentRun {
   switch (action.type) {
-    case 'request-permission':
-      return run.status === 'scoping' ? { ...run, status: 'awaiting-permission' } : run;
-
-    case 'allow':
-      return run.status === 'awaiting-permission'
-        ? { ...run, status: 'running', runningSince: action.at }
-        : run;
-
-    case 'decline':
-      return run.status === 'awaiting-permission' ? { ...run, status: 'scoping' } : run;
+    case 'start':
+      return run.status === 'scoping' ? { ...run, status: 'running', runningSince: action.at } : run;
 
     case 'phase': {
       if (run.status !== 'running') return run;
@@ -129,7 +118,7 @@ export function agentReducer(run: AgentRun, action: AgentAction): AgentRun {
         : run;
 
     case 'note':
-      return ['running', 'paused', 'awaiting-permission', 'scoping'].includes(run.status) && action.text.trim()
+      return ['running', 'paused', 'scoping'].includes(run.status) && action.text.trim()
         ? { ...run, notes: [...run.notes, action.text.trim()] }
         : run;
 

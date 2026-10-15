@@ -22,9 +22,6 @@ interface Props {
   showGraduation: boolean;
   onSend: (text: string, images: string[]) => void;
   onRetry: () => void;
-  onAllow: () => void;
-  onDecline: () => void;
-  onStartJob: () => void;
   onPause: () => void;
   onResume: () => void;
   onCheckIn: (answer: string) => void;
@@ -45,11 +42,9 @@ export default function Conversation(props: Props) {
   // While the very first job is under way, the ask shrinks to one line (screens 2e / 2f).
   const compact = working && items.length === 1 && !!items[0].guided;
   const answered = items.some((item) => item.role === 'assistant');
-  const declined = run?.status === 'scoping';
 
   let placeholder = t('guided.chat.placeholderPlain');
   if (busy) placeholder = t('guided.chat.placeholderWaiting');
-  else if (run?.status === 'awaiting-permission' || declined) placeholder = t('guided.agent.permission.changeAsk');
   else if (run?.status === 'blocked') placeholder = t('guided.agent.checkIn.placeholder');
   else if (working) placeholder = t(run?.kind === 'data' ? 'guided.agent.working.placeholderData' : 'guided.agent.working.placeholder');
   else if (answered) {
@@ -131,17 +126,6 @@ export default function Conversation(props: Props) {
               <span />
             </div>
           </div>
-        )}
-
-        {run?.status === 'awaiting-permission' && <Permission run={run} onAllow={props.onAllow} onDecline={props.onDecline} />}
-
-        {declined && (
-          <p className={styles.notice} role="status">
-            {t('guided.agent.permission.declined')}
-            <button type="button" className={styles.ghostPill} onClick={props.onStartJob}>
-              {t('guided.agent.permission.askAgain')}
-            </button>
-          </p>
         )}
 
         {run && (run.status === 'running' || run.status === 'paused' || run.status === 'error') && (
@@ -349,48 +333,7 @@ function Answer({ item, agentic }: { item: ThreadItem; agentic: boolean }) {
   );
 }
 
-// ── Agent: permission, progress ──────────────────────────────────────────────
-
-function Permission({ run, onAllow, onDecline }: { run: AgentRun; onAllow: () => void; onDecline: () => void }) {
-  const { t } = useLocale();
-  const will = run.kind === 'web' ? ['willWeb', 'willSave'] : ['willData', 'willSave'];
-  return (
-    <div className={styles.permission} role="group" aria-label={t('guided.agent.permission.title')}>
-      <p className={styles.cardTitleSerif}>{t('guided.agent.permission.title')}</p>
-      <p className={styles.permissionSub}>{t('guided.agent.permission.sub')}</p>
-      <Notes run={run} />
-      <ul className={styles.permList}>
-        {will.map((key) => (
-          <li key={key}>
-            <span className={`${styles.disc} ${styles.discDone}`} aria-hidden="true">
-              ✓
-            </span>
-            {t(`guided.agent.permission.${key}`)}
-          </li>
-        ))}
-      </ul>
-      <div className={styles.divider} style={{ marginBottom: 14 }} />
-      <ul className={`${styles.permList} ${styles.permWont}`}>
-        {['wontSignIn', 'wontSend'].map((key) => (
-          <li key={key}>
-            <span className={`${styles.disc} ${styles.discNo}`} aria-hidden="true">
-              ×
-            </span>
-            {t(`guided.agent.permission.${key}`)}
-          </li>
-        ))}
-      </ul>
-      <div className={styles.permActions}>
-        <button type="button" className={styles.primary} onClick={onAllow}>
-          {t('guided.agent.permission.allow')} <span aria-hidden="true">→</span>
-        </button>
-        <button type="button" className={styles.linkButton} onClick={onDecline}>
-          {t('guided.agent.permission.notNow')}
-        </button>
-      </div>
-    </div>
-  );
-}
+// ── Agent: progress ──────────────────────────────────────────────
 
 function Notes({ run }: { run: AgentRun }) {
   const { t } = useLocale();
