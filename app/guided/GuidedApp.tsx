@@ -239,25 +239,16 @@ export default function GuidedApp() {
     void launch({ ask: askWithNotes(current), attachment: ask?.attachment, history: historyBeforeLastAsk() });
   };
 
-  const beginJob = (ask: string) => {
-    setRun(createRun(ask, metaRef.current.kind));
+  // Jobs start as soon as the prompt is sent: there is no permission step.
+  // The user can still pause a job, or change the prompt mid-run.
+  const startJob = () => {
     dispatchRun({ type: 'request-permission' });
-    // "One yes covers the whole job": follow-ups in the same conversation do not ask again.
-    if (metaRef.current.granted) {
-      dispatchRun({ type: 'allow', at: Date.now() });
-      launchFresh();
-    }
-  };
-
-  const allowJob = () => {
-    setMeta({ ...metaRef.current, granted: true });
-    track('agent_permission', { granted: true });
     if (dispatchRun({ type: 'allow', at: Date.now() })?.status === 'running') launchFresh();
   };
 
-  const declineJob = () => {
-    track('agent_permission', { granted: false });
-    dispatchRun({ type: 'decline' });
+  const beginJob = (ask: string) => {
+    setRun(createRun(ask, metaRef.current.kind));
+    startJob();
   };
 
   const pauseJob = () => {
@@ -294,7 +285,7 @@ export default function GuidedApp() {
         return resumeJob();
       }
       dispatchRun({ type: 'note', text });
-      if (current.status === 'scoping') dispatchRun({ type: 'request-permission' });
+      if (current.status === 'scoping') startJob();
       return;
     }
     if (busy) return;
@@ -536,9 +527,6 @@ export default function GuidedApp() {
                 showGraduation={showGraduation}
                 onSend={send}
                 onRetry={retryChat}
-                onAllow={allowJob}
-                onDecline={declineJob}
-                onStartJob={() => dispatchRun({ type: 'request-permission' })}
                 onPause={pauseJob}
                 onResume={resumeJob}
                 onCheckIn={answerCheckIn}

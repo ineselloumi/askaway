@@ -669,20 +669,6 @@
     "plainTitle": "What's on your plate right now?"
   },
   "agent": {
-    "permission": {
-      "title": "Before I start, here's what I'll do.",
-      "sub": "One yes covers the whole job. You can stop me at any point.",
-      "willWeb": "Read public pages on the web — pricing, reviews, comparisons",
-      "willSave": "Save my notes and the finished write-up to this chat",
-      "willData": "Read the spreadsheet you attached or pasted, and nothing else",
-      "wontSignIn": "Sign in anywhere, or spend a penny",
-      "wontSend": "Send anything to anyone, or touch your email",
-      "allow": "Allow and start",
-      "notNow": "Not now",
-      "declined": "No problem. Nothing was started.",
-      "changeAsk": "Change the prompt before I start",
-      "askAgain": "Start this job"
-    },
     "working": {
       "title": "Looking into it now.",
       "titleData": "Going through it now.",
