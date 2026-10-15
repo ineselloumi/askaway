@@ -54,10 +54,11 @@ describe('readiness step mapping', () => {
     step({ type: 'answer', questionId: 'what', value: typed('electric bikes') });
     step({ type: 'fill', questionId: 'topic', text: 'our couriers' });
     step({ type: 'confirm', questionId: 'topic' });
+    // One pick in the last multi-select is enough: "that's all" is never needed to finish.
     step({ type: 'toggle', questionId: 'must', value: pick(`${RESEARCH}.must`, 'budget') });
-    // A second pick in the same multi-select question does not add a step.
     step({ type: 'toggle', questionId: 'must', value: pick(`${RESEARCH}.must`, 'integrates') });
     step({ type: 'confirm', questionId: 'must' });
-    expect(agentSteps).toEqual([1, 2, 3, 3, 3, 3, 4]);
+    expect(agentSteps).toEqual([1, 2, 3, 3, 4, 4, 4]);
+    expect(builderView(agent, t).ready).toBe(true);
   });
 });

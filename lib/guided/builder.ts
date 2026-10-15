@@ -109,6 +109,11 @@ export interface BuilderView {
   /** The blank question being asked, and where its typed answer starts in `editorText`. */
   blank: { id: string; at: number } | null;
   atLastStep: boolean;
+  /**
+   * Every question has an answer. A multi-select with a pick counts, even
+   * before "that's all", so the prompt is never held back waiting for it.
+   */
+  ready: boolean;
   variantId: string | null;
   variant: VariantDef | null;
   /** How many questions are still open (used for the "one more" subtitle). */
@@ -136,6 +141,7 @@ export function builderView(state: BuilderState, t: Translate): BuilderView {
       activeId: null,
       blank: null,
       atLastStep: true,
+      ready: true,
       variantId: state.prefill.variant,
       variant,
       remaining: 0,
@@ -158,6 +164,7 @@ export function builderView(state: BuilderState, t: Translate): BuilderView {
   const firstOpen = questions.find(isOpen)?.id ?? null;
   const activeId = state.reopened ?? firstOpen;
   const atLastStep = activeId === null;
+  const ready = questions.every((q) => isAnswered(state.answers, q.id) && (!q.blank || state.confirmed.includes(q.id)));
   const answered = questions.filter((q) => isAnswered(state.answers, q.id)).length;
   const remaining = questions.filter(isOpen).length;
 
@@ -172,13 +179,14 @@ export function builderView(state: BuilderState, t: Translate): BuilderView {
     activeId,
     blank: activeBlank && !state.promptEdited && composed.blankAt !== undefined ? { id: activeBlank, at: composed.blankAt } : null,
     atLastStep,
+    ready,
     variantId: vid,
     variant,
     remaining,
     readiness: computeReadiness({
       total: questions.length,
       answered,
-      complete: atLastStep,
+      complete: ready,
       hasOwnText: state.promptEdited && state.promptText.trim().length > 0,
     }),
     editorText: state.promptEdited ? state.promptText : composed.text + (atLastStep ? composed.closer : ''),

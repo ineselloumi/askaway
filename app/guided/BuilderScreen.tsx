@@ -154,30 +154,32 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
   };
 
   const activeQuestion = view.questions.find((q) => q.id === view.activeId);
-  // A job that rests on the person's own numbers or notes asks for them before anything else.
-  const needsMaterial = view.atLastStep && !!met && missingMaterial(category, met);
+  // A job that rests on the person's own numbers or notes asks for them as
+  // soon as the check sees the gap; the title joins in once every question has an answer.
+  const missing = !!met && missingMaterial(category, met);
+  const needsMaterial = view.ready && missing;
   const title = needsMaterial
     ? t('guided.builder.needTitle')
     : prefill
     ? t('guided.builder.prefillTitle')
-    : view.atLastStep
+    : view.ready
       ? t('guided.builder.lastTitle')
       : t(`${flowKey}.title`);
   const sub = needsMaterial
     ? t('guided.builder.needSub')
     : prefill
     ? t('guided.builder.prefillSub')
-    : view.atLastStep
+    : view.ready
       ? t('guided.builder.lastSub')
       : t(`${flowKey}.sub`);
   const helper = nudged
     ? t('guided.builder.helperEmpty')
     : view.blank
       ? t('guided.builder.helperBlank')
-      : view.atLastStep
-      ? needsMaterial
-        ? t(asksForNumbers(view.sendText) ? 'guided.builder.needNumbers' : 'guided.builder.needContext')
-        : hint
+      : missing
+      ? t(asksForNumbers(view.sendText) ? 'guided.builder.needNumbers' : 'guided.builder.needContext')
+      : view.ready
+      ? hint
         ? t(`guided.hints.${hint}`)
         : t('guided.builder.helperLast')
       : activeQuestion?.multi
@@ -218,7 +220,7 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
       </div>
 
       <div className={styles.dock}>
-        <div className={`${styles.promptCard} ${view.atLastStep || view.blank ? styles.promptCardFocus : ''}`}>
+        <div className={`${styles.promptCard} ${view.ready || view.blank ? styles.promptCardFocus : ''}`}>
           {confirmingEnter && (
             <div className={styles.enterHint} role="status">
               {t('guided.builder.enterHint')}
@@ -263,7 +265,7 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
             onBlur={() => setConfirmingEnter(false)}
           />
 
-          {view.atLastStep && chipIds.length > 0 && (
+          {view.ready && chipIds.length > 0 && (
             <div className={styles.suggestions}>
               {chipIds.map((id) => (
                 <button
@@ -288,7 +290,7 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
             </div>
           )}
 
-          {view.atLastStep && view.variant?.attach && (
+          {view.ready && view.variant?.attach && (
             <div className={styles.attachRow}>
               <input ref={fileRef} type="file" accept=".csv,.tsv,.txt,text/csv,text/plain" className={styles.hiddenInput} onChange={onFile} />
               {attachment ? (
