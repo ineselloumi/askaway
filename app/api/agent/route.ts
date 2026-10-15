@@ -1,17 +1,24 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest } from 'next/server';
+import { BRAND } from '@/lib/brand';
 import {
+  DEMO_MODEL,
   IDENTITY,
   MODELS,
   allowRequest,
   claude,
   clientIp,
+  describeFailure,
+  failure,
   isMock,
   modelName,
   sleep,
-} from '@/lib/server/claude';
+} from '@/lib/server/llm';
+import { runOpenAIJob } from './openai';
 
-// "Do things for me": one job that Claude works through on its own. The
+// "Do things for me": one job that the model works through on its own. On
+// chatgpt.askaway.guide the job runs on OpenAI instead (./openai.ts), with the
+// same events. The
 // response is a stream of newline-delimited JSON events that the client turns
 // into plain-English progress steps.
 //
@@ -36,6 +43,8 @@ const MAX_CONTINUATIONS = 4;
 const MAX_SEARCHES = 6;
 const MAX_PAGES = 5;
 const MAX_PAGE_TOKENS = 6000;
+/** OpenAI hands back one item per search, page and reasoning step, so its resumes run longer. */
+const MAX_RESUME_ITEMS = BRAND.id === 'chatgpt' ? 150 : 40;
 
 type Kind = 'web' | 'data';
 
@@ -45,6 +54,7 @@ interface AgentRequest {
   job?: string;
   attachment?: { name: string; text: string };
   history?: { role: 'user' | 'assistant'; content: string }[];
+  /** The job so far, in the provider's own format: Anthropic messages, or OpenAI input items. */
   resume?: { messages: Anthropic.MessageParam[]; toolUseId: string; answer: string };
 }
 
@@ -181,6 +191,23 @@ function finalAnswer(content: Anthropic.ContentBlock[], earlier: Anthropic.Messa
 
 async function runJob(body: AgentRequest, kind: Kind, emit: Emit, signal: AbortSignal) {
   const job = body.job && JOBS[body.job] ? body.job : 'custom';
+
+  if (BRAND.id === 'chatgpt') {
+    let ask = body.ask ?? '';
+    if (body.attachment?.text) ask += `\n\nAttached file "${body.attachment.name}":\n${body.attachment.text}`;
+    return runOpenAIJob({
+      kind,
+      system: systemPrompt(kind, job),
+      checkIn: { name: CHECK_IN.name, description: CHECK_IN.description!, parameters: CHECK_IN.input_schema as Record<string, unknown> },
+      isCheckIn,
+      history: body.history ?? [],
+      ask,
+      resume: body.resume,
+      emit,
+      signal,
+    });
+  }
+
   let messages: Anthropic.MessageParam[];
 
   if (body.resume) {
@@ -347,7 +374,7 @@ async function mockJob(body: AgentRequest, kind: Kind, emit: Emit) {
   await sleep(900);
   emit({
     type: 'done',
-    model: 'Claude (demo)',
+    model: DEMO_MODEL,
     sources: [],
     text: "Done. I'd go with the first one.\n\nThis is a sample result, because no API key is set. With a key, this is where the recommendation and the reasons behind it would appear.\n\n[[compare]]\nFirst option | fits the budget · well reviewed | ok\nSecond option | cheaper · rougher edges | ok\nThird option | over your limit | out\n[[/compare]]",
   });
@@ -361,7 +388,7 @@ function invalid(body: AgentRequest): boolean {
     return (
       !Array.isArray(messages) ||
       messages.length < 2 ||
-      messages.length > 40 ||
+      messages.length > MAX_RESUME_ITEMS ||
       messages[0]?.role !== 'user' ||
       typeof toolUseId !== 'string' ||
       typeof answer !== 'string' ||
@@ -413,12 +440,13 @@ export async function POST(request: NextRequest) {
         if (isMock()) await mockJob(body, kind, emit);
         else await runJob(body, kind, emit, request.signal);
       } catch (error) {
-        if (request.signal.aborted || error instanceof Anthropic.APIUserAbortError) {
+        const kind = failure(error);
+        if (request.signal.aborted || kind === 'aborted') {
           // The person paused or left: nothing to report.
-        } else if (error instanceof Anthropic.RateLimitError) {
+        } else if (kind === 'busy') {
           emit({ type: 'error', code: 'busy' });
         } else {
-          console.error('[agent] error', error instanceof Anthropic.APIError ? `${error.status} ${error.message}` : error);
+          console.error('[agent] error', describeFailure(error));
           emit({ type: 'error', code: 'server' });
         }
       } finally {

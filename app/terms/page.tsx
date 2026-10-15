@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BRAND } from '@/lib/brand';
 import { guidedSans, guidedSerif } from '../guided/fonts';
 import styles from '../legal.module.css';
 
@@ -15,7 +16,7 @@ export default function TermsPage() {
       <p className={styles.meta}>Effective Date: March 31, 2026</p>
 
       <p className={styles.intro}>
-        Please read these Terms of Service ("Terms") carefully before using AskAway at askaway.guide (the "Service").
+        Please read these Terms of Service ("Terms") carefully before using AskAway at {BRAND.domain} (the "Service").
         By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, do not use the Service.
       </p>
 
@@ -113,7 +114,7 @@ export default function TermsPage() {
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>11. Third-Party Services</h2>
         <div className={styles.body}>
-          <p>AskAway uses third-party services, including Anthropic's AI API and web hosting providers, to operate the Service. We are not responsible for the practices, terms, or content of third-party services. Links to third-party websites, if any, are provided for convenience and do not imply endorsement.</p>
+          <p>AskAway uses third-party services, including {BRAND.provider}'s AI API and web hosting providers, to operate the Service. We are not responsible for the practices, terms, or content of third-party services. Links to third-party websites, if any, are provided for convenience and do not imply endorsement.</p>
         </div>
       </div>
 

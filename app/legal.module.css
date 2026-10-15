@@ -18,6 +18,12 @@
   padding: 40px max(20px, calc((100% - 740px) / 2)) 72px;
 }
 
+/* chatgpt.askaway.guide: OpenAI teal in place of the orange (see lib/brand.ts). */
+:global(html[data-brand='chatgpt']) .page {
+  --g-accent: #10a37f;
+  --g-accent-hover: #0d8a6b;
+}
+
 .page a {
   color: var(--g-accent);
 }

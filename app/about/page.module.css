@@ -18,6 +18,13 @@
   font-family: var(--font-guided-sans), system-ui, sans-serif;
 }
 
+/* chatgpt.askaway.guide: OpenAI teal in place of the orange (see lib/brand.ts). */
+:global(html[data-brand='chatgpt']) .page {
+  --g-accent: #10a37f;
+  --g-accent-hover: #0d8a6b;
+  --g-tint: #dcf1ea;
+}
+
 .header {
   padding: 40px 20px 0;
 }

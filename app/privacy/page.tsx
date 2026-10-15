@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BRAND } from '@/lib/brand';
 import { guidedSans, guidedSerif } from '../guided/fonts';
 import styles from '../legal.module.css';
 
@@ -15,7 +16,7 @@ export default function PrivacyPage() {
       <p className={styles.meta}>Effective Date: October 13, 2026</p>
 
       <p className={styles.intro}>
-        AskAway is a service operated by Future Products LLC ("we," "us," or "our"). This Privacy Policy explains how we handle information when you use askaway.guide. We are committed to being transparent and protecting your privacy.
+        AskAway is a service operated by Future Products LLC ("we," "us," or "our"). This Privacy Policy explains how we handle information when you use {BRAND.domain}. We are committed to being transparent and protecting your privacy.
       </p>
 
       <div className={styles.section}>
@@ -58,7 +59,7 @@ export default function PrivacyPage() {
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>3. AI Providers and Saved Conversations</h2>
         <div className={styles.body}>
-          <p><strong>Anthropic.</strong> AskAway uses Anthropic's Claude models to generate answers. Your requests, and any photos or files you attach, are sent to Anthropic's API to process and return an answer. When you ask AskAway to do a job on its own, such as researching a topic, Anthropic's tools search and read public web pages using queries based on your request. Anthropic's own privacy policy governs how they handle data submitted through their API. We encourage you to review it at <a href="https://www.anthropic.com" target="_blank" rel="noopener noreferrer">anthropic.com</a>.</p>
+          <p><strong>{BRAND.provider}.</strong> AskAway uses {BRAND.provider}'s {BRAND.family} models to generate answers. Your requests, and any photos or files you attach, are sent to {BRAND.provider}'s API to process and return an answer. When you ask AskAway to do a job on its own, such as researching a topic, {BRAND.provider}'s tools search and read public web pages using queries based on your request. {BRAND.provider}'s own privacy policy governs how they handle data submitted through their API. We encourage you to review it at <a href={BRAND.providerUrl} target="_blank" rel="noopener noreferrer">{BRAND.providerUrl.replace(/^https:\/\/(www\.)?/, '')}</a>.</p>
           <p><strong>TypeSafe AI.</strong> While you write a request, its text is sent to TypeSafe AI's Jev model, which judges how complete the request is so that AskAway can suggest what to add. This happens as you type, before you send the request. TypeSafe AI's own privacy policy governs how they handle that data. You can review it at <a href="https://typesafe.ai" target="_blank" rel="noopener noreferrer">typesafe.ai</a>.</p>
           <p><strong>Saved conversations.</strong> Your conversations are saved so that you can return to them from the history menu. They are linked to an anonymous identifier stored in your browser, not to your name or email address. Your approximate location and basic details about the conversation, such as its length, are saved with it.</p>
           <p>Do not submit sensitive personal information such as passwords, financial account numbers, or government ID numbers through AskAway.</p>
@@ -70,7 +71,7 @@ export default function PrivacyPage() {
         <div className={styles.body}>
           <p>We do not sell your data. We share data only with the service providers needed to run AskAway, and only as described here:</p>
           <ul>
-            <li>Anthropic, to generate AI answers and carry out web research</li>
+            <li>{BRAND.provider}, to generate AI answers and carry out web research</li>
             <li>TypeSafe AI, to check requests as you write them</li>
             <li>Supabase, which stores saved conversations and the anonymous identifier</li>
             <li>Vercel, which hosts the website</li>

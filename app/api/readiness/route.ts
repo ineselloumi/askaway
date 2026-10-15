@@ -1,8 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { CHIPS, HINTS, NO_HINT, NO_HINT_ABOUT, validIds } from '@/lib/guided/library';
 import { CHECKS, type CheckDef, type Scores } from '@/lib/guided/quality';
-import { MODELS, allowRequest, claude, clientIp, getAnthropicKey } from '@/lib/server/claude';
+import { MODELS, allowRequest, clientIp, complete, providerKey } from '@/lib/server/llm';
 
 // Scores a prompt-in-progress against four yes/no checks, so the readiness
 // fill reflects how useful the prompt is rather than how many chips were
@@ -10,12 +9,12 @@ import { MODELS, allowRequest, claude, clientIp, getAnthropicKey } from '@/lib/s
 //
 //   1. Jev (TypeSafe AI), a decision model that returns a calibrated yes
 //      probability per question in a single call.
-//   2. Claude Haiku as a fallback when Jev is not configured, slow or down.
+//   2. The site's fastest model (Claude Haiku or GPT Luna) as a fallback when Jev is not configured, slow or down.
 //   3. `scores: null`, and the client keeps its count-based fill.
 //
 // When the client sends candidate chips and hints, Jev also ranks them in the
 // same call: which details would most improve this particular prompt, and the
-// single most important thing missing. The Claude fallback only scores.
+// single most important thing missing. The model fallback only scores.
 
 export const runtime = 'nodejs';
 export const maxDuration = 15;
@@ -23,7 +22,7 @@ export const maxDuration = 15;
 const MAX_TEXT = 20_000;
 const JEV_URL = 'https://api.typesafe.ai/v1/systemone';
 const JEV_TIMEOUT_MS = 1500;
-const CLAUDE_TIMEOUT_MS = 6000;
+const FALLBACK_TIMEOUT_MS = 6000;
 
 type Category = 'write' | 'understand' | 'agentic';
 
@@ -107,40 +106,34 @@ async function askJev(text: string, checks: CheckDef[], pools: Pools, signal: Ab
   return { scores, chips: readProbabilities(data.answers?._chips), hint: readProbabilities(data.answers?._hint) };
 }
 
-async function askClaude(text: string, checks: CheckDef[], signal: AbortSignal): Promise<Scores | null> {
-  if (!getAnthropicKey()) return null;
-  const response = await claude().messages.create(
-    {
-      model: MODELS.chat,
-      max_tokens: 1000,
-      output_config: {
-        effort: 'low',
-        format: {
-          type: 'json_schema',
-          schema: {
-            type: 'object',
-            properties: Object.fromEntries(checks.map((check) => [check.id, { type: 'number' }])),
-            required: checks.map((check) => check.id),
-            additionalProperties: false,
-          },
-        },
-      },
-      system:
-        'You judge a request that someone is about to send to an AI assistant. For each question, give the probability from 0 to 1 that the answer is yes. Judge only what the request itself says.',
-      messages: [
-        {
-          role: 'user',
-          content: `<request>\n${text}\n</request>\n\n${checks
-            .map((check) => `${check.id}: ${check.question}\n  yes = ${check.yes}\n  no = ${check.no}`)
-            .join('\n')}`,
-        },
-      ],
+async function askModel(text: string, checks: CheckDef[], signal: AbortSignal): Promise<Scores | null> {
+  if (!providerKey()) return null;
+  const response = await complete({
+    model: MODELS.chat,
+    maxTokens: 1000,
+    effort: 'low',
+    schema: {
+      type: 'object',
+      properties: Object.fromEntries(checks.map((check) => [check.id, { type: 'number' }])),
+      required: checks.map((check) => check.id),
+      additionalProperties: false,
     },
-    { signal, timeout: CLAUDE_TIMEOUT_MS, maxRetries: 0 },
-  );
-  const block = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
-  if (!block) return null;
-  const parsed = JSON.parse(block.text) as Record<string, unknown>;
+    system:
+      'You judge a request that someone is about to send to an AI assistant. For each question, give the probability from 0 to 1 that the answer is yes. Judge only what the request itself says.',
+    turns: [
+      {
+        role: 'user',
+        text: `<request>\n${text}\n</request>\n\n${checks
+          .map((check) => `${check.id}: ${check.question}\n  yes = ${check.yes}\n  no = ${check.no}`)
+          .join('\n')}`,
+      },
+    ],
+    signal,
+    timeout: FALLBACK_TIMEOUT_MS,
+    maxRetries: 0,
+  });
+  if (!response.text) return null;
+  const parsed = JSON.parse(response.text) as Record<string, unknown>;
   const scores: Scores = {};
   for (const check of checks) {
     const value = parsed[check.id];
@@ -183,11 +176,11 @@ export async function POST(request: NextRequest) {
     console.warn('[readiness] jev failed:', error instanceof Error ? error.message : error);
   }
   try {
-    const scores = await askClaude(text, checks, request.signal);
-    if (scores) return NextResponse.json({ scores, chips: null, hint: null, source: 'claude' });
+    const scores = await askModel(text, checks, request.signal);
+    if (scores) return NextResponse.json({ scores, chips: null, hint: null, source: 'model' });
   } catch (error) {
     if (request.signal.aborted) return NextResponse.json({ scores: null });
-    console.warn('[readiness] claude failed:', error instanceof Error ? error.message : error);
+    console.warn('[readiness] model fallback failed:', error instanceof Error ? error.message : error);
   }
   return NextResponse.json({ scores: null });
 }

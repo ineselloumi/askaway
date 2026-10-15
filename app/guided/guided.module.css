@@ -37,6 +37,17 @@
   line-height: 1.5;
 }
 
+/* chatgpt.askaway.guide: OpenAI teal in place of the orange (see lib/brand.ts). */
+:global(html[data-brand='chatgpt']) .root {
+  --g-accent: #10a37f;
+  --g-accent-hover: #0d8a6b;
+  --g-accent-deep: #0a6e56;
+  --g-tint: #dcf1ea;
+  --g-fill: #93d5c0;
+  --g-underline: #b3e2d3;
+  --g-on-dark: #5fcfab;
+}
+
 /* Undo the legacy global element styles inside the guided flow. */
 .root button {
   min-height: 0;

@@ -6,6 +6,7 @@ import { PostHogProvider } from './providers';
 import { LocaleProvider } from '@/contexts/LocaleContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ConversationsProvider } from '@/contexts/ConversationsContext';
+import { BRAND } from '@/lib/brand';
 
 const lora = Lora({
   subsets: ['latin'],
@@ -32,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${lora.variable} ${poppins.variable}`}>
+    <html lang="en" data-brand={BRAND.id} className={`${lora.variable} ${poppins.variable}`}>
       <head>
         <Script
           id="meta-pixel"

@@ -1,17 +1,20 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { fallbackRoute, isTier, pickModel, type Facts, type Tier } from '@/lib/guided/routing';
 import { describeRequest, opusAllowed, recordOpusUse } from '@/lib/server/router';
 import {
+  DEMO_MODEL,
   IDENTITY,
   MODELS,
   allowRequest,
-  claude,
   clientIp,
+  complete,
+  describeFailure,
+  failure,
   isMock,
   modelName,
   sleep,
-} from '@/lib/server/claude';
+  type Turn as ModelTurn,
+} from '@/lib/server/llm';
 
 // The plain conversation behind the guided flow: the prompt the user built (or
 // typed) goes in as their own message, with the rest of the thread as history.
@@ -55,25 +58,12 @@ function bad(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
-function toContent(turn: Turn): Anthropic.MessageParam['content'] {
+function toModelTurn(turn: Turn): ModelTurn {
   let text = turn.content;
   if (turn.attachment?.text) {
     text += `\n\nAttached file "${turn.attachment.name}":\n${turn.attachment.text}`;
   }
-  const images = turn.role === 'user' ? turn.images ?? [] : [];
-  if (!images.length) return text;
-
-  const blocks: Anthropic.ContentBlockParam[] = [];
-  for (const image of images) {
-    const match = image.match(/^data:(image\/(?:jpeg|png|gif|webp));base64,(.+)$/);
-    if (!match) continue;
-    blocks.push({
-      type: 'image',
-      source: { type: 'base64', media_type: match[1] as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp', data: match[2] },
-    });
-  }
-  blocks.push({ type: 'text', text: text || 'Take a look at this.' });
-  return blocks;
+  return { role: turn.role, text, images: turn.images };
 }
 
 function validate(turns: unknown): turns is Turn[] {
@@ -110,14 +100,14 @@ export async function POST(request: NextRequest) {
   if (body.action === 'title') {
     if (isMock()) return NextResponse.json({ title: last.content.slice(0, 40) });
     try {
-      const response = await claude().messages.create({
+      const response = await complete({
         model: MODELS.chat,
-        max_tokens: 1000,
-        output_config: { effort: 'low' },
+        maxTokens: 1000,
+        effort: 'low',
         system: `Write a title of 3 to 6 words for a conversation that starts with the message below. Plain words, no quotes, no trailing punctuation. Reply with the title only.`,
-        messages: [{ role: 'user', content: last.content.slice(0, 2000) }],
+        turns: [{ role: 'user', text: last.content.slice(0, 2000) }],
       });
-      const title = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text')?.text.trim();
+      const title = response.text || null;
       return NextResponse.json({ title: title?.replace(/^["'“]|["'”.]$/g, '') ?? null });
     } catch {
       return NextResponse.json({ title: null });
@@ -135,13 +125,13 @@ export async function POST(request: NextRequest) {
   if (isMock()) {
     await sleep(900);
     return NextResponse.json({
-      text: `Here is a sample answer, because no API key is set:\n\nYou asked: "${last.content.slice(0, 200)}". Add an Anthropic API key to .env.local and this box will hold a real answer.`,
-      model: 'Claude (demo)',
+      text: `Here is a sample answer, because no API key is set:\n\nYou asked: "${last.content.slice(0, 200)}". Add an API key to .env.local and this box will hold a real answer.`,
+      model: DEMO_MODEL,
       ...fallbackRoute(facts),
     });
   }
 
-  // Describe the request with the fast decision model, then pick a Claude model for it.
+  // Describe the request with the fast decision model, then pick a model for it.
   const earlier = turns.length > 1 ? turns.slice(-3, -1).map((turn) => `${turn.role}: ${turn.content}`).join('\n') : null;
   const described = await describeRequest(
     last.attachment ? `${last.content}\n\n[Attached file: ${last.attachment.name}]` : last.content,
@@ -153,23 +143,19 @@ export async function POST(request: NextRequest) {
 
   try {
     if (route.tier === 'opus') recordOpusUse();
-    const response = await claude().messages.create({
+    const response = await complete({
       model,
-      max_tokens: 16000,
-      output_config: { effort: EFFORT_FOR[route.tier] },
+      maxTokens: 16000,
+      effort: EFFORT_FOR[route.tier],
       system: `${IDENTITY}\n\n${FORMAT}`,
-      messages: turns.map((turn) => ({ role: turn.role, content: toContent(turn) })),
+      turns: turns.map(toModelTurn),
     });
 
-    if (response.stop_reason === 'refusal') {
+    if (response.declined) {
       return NextResponse.json({ declined: true });
     }
 
-    const text = response.content
-      .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-      .map((block) => block.text)
-      .join('')
-      .trim();
+    const text = response.text;
     if (!text) return bad('empty', 502);
 
     return NextResponse.json({
@@ -180,10 +166,11 @@ export async function POST(request: NextRequest) {
       routed: described ? 'scored' : 'rule',
     });
   } catch (error) {
-    if (error instanceof Anthropic.RateLimitError) return bad('busy', 429);
-    if (error instanceof Anthropic.APIError) {
-      console.error('[chat] API error', error.status, error.message);
-      return bad('upstream', error.status === 529 ? 429 : 502);
+    const kind = failure(error);
+    if (kind === 'busy') return bad('busy', 429);
+    if (kind === 'upstream') {
+      console.error('[chat] API error', describeFailure(error));
+      return bad('upstream', 502);
     }
     console.error('[chat] error', error);
     return bad('server', 500);

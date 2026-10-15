@@ -1,13 +1,13 @@
 import type { Signals } from '@/lib/guided/routing';
 
 // Asks Jev (TypeSafe AI) to describe a request so the rules in
-// lib/guided/routing.ts can choose a Claude model for it. One call, four
+// lib/guided/routing.ts can choose a model for it. One call, four
 // questions, typically 100 to 300 ms. Returns null when Jev is not configured,
 // slow or down, and the caller falls back to the simple rule.
 
 const JEV_URL = 'https://api.typesafe.ai/v1/systemone';
 const TIMEOUT_MS = 1200;
-/** Enough of a long request to judge it; the full text still goes to Claude. */
+/** Enough of a long request to judge it; the full text still goes to the answering model. */
 const MAX_STATE = 12_000;
 
 export function typesafeKey(): string | undefined {
