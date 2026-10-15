@@ -615,6 +615,8 @@
     "nudgeAgentic": "Nice work! Next time you can type a job like this straight into the box below.",
     "reading": "Reading your prompt…",
     "thinking": "Thinking…",
+    "lookingUp": "Looking up “{query}”…",
+    "openingPage": "Reading the page…",
     "placeholderPlain": "What's on your plate?",
     "placeholderWaiting": "Ask for a change once it lands",
     "placeholderWrite": "Ask for a change — \"shorter\", \"warmer\", \"more formal\"",

@@ -14,6 +14,8 @@ const MAX_IMAGES = 5;
 interface Props {
   items: ThreadItem[];
   busy: null | 'reading' | 'thinking';
+  /** Set while an answer is looking something up on the web. */
+  lookup: null | { query?: string };
   run: AgentRun | null;
   meta: ConversationMeta;
   progress: GuidedProgress;
@@ -31,13 +33,13 @@ interface Props {
 }
 
 export default function Conversation(props: Props) {
-  const { items, busy, run, meta, progress, showGraduation } = props;
+  const { items, busy, lookup, run, meta, progress, showGraduation } = props;
   const { t } = useLocale();
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: 'end' });
-  }, [items.length, busy, run?.status, run?.currentStep, run?.searches.length]);
+  }, [items.length, busy, lookup, run?.status, run?.currentStep, run?.searches.length]);
 
   const working = !!run && ['running', 'paused', 'blocked', 'error'].includes(run.status);
   // While the very first job is under way, the ask shrinks to one line (screens 2e / 2f).
@@ -116,7 +118,13 @@ export default function Conversation(props: Props) {
 
         {busy && (
           <div role="status">
-            <p className={styles.status}>{t(busy === 'reading' ? 'guided.chat.reading' : 'guided.chat.thinking')}</p>
+            <p className={styles.status}>
+              {lookup
+                ? lookup.query
+                  ? t('guided.chat.lookingUp', { query: lookup.query })
+                  : t('guided.chat.openingPage')
+                : t(busy === 'reading' ? 'guided.chat.reading' : 'guided.chat.thinking')}
+            </p>
             <div className={styles.shimmer} aria-hidden="true">
               <span />
               <span />

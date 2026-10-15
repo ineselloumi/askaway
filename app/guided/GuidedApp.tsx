@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useConversations, type ChatMessage, type SavedConversation } from '@/contexts/ConversationsContext';
 import { useLocale } from '@/contexts/LocaleContext';
-import { agentReducer, askWithNotes, createRun, type AgentAction, type AgentRun, type CheckIn } from '@/lib/guided/agentRun';
+import { agentReducer, askWithNotes, createRun, type AgentAction, type AgentRun, type AgentSource, type CheckIn } from '@/lib/guided/agentRun';
 import { track, trackPromptSent } from '@/lib/guided/analytics';
 import { FLOWS, IDEAS } from '@/lib/guided/flows';
 import {
@@ -23,6 +23,18 @@ import Conversation from './Conversation';
 import { guidedSans, guidedSerif } from './fonts';
 import styles from './guided.module.css';
 import { PLAIN_META, type ConversationMeta, type ThreadItem } from './types';
+
+/** What /api/chat hands back: the final event of an answer, or a plain JSON reply. */
+interface ChatReply {
+  text?: string;
+  model?: string;
+  reason?: string;
+  tier?: string;
+  routed?: string;
+  sources?: AgentSource[];
+  declined?: boolean;
+  error?: string;
+}
 
 type View =
   | { name: 'setup' }
@@ -46,6 +58,8 @@ export default function GuidedApp() {
 
   const [items, setItemsState] = useState<ThreadItem[]>([]);
   const [busy, setBusy] = useState<null | 'reading' | 'thinking'>(null);
+  /** What the answer is looking up on the web right now, if anything. */
+  const [lookup, setLookup] = useState<null | { query?: string }>(null);
   const [run, setRunState] = useState<AgentRun | null>(null);
   const [meta, setMetaState] = useState<ConversationMeta>(PLAIN_META);
 
@@ -113,22 +127,63 @@ export default function GuidedApp() {
         body: JSON.stringify({ messages: turns, category: metaRef.current.category, previous }),
         signal: controller.signal,
       });
-      const data = await response.json().catch(() => ({}));
+      let data: ChatReply = {};
+      if (response.ok && response.body && response.headers.get('Content-Type')?.includes('ndjson')) {
+        // Answers stream progress events first; the last event is the answer itself.
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? '';
+          for (const line of lines) {
+            if (!line.trim() || controller.signal.aborted) continue;
+            let event: Record<string, unknown>;
+            try {
+              event = JSON.parse(line);
+            } catch {
+              continue;
+            }
+            if (event.type === 'search') setLookup({ query: String(event.query ?? '') });
+            else if (event.type === 'open') setLookup({});
+            else if (event.type === 'done') data = event as ChatReply;
+            else if (event.type === 'declined') data = { declined: true };
+            else if (event.type === 'error') data = { error: String(event.code) };
+          }
+        }
+      } else {
+        // Demo answers and early errors come back as plain JSON.
+        data = await response.json().catch(() => ({}));
+      }
       if (controller.signal.aborted) return;
       if (data.declined) {
         pushItem({ role: 'notice', text: t('guided.chat.declined') });
       } else if (!response.ok || !data.text) {
-        pushItem({ role: 'notice', text: t(response.status === 429 ? 'guided.chat.errorBusy' : 'guided.chat.error'), retry: true });
+        const busyNow = response.status === 429 || data.error === 'busy';
+        pushItem({ role: 'notice', text: t(busyNow ? 'guided.chat.errorBusy' : 'guided.chat.error'), retry: true });
       } else {
-        pushItem({ role: 'assistant', text: data.text, model: data.model, reason: data.reason, tier: data.tier });
-        track('answer_routed', { tier: data.tier, reason: data.reason, routed: data.routed });
+        pushItem({
+          role: 'assistant',
+          text: data.text,
+          model: data.model,
+          reason: data.reason,
+          tier: data.tier,
+          sources: Array.isArray(data.sources) && data.sources.length ? data.sources : undefined,
+        });
+        track('answer_routed', { tier: data.tier, reason: data.reason, routed: data.routed, sources: data.sources?.length ?? 0 });
         countGuidedPrompt();
       }
     } catch {
       if (controller.signal.aborted) return;
       pushItem({ role: 'notice', text: t('guided.chat.error'), retry: true });
     } finally {
-      if (abortRef.current === controller) setBusy(null);
+      if (abortRef.current === controller) {
+        setBusy(null);
+        setLookup(null);
+      }
     }
   };
 
@@ -530,6 +585,7 @@ export default function GuidedApp() {
               <Conversation
                 items={items}
                 busy={busy}
+                lookup={lookup}
                 run={run}
                 meta={meta}
                 progress={progress}
