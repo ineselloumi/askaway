@@ -20,6 +20,7 @@ import {
 //   { type: 'pages', count }             pages opened and read since the last event
 //   { type: 'checkin', question, resume } a blocking question; POST again with `resume`
 //   { type: 'done', text, model, sources }
+//   { type: 'unsupported', text }        the job needs something this app cannot do; nothing was started
 //   { type: 'error', code }
 //
 // The job only ever reads public web pages (and the data the user attached).
@@ -98,6 +99,57 @@ const JOBS: Record<string, string> = {
     'The job is to make sense of spreadsheet data the person attached or pasted. Work only from that data. If there is no data in the ask, say so and ask them to paste the rows or attach a .csv file.',
   custom: 'Work out what the job needs, do it, and hand back something the person can use straight away.',
 };
+
+const SCREEN = {
+  type: 'object',
+  properties: {
+    fits: { type: 'boolean' },
+    reply: { type: 'string' },
+  },
+  required: ['fits', 'reply'],
+  additionalProperties: false,
+};
+
+/**
+ * Before any work starts, a quick check that the job is one this app can do,
+ * so people hear "I can't reach your email" straight away instead of after a
+ * minute of searching. Returns the reply to show, or null to go ahead (also
+ * when the check itself fails).
+ */
+async function screenJob(ask: string, kind: Kind, signal: AbortSignal): Promise<string | null> {
+  const reach =
+    kind === 'web'
+      ? 'search the public web, read public pages, and work from what the person typed or attached'
+      : 'work only from the spreadsheet data the person attached or pasted';
+  try {
+    const response = await claude().messages.create(
+      {
+        model: MODELS.chat,
+        max_tokens: 1000,
+        output_config: { effort: 'low', format: { type: 'json_schema', schema: SCREEN } },
+        system: `${IDENTITY}
+
+Someone has asked you to do a job on your own. In this job you can ${reach}, and hand back a written result in this chat (a recommendation, a comparison, a summary, a slide-by-slide outline, an analysis).
+
+You cannot: read, organise or send their email or messages; see or change their calendar; open their files, drive, photos or any account; sign in anywhere; book, buy, pay, post or send anything; make a file such as a PowerPoint or Excel file.
+
+Decide whether the job fits.
+- fits = true when the heart of the job can be done with what you can do, even if the result is text they will copy elsewhere. A request for a slide deck fits (you write it out slide by slide).
+- fits = false only when the heart of the job needs something you cannot do, such as "organise my inbox" or "book me a table".
+When it fits, reply is an empty string. When it does not, reply is two or three short, warm sentences: say plainly what you cannot do and why, then offer one or two concrete things you can do instead for the same goal, such as "paste a few of the emails and I'll sort them into what needs a reply". No headings or bullets.`,
+        messages: [{ role: 'user', content: ask.slice(0, 4000) }],
+      },
+      { signal },
+    );
+    const text = response.content.find((block): block is Anthropic.TextBlock => block.type === 'text')?.text;
+    const verdict = text ? (JSON.parse(text) as { fits?: unknown; reply?: unknown }) : null;
+    return verdict?.fits === false && typeof verdict.reply === 'string' && verdict.reply.trim() ? verdict.reply.trim() : null;
+  } catch (error) {
+    if (signal.aborted) throw error;
+    console.warn('[agent] screen unavailable:', error instanceof Error ? error.message : error);
+    return null;
+  }
+}
 
 function systemPrompt(kind: Kind, job: string): string {
   const today = new Date().toISOString().slice(0, 10);
@@ -204,10 +256,15 @@ async function runJob(body: AgentRequest, kind: Kind, emit: Emit, signal: AbortS
     });
     emit({ type: 'phase', phase: kind === 'web' ? 'read' : 'data' });
   } else {
+    emit({ type: 'phase', phase: 'plan' });
+    const unsupported = await screenJob(body.ask ?? '', kind, signal);
+    if (unsupported) {
+      emit({ type: 'unsupported', text: unsupported });
+      return;
+    }
     let ask = body.ask ?? '';
     if (body.attachment?.text) ask += `\n\nAttached file "${body.attachment.name}":\n${body.attachment.text}`;
     messages = [...(body.history ?? []).map((turn) => ({ role: turn.role, content: turn.content })), { role: 'user', content: ask }];
-    emit({ type: 'phase', phase: 'plan' });
   }
 
   let searched = !!body.resume;
@@ -313,6 +370,15 @@ async function runJob(body: AgentRequest, kind: Kind, emit: Emit, signal: AbortS
 
 /** Scripted run used when no API key is configured, so the flow can still be demoed. */
 async function mockJob(body: AgentRequest, kind: Kind, emit: Emit) {
+  if (!body.resume && /\b(e-?mails?|inbox|calendar)\b/i.test(body.ask ?? '')) {
+    emit({ type: 'phase', phase: 'plan' });
+    await sleep(600);
+    emit({
+      type: 'unsupported',
+      text: "I can't get into your email, so I can't organise your inbox for you. If you paste in a few emails, I can sort them into what needs a reply, what can wait and what to delete, or draft the replies.",
+    });
+    return;
+  }
   if (!body.resume) {
     emit({ type: 'phase', phase: 'plan' });
     await sleep(900);

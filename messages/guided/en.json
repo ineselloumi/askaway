@@ -623,6 +623,7 @@
     "placeholderUnderstand": "Ask a follow-up — \"simpler\", \"give me an example\"",
     "placeholderAgentic": "Ask me to dig deeper on any of these",
     "placeholderGeneral": "Ask for a change, or ask something new",
+    "placeholderUnsupported": "Paste what I should work from, or ask something else",
     "send": "Send",
     "addPhoto": "Add a photo",
     "removePhoto": "Remove photo",

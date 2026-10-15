@@ -41,12 +41,14 @@ export default function Conversation(props: Props) {
   const working = !!run && ['running', 'paused', 'blocked', 'error'].includes(run.status);
   // While the very first job is under way, the ask shrinks to one line (screens 2e / 2f).
   const compact = working && items.length === 1 && !!items[0].guided;
-  const answered = items.some((item) => item.role === 'assistant');
+  const lastAnswer = [...items].reverse().find((item) => item.role === 'assistant');
+  const answered = !!lastAnswer;
 
   let placeholder = t('guided.chat.placeholderPlain');
   if (busy) placeholder = t('guided.chat.placeholderWaiting');
   else if (run?.status === 'blocked') placeholder = t('guided.agent.checkIn.placeholder');
   else if (working) placeholder = t(run?.kind === 'data' ? 'guided.agent.working.placeholderData' : 'guided.agent.working.placeholder');
+  else if (lastAnswer?.unsupported) placeholder = t('guided.chat.placeholderUnsupported');
   else if (answered) {
     placeholder = meta.agentic
       ? t('guided.chat.placeholderAgentic')
@@ -93,7 +95,7 @@ export default function Conversation(props: Props) {
                 <span className={styles.miniAskText}>{item.text}</span>
               </div>
             ) : (
-              <AskCard key={item.id} item={item} answered={answered} />
+              <AskCard key={item.id} item={item} answered={answered && !lastAnswer?.unsupported} />
             );
           }
           return (

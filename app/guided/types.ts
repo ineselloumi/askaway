@@ -24,6 +24,8 @@ export interface ThreadItem {
   /** Assistant, agent runs: what the job took. */
   receipt?: { pages: number; ms: number };
   sources?: AgentSource[];
+  /** Assistant: the job needed something this app cannot do, so nothing was started. */
+  unsupported?: boolean;
   /** Notice: offer to try the last request again. */
   retry?: boolean;
 }

@@ -244,6 +244,13 @@ export default function GuidedApp() {
               dispatchRun({ type: 'check-in', question: event.question as CheckIn, at: Date.now() });
               track('agent_check_in');
               break;
+            case 'unsupported':
+              // Nothing was started: answer plainly, and leave the box free for the next ask.
+              settled = true;
+              pushItem({ role: 'assistant', text: String(event.text ?? ''), unsupported: true });
+              track('agent_unsupported');
+              setRun(null);
+              break;
             case 'done': {
               settled = true;
               const finished = dispatchRun({

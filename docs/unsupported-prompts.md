@@ -44,7 +44,4 @@ These work, but only from what the person writes. Nothing connects to their cale
 ### Fixed
 
 - Summary flow hint "paste the notes, document **or a link** here …" (`messages/guided/en.json:328`): the chat can now open a pasted link.
-
-### Typed jobs aren't screened
-
-In "Do things for me" the person can type their own job (`custom` variant). Nothing stops "organize my inbox" or "book a table". The shared system prompt (`lib/server/claude.ts`, IDENTITY) tells the model to decline these, but only after the person has gone through the permission screen and started a web job.
+- Jobs the app can't do, such as "organize my inbox" or "book a table": "Do things for me" now checks each job before starting (`screenJob` in `app/api/agent/route.ts`) and, when it needs someone's accounts or would send, book or buy something, says so straight away and offers what it can do instead. The chat path says the same in its first line (`IDENTITY` in `lib/server/claude.ts`).
