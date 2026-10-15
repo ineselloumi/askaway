@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { useLocale } from '@/contexts/LocaleContext';
 import { track } from '@/lib/guided/analytics';
 import { builderReducer, builderView, initBuilder } from '@/lib/guided/builder';
@@ -525,6 +526,11 @@ interface EditorProps {
  */
 function PromptEditor({ ref, text, segments, ghost, label, onChange, onSubmit, onReturn, onOtherKey, onBlur }: EditorProps) {
   const composedLength = segments.reduce((n, s) => n + s.text.length, 0);
+  // The textarea takes its height from the mirror, which only grows once the
+  // new text renders. iOS Safari places the cursor while the textarea is still
+  // a line short and never redraws it, so grow the mirror before a new line goes in.
+  const [lineAhead, setLineAhead] = useState(false);
+  const growForNewLine = () => flushSync(() => setLineAhead(true));
   return (
     <div className={styles.editor}>
       <div className={styles.mirror} aria-hidden="true">
@@ -541,7 +547,7 @@ function PromptEditor({ ref, text, segments, ghost, label, onChange, onSubmit, o
           text
         )}
         <span className={styles.ghost}>{ghost}</span>
-        {'​'}
+        {lineAhead ? '\n​' : '​'}
       </div>
       <textarea
         ref={ref}
@@ -550,8 +556,14 @@ function PromptEditor({ ref, text, segments, ghost, label, onChange, onSubmit, o
         aria-label={label}
         spellCheck
         maxLength={20000}
-        onChange={(e) => onChange(e.target.value)}
-        onBlur={onBlur}
+        onChange={(e) => {
+          setLineAhead(false);
+          onChange(e.target.value);
+        }}
+        onBlur={() => {
+          setLineAhead(false);
+          onBlur();
+        }}
         onKeyDown={(e) => {
           if (e.key !== 'Enter' || e.nativeEvent.isComposing) {
             if (!['Shift', 'Meta', 'Control', 'Alt'].includes(e.key)) onOtherKey();
@@ -562,7 +574,9 @@ function PromptEditor({ ref, text, segments, ghost, label, onChange, onSubmit, o
             onSubmit();
           } else if (!e.shiftKey) {
             if (onReturn()) e.preventDefault();
+            else growForNewLine();
           } else {
+            growForNewLine();
             onOtherKey();
           }
         }}
