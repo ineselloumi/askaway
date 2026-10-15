@@ -303,7 +303,7 @@
 }
 .cards {
   display: grid;
-  grid-template-columns: repeat(3, 212px);
+  grid-template-columns: repeat(3, 248px);
   gap: 13.6px;
 }
 .card {
@@ -317,7 +317,7 @@
   display: flex;
   flex-direction: column;
   gap: 5.1px;
-  min-height: 104px !important;
+  min-height: 88px !important;
   transition: border-color 0.12s ease-out;
 }
 .card:hover {
