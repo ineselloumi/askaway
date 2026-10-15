@@ -7,8 +7,6 @@ export type Translate = (key: string, vars?: Record<string, string | number>) =>
 
 export interface OptionDef {
   id: string;
-  /** Tapping this option opens an inline input so the user can be more specific. */
-  refine?: boolean;
 }
 
 export interface QuestionDef {
@@ -18,6 +16,12 @@ export interface QuestionDef {
   multi?: boolean;
   /** Show the dashed "Type instead" / "Add your own" chip. */
   custom?: boolean;
+  /**
+   * Answered by typing in the prompt itself: the clause's lead-in (" about ")
+   * is written into the editor and the user fills in the rest. Like multi,
+   * it stays open until confirmed.
+   */
+  blank?: boolean;
 }
 
 export interface VariantDef {
@@ -60,4 +64,6 @@ export interface ComposedPrompt {
   ghost: string;
   /** Dangling lead-in placed in the editor on the last step; only sent if the user types after it. */
   closer: string;
+  /** While a blank question is asked: where the user's typed answer starts in `text`. */
+  blankAt?: number;
 }

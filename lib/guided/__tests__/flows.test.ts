@@ -35,6 +35,11 @@ describe('guided flow copy', () => {
             value: option(`guided.flows.${category}.q1`, q1.id),
           });
           for (const question of flow.variants[q1.id].questions) {
+            if (question.blank) {
+              state = builderReducer(state, { type: 'fill', questionId: question.id, text: 'the new office ' });
+              state = builderReducer(state, { type: 'confirm', questionId: question.id });
+              continue;
+            }
             const prefix = `${variantKey(category, q1.id)}.questions.${question.id}`;
             for (const choice of question.multi ? question.options : question.options.slice(0, 1)) {
               state = builderReducer(state, {

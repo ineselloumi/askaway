@@ -72,12 +72,14 @@
     "typeInstead": "Type instead",
     "addYourOwn": "Add your own",
     "doneMulti": "That's all →",
+    "blankNote": "↓ Type it in your prompt below",
+    "blankNext": "Next →",
     "typePlaceholder": "Type your answer",
     "add": "Add",
-    "skip": "Keep it general",
     "change": "Change this answer",
     "goNow": "or go now with what I have",
     "helperMulti": "Add anything else. The more details the better the answer.",
+    "helperBlank": "Type right after the cursor, then press return.",
     "helperLast": "Add anything else. The more details the better the answer.",
     "helperEmpty": "Pick an answer above, or type your prompt here first.",
     "promptLabel": "Your prompt",
@@ -386,7 +388,7 @@
     },
     "agentic": {
       "title": "Let's hand something off.",
-      "sub": "Three quick questions, then I'll go do it.",
+      "sub": "A few quick questions, then I'll go do it.",
       "subOne": "One more and I'll go do it.",
       "helper": "Your prompt is writing itself. Type over it any time.",
       "empty": "… for me, for … that …",
@@ -410,7 +412,7 @@
       },
       "variants": {
         "research": {
-          "frame": "{q1} {what} for me",
+          "frame": "{q1} {what}",
           "placeholders": {
             "what": "options"
           },
@@ -422,22 +424,25 @@
               "label": "What are you comparing?",
               "options": {
                 "tools": {
-                  "label": "Software or vendors",
-                  "fragment": "software or vendors",
-                  "refine": "Which kind? e.g. CRM platforms"
+                  "label": "Software tools",
+                  "fragment": "software tools"
                 },
                 "suppliers": {
                   "label": "Suppliers",
-                  "fragment": "suppliers",
-                  "refine": "Of what? e.g. packaging suppliers"
+                  "fragment": "suppliers"
                 },
                 "partners": {
                   "label": "Agencies or partners",
-                  "fragment": "agencies or partners",
-                  "refine": "For what? e.g. a performance marketing agency"
+                  "fragment": "agencies or partners"
                 }
               },
               "typePlaceholder": "e.g. analytics agencies"
+            },
+            "topic": {
+              "label": "What do you need them for?",
+              "clause": " for {v}",
+              "ghost": " for …",
+              "example": "e.g. tracking our sales leads …"
             },
             "must": {
               "label": "What has to be true?",
@@ -460,20 +465,23 @@
                 }
               },
               "clause": ". Each one has to {v}",
-              "ghost": ", that …",
+              "ghost": ". Each one has to …",
               "typePlaceholder": "e.g. support single sign-on"
             }
           }
         },
         "deck": {
-          "frame": "{q1} for {for}",
-          "placeholders": {
-            "for": "a presentation"
-          },
+          "frame": "{q1}",
           "end": ".",
-          "closer": " The topic is ",
-          "closerHint": "what it's about …",
+          "closer": " ",
+          "closerHint": "Also worth knowing …",
           "questions": {
+            "topic": {
+              "label": "What's it about?",
+              "clause": " about {v}",
+              "ghost": " about …",
+              "example": "e.g. our Q3 sales results …"
+            },
             "for": {
               "label": "What's it for?",
               "options": {
@@ -490,7 +498,9 @@
                   "fragment": "a team meeting"
                 }
               },
-              "typePlaceholder": "e.g. an all-hands"
+              "typePlaceholder": "e.g. an all-hands",
+              "clause": " for {v}",
+              "ghost": " for …"
             },
             "include": {
               "label": "What should it have?",
@@ -513,13 +523,13 @@
                 }
               },
               "clause": ". It should have {v}",
-              "ghost": ", with …",
+              "ghost": ". It should have …",
               "typePlaceholder": "e.g. a timeline slide"
             }
           }
         },
         "sheet": {
-          "frame": "{q1} for me. It holds {what}",
+          "frame": "{q1} of {what}",
           "placeholders": {
             "what": "my data"
           },
@@ -545,8 +555,14 @@
               },
               "typePlaceholder": "e.g. hiring pipeline data"
             },
+            "topic": {
+              "label": "What do you want to find out?",
+              "clause": " to find out {v}",
+              "ghost": " to find out …",
+              "example": "e.g. why sales dipped in March …"
+            },
             "want": {
-              "label": "What do you want out of it?",
+              "label": "What should I give back?",
               "options": {
                 "insights": {
                   "label": "The key insights",
@@ -566,7 +582,7 @@
                 }
               },
               "clause": ". I want {v}",
-              "ghost": ", and I want …",
+              "ghost": ". I want …",
               "typePlaceholder": "e.g. the top five accounts"
             }
           }

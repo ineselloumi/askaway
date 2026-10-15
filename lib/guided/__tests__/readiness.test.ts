@@ -52,10 +52,12 @@ describe('readiness step mapping', () => {
     };
     step({ type: 'answer', questionId: 'q1', value: pick(AGENT_Q1, 'research') });
     step({ type: 'answer', questionId: 'what', value: typed('electric bikes') });
+    step({ type: 'fill', questionId: 'topic', text: 'our couriers' });
+    step({ type: 'confirm', questionId: 'topic' });
     step({ type: 'toggle', questionId: 'must', value: pick(`${RESEARCH}.must`, 'budget') });
     // A second pick in the same multi-select question does not add a step.
     step({ type: 'toggle', questionId: 'must', value: pick(`${RESEARCH}.must`, 'integrates') });
     step({ type: 'confirm', questionId: 'must' });
-    expect(agentSteps).toEqual([1, 2, 3, 3, 4]);
+    expect(agentSteps).toEqual([1, 2, 3, 3, 3, 3, 4]);
   });
 });

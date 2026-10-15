@@ -91,6 +91,13 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
     if (typeof window !== 'undefined' && window.matchMedia?.('(pointer: fine)').matches) focusEnd();
   }, [view.atLastStep]);
 
+  // A blank question is answered in the prompt itself, so the cursor goes
+  // straight to it, on touch screens too: typing is the next step.
+  const blankId = view.blank?.id ?? null;
+  useEffect(() => {
+    if (blankId) focusEnd();
+  }, [blankId]);
+
   // After a suggestion chip adds a starter, continue typing right after it.
   const focusAfterUpdate = useRef(false);
   useEffect(() => {
@@ -161,7 +168,9 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
         : t(`${flowKey}.sub`);
   const helper = nudged
     ? t('guided.builder.helperEmpty')
-    : view.atLastStep
+    : view.blank
+      ? t('guided.builder.helperBlank')
+      : view.atLastStep
       ? hint
         ? t(`guided.hints.${hint}`)
         : t('guided.builder.helperLast')
@@ -192,7 +201,10 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
               status={status}
               values={values}
               onAnswer={(value) => answer(question, value)}
-              onConfirm={() => dispatch({ type: 'confirm', questionId: question.id })}
+              onConfirm={() => {
+                if (question.blank) track('question_answered', { category, question: question.id, option: 'typed' });
+                dispatch({ type: 'confirm', questionId: question.id });
+              }}
               onReopen={() => dispatch({ type: 'reopen', questionId: question.id })}
             />
           );
@@ -200,7 +212,7 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
       </div>
 
       <div className={styles.dock}>
-        <div className={`${styles.promptCard} ${view.atLastStep ? styles.promptCardFocus : ''}`}>
+        <div className={`${styles.promptCard} ${view.atLastStep || view.blank ? styles.promptCardFocus : ''}`}>
           {confirmingEnter && (
             <div className={styles.enterHint} role="status">
               {t('guided.builder.enterHint')}
@@ -216,11 +228,24 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
               typingRef.current = true;
               setNudged(false);
               setConfirmingEnter(false);
-              dispatch({ type: 'edit', text });
+              const blank = view.blank;
+              // Typing after a blank's lead-in answers it; changing anything before it is a free edit.
+              if (blank && text.startsWith(view.editorText.slice(0, blank.at))) {
+                dispatch({ type: 'fill', questionId: blank.id, text: text.slice(blank.at) });
+              } else {
+                dispatch({ type: 'edit', text });
+              }
             }}
             onSubmit={() => submit('button')}
             onReturn={() => {
-              if (confirmingEnter) {
+              if (view.blank) {
+                // Return finishes the blank and moves on to the next question.
+                const blank = view.blank;
+                if (state.answers[blank.id]) {
+                  track('question_answered', { category, question: blank.id, option: 'typed' });
+                  dispatch({ type: 'confirm', questionId: blank.id });
+                }
+              } else if (confirmingEnter) {
                 setConfirmingEnter(false);
                 submit('button');
               } else {
@@ -316,8 +341,8 @@ interface QuestionProps {
 
 function QuestionBlock({ question, prefix, status, values, onAnswer, onConfirm, onReopen }: QuestionProps) {
   const { t } = useLocale();
-  // `typing` is null, 'custom' (the dashed chip), or the id of an option being made more specific.
-  const [typing, setTyping] = useState<string | null>(null);
+  // True while the dashed "Type instead" / "Add your own" chip is open.
+  const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState('');
 
   const optionValue = (id: string): AnswerValue => ({
@@ -328,15 +353,9 @@ function QuestionBlock({ question, prefix, status, values, onAnswer, onConfirm, 
 
   const commitTyped = () => {
     const text = draft.trim().replace(/[.\s]+$/, '');
-    if (typing && typing !== 'custom') {
-      // Refining a chip: empty keeps the general wording.
-      onAnswer(text ? { optionId: typing, label: text.charAt(0).toUpperCase() + text.slice(1), fragment: text } : optionValue(typing));
-    } else if (text) {
-      onAnswer({ label: text.charAt(0).toUpperCase() + text.slice(1), fragment: text });
-    } else {
-      return;
-    }
-    setTyping(null);
+    if (!text) return;
+    onAnswer({ label: text.charAt(0).toUpperCase() + text.slice(1), fragment: text });
+    setTyping(false);
     setDraft('');
   };
 
@@ -352,6 +371,25 @@ function QuestionBlock({ question, prefix, status, values, onAnswer, onConfirm, 
           <button type="button" className={styles.chip} onClick={onReopen} title={t('guided.builder.change')}>
             {values.map((v) => v.label).join(' · ')} ✓
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // A blank is answered in the prompt below, so its block only points there.
+  if (question.blank) {
+    return (
+      <div className={styles.question} aria-hidden={status === 'upcoming' || undefined}>
+        {label}
+        <div className={styles.chips}>
+          <span className={`${styles.blankNote} ${status === 'upcoming' ? styles.blankNoteUpcoming : ''}`}>
+            {t('guided.builder.blankNote')}
+          </span>
+          {values.length > 0 && (
+            <button type="button" className={`${styles.chip} ${styles.chipDone}`} onClick={onConfirm}>
+              {t('guided.builder.blankNext')}
+            </button>
+          )}
         </div>
       </div>
     );
@@ -374,10 +412,7 @@ function QuestionBlock({ question, prefix, status, values, onAnswer, onConfirm, 
 
   const isSelected = (id: string) => values.some((v) => v.optionId === id);
   const typedValues = values.filter((v) => !v.optionId);
-  const placeholder =
-    typing && typing !== 'custom'
-      ? t(`${prefix}.options.${typing}.refine`)
-      : opt(t, `${prefix}.typePlaceholder`) || t('guided.builder.typePlaceholder');
+  const placeholder = opt(t, `${prefix}.typePlaceholder`) || t('guided.builder.typePlaceholder');
 
   return (
     <div className={styles.question}>
@@ -387,16 +422,11 @@ function QuestionBlock({ question, prefix, status, values, onAnswer, onConfirm, 
           <button
             key={option.id}
             type="button"
-            aria-pressed={isSelected(option.id) || typing === option.id}
-            className={`${styles.chip} ${isSelected(option.id) || typing === option.id ? styles.chipSelected : ''}`}
+            aria-pressed={isSelected(option.id)}
+            className={`${styles.chip} ${isSelected(option.id) ? styles.chipSelected : ''}`}
             onClick={() => {
-              if (option.refine && !question.multi) {
-                setTyping(option.id);
-                setDraft('');
-              } else {
-                setTyping(null);
-                onAnswer(optionValue(option.id));
-              }
+              setTyping(false);
+              onAnswer(optionValue(option.id));
             }}
           >
             {t(`${prefix}.options.${option.id}.label`)}
@@ -425,16 +455,16 @@ function QuestionBlock({ question, prefix, status, values, onAnswer, onConfirm, 
                   e.preventDefault();
                   commitTyped();
                 }
-                if (e.key === 'Escape') setTyping(null);
+                if (e.key === 'Escape') setTyping(false);
               }}
             />
             <button type="button" className={styles.typeAdd} onClick={commitTyped}>
-              {typing !== 'custom' && !draft.trim() ? t('guided.builder.skip') : t('guided.builder.add')}
+              {t('guided.builder.add')}
             </button>
           </span>
         ) : (
           question.custom && (
-            <button type="button" className={`${styles.chip} ${styles.chipDashed}`} onClick={() => setTyping('custom')}>
+            <button type="button" className={`${styles.chip} ${styles.chipDashed}`} onClick={() => setTyping(true)}>
               {t(question.multi ? 'guided.builder.addYourOwn' : 'guided.builder.typeInstead')}
             </button>
           )

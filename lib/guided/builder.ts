@@ -21,6 +21,8 @@ export type BuilderAction =
   | { type: 'answer'; questionId: string; value: AnswerValue }
   | { type: 'toggle'; questionId: string; value: AnswerValue }
   | { type: 'confirm'; questionId: string }
+  /** Text typed after a blank question's lead-in in the prompt. */
+  | { type: 'fill'; questionId: string; text: string }
   | { type: 'reopen'; questionId: string }
   | { type: 'edit'; text: string }
   | { type: 'append'; starter: string; composedText: string };
@@ -63,12 +65,25 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
       else delete answers[action.questionId];
       return { ...state, answers };
     }
+    case 'fill': {
+      const answers = { ...state.answers };
+      const label = action.text.trim();
+      if (label) answers[action.questionId] = { label: label.charAt(0).toUpperCase() + label.slice(1), fragment: action.text };
+      else delete answers[action.questionId];
+      return { ...state, answers };
+    }
     case 'confirm': {
       if (!isAnswered(state.answers, action.questionId)) return state;
+      let answers = state.answers;
+      // A typed blank keeps its raw spacing while it is being written; tidy it once done.
+      const typed = answers[action.questionId];
+      if (!Array.isArray(typed) && !typed.optionId) {
+        answers = { ...answers, [action.questionId]: { ...typed, fragment: typed.fragment.trim().replace(/[.\s]+$/, '') } };
+      }
       const confirmed = state.confirmed.includes(action.questionId)
         ? state.confirmed
         : [...state.confirmed, action.questionId];
-      return { ...state, confirmed, reopened: null };
+      return { ...state, answers, confirmed, reopened: null };
     }
     case 'reopen':
       return {
@@ -91,6 +106,8 @@ export interface BuilderView {
   questions: QuestionDef[];
   /** The question currently being asked, or null on the last step. */
   activeId: string | null;
+  /** The blank question being asked, and where its typed answer starts in `editorText`. */
+  blank: { id: string; at: number } | null;
   atLastStep: boolean;
   variantId: string | null;
   variant: VariantDef | null;
@@ -117,6 +134,7 @@ export function builderView(state: BuilderState, t: Translate): BuilderView {
     return {
       questions: [],
       activeId: null,
+      blank: null,
       atLastStep: true,
       variantId: state.prefill.variant,
       variant,
@@ -136,7 +154,7 @@ export function builderView(state: BuilderState, t: Translate): BuilderView {
   const variant = getVariant(state.category, vid);
 
   const isOpen = (q: QuestionDef) =>
-    !isAnswered(state.answers, q.id) || (!!q.multi && !state.confirmed.includes(q.id));
+    !isAnswered(state.answers, q.id) || ((!!q.multi || !!q.blank) && !state.confirmed.includes(q.id));
   const firstOpen = questions.find(isOpen)?.id ?? null;
   const activeId = state.reopened ?? firstOpen;
   const atLastStep = activeId === null;
@@ -144,13 +162,15 @@ export function builderView(state: BuilderState, t: Translate): BuilderView {
   const remaining = questions.filter(isOpen).length;
 
   const stillOpen = questions.filter((q) => q.multi && isOpen(q) && isAnswered(state.answers, q.id)).map((q) => q.id);
-  const composed = composePrompt(state.category, state.answers, t, stillOpen);
+  const activeBlank = questions.find((q) => q.id === activeId && q.blank)?.id ?? null;
+  const composed = composePrompt(state.category, state.answers, t, stillOpen, activeBlank);
   // An untouched prompt never ends on a dangling comma or colon from a clause template.
   const sendText = state.promptEdited ? state.promptText.trim() : composed.text.replace(/[\s,;:]+$/, '');
 
   return {
     questions,
     activeId,
+    blank: activeBlank && !state.promptEdited && composed.blankAt !== undefined ? { id: activeBlank, at: composed.blankAt } : null,
     atLastStep,
     variantId: vid,
     variant,

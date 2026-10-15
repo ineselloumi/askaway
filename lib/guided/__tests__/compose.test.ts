@@ -38,9 +38,9 @@ describe('prompt composition from answers', () => {
 
   it('underlines a stand-in word for an unanswered frame slot (screen 2a)', () => {
     const composed = composePrompt('agentic', { q1: pick(AGENT_Q1, 'research') }, t);
-    expect(composed.text).toBe('Research and compare options for me');
+    expect(composed.text).toBe('Research and compare options');
     expect(composed.segments.find((s) => s.text === 'options')?.kind).toBe('answer');
-    expect(composed.ghost).toBe(', that …');
+    expect(composed.ghost).toBe(' for …. Each one has to …');
   });
 
   it('joins multi-select answers into one clause (screens 2b and 2c)', () => {
@@ -49,12 +49,13 @@ describe('prompt composition from answers', () => {
       {
         q1: pick(AGENT_Q1, 'research'),
         what: typed('project management tools'),
+        topic: typed('a 40-person design team'),
         must: [pick(`${RESEARCH}.must`, 'budget'), pick(`${RESEARCH}.must`, 'enterprise'), pick(`${RESEARCH}.must`, 'commit')],
       },
       t,
     );
     expect(composed.text).toBe(
-      'Research and compare project management tools for me. Each one has to fit our budget, be ready for enterprise use and offer a flexible contract.',
+      'Research and compare project management tools for a 40-person design team. Each one has to fit our budget, be ready for enterprise use and offer a flexible contract.',
     );
   });
 
@@ -108,6 +109,8 @@ describe('prompt builder state', () => {
       initBuilder('agentic'),
       { type: 'answer', questionId: 'q1', value: pick(AGENT_Q1, 'research') },
       { type: 'answer', questionId: 'what', value: typed('electric bikes') },
+      { type: 'fill', questionId: 'topic', text: 'our city couriers' },
+      { type: 'confirm', questionId: 'topic' },
       { type: 'toggle', questionId: 'must', value: pick(must, 'budget') },
       { type: 'toggle', questionId: 'must', value: pick(must, 'enterprise') },
     );
@@ -116,13 +119,13 @@ describe('prompt builder state', () => {
     state = run(state, { type: 'toggle', questionId: 'must', value: pick(must, 'budget') });
     // While picks are still being made the sentence stays open (screen 2b).
     let view = builderView(state, t);
-    expect(view.sendText).toBe('Research and compare electric bikes for me. Each one has to be ready for enterprise use');
+    expect(view.sendText).toBe('Research and compare electric bikes for our city couriers. Each one has to be ready for enterprise use');
     expect(view.ghost).toBe(', and …');
 
     state = run(state, { type: 'confirm', questionId: 'must' });
     view = builderView(state, t);
     expect(view.atLastStep).toBe(true);
-    expect(view.sendText).toBe('Research and compare electric bikes for me. Each one has to be ready for enterprise use.');
+    expect(view.sendText).toBe('Research and compare electric bikes for our city couriers. Each one has to be ready for enterprise use.');
   });
 
   it('starts the follow-up questions over when the kind of task changes', () => {
@@ -136,8 +139,52 @@ describe('prompt builder state', () => {
     state = run(state, { type: 'answer', questionId: 'q1', value: pick(AGENT_Q1, 'deck') });
     const view = builderView(state, t);
     expect(view.variantId).toBe('deck');
-    expect(view.activeId).toBe('for');
-    expect(view.sendText).toBe('Build a slide deck for a presentation');
+    expect(view.activeId).toBe('topic');
+    expect(view.editorText).toBe('Build a slide deck about ');
+    expect(view.sendText).toBe('Build a slide deck about');
+  });
+
+  it('asks for the topic as a blank typed straight into the prompt', () => {
+    let state = run(
+      initBuilder('agentic'),
+      { type: 'answer', questionId: 'q1', value: pick(AGENT_Q1, 'research') },
+      { type: 'answer', questionId: 'what', value: pick(`${RESEARCH}.what`, 'tools') },
+    );
+    let view = builderView(state, t);
+    expect(view.activeId).toBe('topic');
+    expect(view.editorText).toBe('Research and compare software tools for ');
+    expect(view.blank).toEqual({ id: 'topic', at: view.editorText.length });
+    expect(view.ghost).toBe('e.g. tracking our sales leads …');
+
+    // Typing fills the blank; the prompt keeps composing and the answer is underlined.
+    state = run(state, { type: 'fill', questionId: 'topic', text: 'tracking sales leads ' });
+    view = builderView(state, t);
+    expect(state.promptEdited).toBe(false);
+    expect(view.activeId).toBe('topic');
+    expect(view.editorText).toBe('Research and compare software tools for tracking sales leads ');
+    expect(view.segments.at(-1)).toEqual({ text: 'tracking sales leads ', kind: 'answer' });
+
+    // Confirming moves on; later answers still write into the prompt.
+    state = run(
+      state,
+      { type: 'confirm', questionId: 'topic' },
+      { type: 'toggle', questionId: 'must', value: pick(`${RESEARCH}.must`, 'budget') },
+      { type: 'confirm', questionId: 'must' },
+    );
+    view = builderView(state, t);
+    expect(view.blank).toBeNull();
+    expect(view.atLastStep).toBe(true);
+    expect(view.sendText).toBe('Research and compare software tools for tracking sales leads. Each one has to fit our budget.');
+  });
+
+  it('does not confirm an empty blank', () => {
+    let state = run(
+      initBuilder('agentic'),
+      { type: 'answer', questionId: 'q1', value: pick(AGENT_Q1, 'deck') },
+      { type: 'fill', questionId: 'topic', text: '   ' },
+      { type: 'confirm', questionId: 'topic' },
+    );
+    expect(builderView(state, t).activeId).toBe('topic');
   });
 
   it('opens an idea chip straight on the last step with its starter prompt', () => {

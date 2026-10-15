@@ -5,7 +5,9 @@ import type { FlowDef, QuestionDef, TaskCategory, VariantDef } from './types';
 // phrase the composed prompt naturally.
 
 const o = (...ids: string[]) => ids.map((id) => ({ id }));
-const refine = (...ids: string[]) => ids.map((id) => ({ id, refine: true }));
+
+/** The subject of the job, typed straight into the prompt after its lead-in. */
+const TOPIC: QuestionDef = { id: 'topic', blank: true, options: [] };
 
 const MUST: QuestionDef = {
   id: 'must',
@@ -70,7 +72,8 @@ export const FLOWS: Record<TaskCategory, FlowDef> = {
       research: {
         web: true,
         questions: [
-          { id: 'what', custom: true, options: refine('tools', 'partners', 'suppliers') },
+          { id: 'what', custom: true, options: o('tools', 'partners', 'suppliers') },
+          TOPIC,
           MUST,
         ],
         suggestions: ['handback', 'current', 'when'],
@@ -78,6 +81,7 @@ export const FLOWS: Record<TaskCategory, FlowDef> = {
       deck: {
         web: true,
         questions: [
+          TOPIC,
           { id: 'for', custom: true, options: o('leadership', 'pitch', 'team') },
           { id: 'include', multi: true, custom: true, options: o('story', 'metrics', 'recs', 'short') },
         ],
@@ -87,6 +91,7 @@ export const FLOWS: Record<TaskCategory, FlowDef> = {
         attach: true,
         questions: [
           { id: 'what', custom: true, options: o('sales', 'forecast', 'feedback') },
+          TOPIC,
           { id: 'want', multi: true, custom: true, options: o('insights', 'risks', 'trends', 'share') },
         ],
         suggestions: ['columns', 'decide', 'when'],

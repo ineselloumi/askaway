@@ -1,7 +1,7 @@
 // AskAway ships as two sites from this one codebase:
 //
 //   claude.askaway.guide   answers with Anthropic's Claude models, orange accent
-//   chatgpt.askaway.guide  answers with OpenAI's GPT models, teal accent
+//   chatgpt.askaway.guide  answers with OpenAI's GPT models, blue accent on off-white, sans headings
 //
 // Everything else (the guided flow, Jev, copy, storage) is shared. Each site is
 // its own deployment with NEXT_PUBLIC_BRAND set; it is read at build time, so

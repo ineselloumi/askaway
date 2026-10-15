@@ -37,15 +37,18 @@
   line-height: 1.5;
 }
 
-/* chatgpt.askaway.guide: OpenAI teal in place of the orange (see lib/brand.ts). */
+/* chatgpt.askaway.guide: blue accent on a neutral off-white in place of the orange
+   on cream (see lib/brand.ts). Headings switch to the sans from app/guided/fonts.ts. */
 :global(html[data-brand='chatgpt']) .root {
-  --g-accent: #10a37f;
-  --g-accent-hover: #0d8a6b;
-  --g-accent-deep: #0a6e56;
-  --g-tint: #dcf1ea;
-  --g-fill: #93d5c0;
-  --g-underline: #b3e2d3;
-  --g-on-dark: #5fcfab;
+  --g-ground: #f8f8f6;
+  --font-guided-serif: var(--font-guided-heading-sans);
+  --g-accent: #006aff;
+  --g-accent-hover: #0058d6;
+  --g-accent-deep: #0047ad;
+  --g-tint: #e0edff;
+  --g-fill: #8cbcff;
+  --g-underline: #b3d3ff;
+  --g-on-dark: #5c9eff;
 }
 
 /* Undo the legacy global element styles inside the guided flow. */
@@ -320,8 +323,16 @@
 .card:hover {
   border-color: var(--g-border);
 }
+/* On the pale chatgpt ground a white card needs an edge of its own. */
+:global(html[data-brand='chatgpt']) .card:not(.cardDark) {
+  border-color: var(--g-border-light);
+}
+:global(html[data-brand='chatgpt']) .card:not(.cardDark):hover {
+  border-color: var(--g-border);
+}
 .cardSelected,
-.cardSelected:hover {
+.cardSelected:hover,
+:global(html[data-brand='chatgpt']) .card.cardSelected {
   border-color: var(--g-accent);
 }
 .cardTitle {
@@ -534,6 +545,17 @@
 .chipDone:hover {
   border-color: transparent;
   color: var(--g-accent-hover) !important;
+}
+/* A blank question is answered in the prompt below, so it shows a pointer, not chips. */
+.blankNote {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  font: 400 14.8px/1.3 var(--g-sans);
+  color: var(--g-accent);
+}
+.blankNoteUpcoming {
+  color: var(--g-disabled);
 }
 .typeRow {
   display: inline-flex;

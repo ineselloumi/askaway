@@ -63,6 +63,9 @@ function capitalizeFirst(segments: Segment[]): Segment[] {
  * - Questions not answered yet contribute to the muted `ghost` tail instead.
  * - Once every question is answered the sentence is closed (`end`) and the
  *   variant's `closer` lead-in is offered for the user to keep typing.
+ * - The blank question being asked writes its lead-in (" about ") and whatever
+ *   the user has typed after it, and the prompt stops there so the cursor sits
+ *   at the blank. `blankAt` is where the typed part starts.
  */
 export function composePrompt(
   category: TaskCategory,
@@ -70,6 +73,8 @@ export function composePrompt(
   t: Translate,
   /** Multi-select questions that have picks but are not confirmed yet: the sentence stays open. */
   stillOpen: string[] = [],
+  /** The blank question currently being asked, if any. */
+  activeBlank: string | null = null,
 ): ComposedPrompt {
   const q1 = asList(answers.q1)[0];
   const vid = variantId(category, q1?.optionId, !!q1);
@@ -94,10 +99,20 @@ export function composePrompt(
 
   let ghost = '';
   let allAnswered = true;
+  let blankAt: number | undefined;
 
   for (const question of variant.questions) {
     const values = asList(answers[question.id]);
     const qKey = `${base}.questions.${question.id}`;
+    if (question.id === activeBlank) {
+      const lead = t(`${qKey}.clause`).split('{v}')[0];
+      segments.push({ text: lead, kind: 'plain' });
+      blankAt = segments.reduce((n, s) => n + s.text.length, 0);
+      if (values.length) segments.push({ text: values[0].fragment, kind: 'answer' });
+      else ghost = opt(t, `${qKey}.example`);
+      allAnswered = false;
+      break;
+    }
     if (!values.length) {
       allAnswered = false;
       ghost += opt(t, `${qKey}.ghost`);
@@ -122,12 +137,12 @@ export function composePrompt(
     if (end) segments.push({ text: end, kind: 'plain' });
     closer = opt(t, `${base}.closer`);
     ghost = opt(t, `${base}.closerHint`);
-  } else if (!stillOpen.length) {
+  } else if (!stillOpen.length && blankAt === undefined) {
     ghost += opt(t, `${base}.closerGhost`);
   }
 
   capitalizeFirst(segments);
-  return { segments, text: segments.map((s) => s.text).join(''), ghost, closer };
+  return { segments, text: segments.map((s) => s.text).join(''), ghost, closer, blankAt };
 }
 
 /**

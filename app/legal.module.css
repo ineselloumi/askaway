@@ -18,10 +18,12 @@
   padding: 40px max(20px, calc((100% - 740px) / 2)) 72px;
 }
 
-/* chatgpt.askaway.guide: OpenAI teal in place of the orange (see lib/brand.ts). */
+/* chatgpt.askaway.guide: blue on a neutral off-white in place of orange on cream (see lib/brand.ts). */
 :global(html[data-brand='chatgpt']) .page {
-  --g-accent: #10a37f;
-  --g-accent-hover: #0d8a6b;
+  --g-ground: #f8f8f6;
+  --font-guided-serif: var(--font-guided-heading-sans);
+  --g-accent: #006aff;
+  --g-accent-hover: #0058d6;
 }
 
 .page a {
