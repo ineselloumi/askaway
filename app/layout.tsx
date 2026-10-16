@@ -23,7 +23,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: 'ask away - Simple AI for Everyone',
+  title: 'ask away - Get the most out of AI',
   description: 'Get help writing messages, understanding letters, and more. No confusing tech words. Just simple, friendly help.',
 };
 
