@@ -14,7 +14,8 @@ export type CheckId =
   | 'context'
   | 'constraints'
   | 'handback'
-  | 'material';
+  | 'material'
+  | 'finished';
 
 export interface CheckDef {
   id: CheckId;
@@ -115,9 +116,23 @@ export const GATES: Partial<Record<TaskCategory, CheckDef[]>> = {
   ],
 };
 
+/**
+ * A gate on every task type, kept apart from GATES because what it asks for is
+ * different: the person is mid-sentence, not missing information. The four
+ * checks can all pass on a half-written prompt, since a stray "I need them to
+ * contact" already reads as a point to include.
+ */
+const FINISHED: CheckDef = {
+  id: 'finished',
+  question:
+    'Does the request end on a finished thought, rather than stopping partway through a sentence? Ignore any "[Attached file: ...]" note at the end.',
+  yes: 'The last sentence or phrase stands on its own, even in note form or with no full stop, such as "keep it short" or "by Friday"',
+  no: 'The text stops mid-thought and clearly needs more words, such as ending on "I need them to" or "contact the"',
+};
+
 /** Every check scored for a task type: the four that fill, then any gates. */
 export function scoredChecks(category: TaskCategory): CheckDef[] {
-  return [...CHECKS[category], ...(GATES[category] ?? [])];
+  return [...CHECKS[category], ...(GATES[category] ?? []), FINISHED];
 }
 
 export type Scores = Partial<Record<CheckId, number>>;
@@ -133,7 +148,7 @@ export const OFF = 0.4;
  */
 export function applyScores(category: TaskCategory, scores: Scores, previous: Met | null): Met {
   const met: Met = {};
-  const gates = new Set((GATES[category] ?? []).map(({ id }) => id));
+  const gates = new Set([...(GATES[category] ?? []), FINISHED].map(({ id }) => id));
   for (const { id } of scoredChecks(category)) {
     const score = scores[id];
     if (typeof score !== 'number' || Number.isNaN(score)) {
@@ -149,12 +164,17 @@ export function applyScores(category: TaskCategory, scores: Scores, previous: Me
 /** The fill is how many of the four checks are met, kept short of done while a gate is unmet. */
 export function qualityReadiness(category: TaskCategory, met: Met): Readiness {
   const count = CHECKS[category].filter(({ id }) => met[id]).length;
-  return (missingMaterial(category, met) ? Math.min(count, 3) : count) as Readiness;
+  return (missingMaterial(category, met) || unfinished(met) ? Math.min(count, 3) : count) as Readiness;
 }
 
 /** True when the job rests on the person's own information and it is not in the prompt yet. */
 export function missingMaterial(category: TaskCategory, met: Met): boolean {
   return (GATES[category] ?? []).some(({ id }) => met[id] === false);
+}
+
+/** True when the prompt stops partway through a sentence. */
+export function unfinished(met: Met): boolean {
+  return met.finished === false;
 }
 
 const NUMBER_WORDS =

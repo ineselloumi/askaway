@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import en from '@/messages/guided/en.json';
-import { CHECKS, OFF, ON, SILENT_CHECKS, applyScores, asksForNumbers, missingMaterial, nextHint, qualityReadiness } from '../quality';
+import { CHECKS, OFF, ON, SILENT_CHECKS, applyScores, asksForNumbers, missingMaterial, nextHint, qualityReadiness, scoredChecks, unfinished } from '../quality';
 import type { TaskCategory } from '../types';
 
 describe('quality-driven readiness', () => {
@@ -66,6 +66,30 @@ describe('quality-driven readiness', () => {
     // An unscored gate never blocks, and other task types have none.
     expect(qualityReadiness('agentic', applyScores('agentic', all, null))).toBe(4);
     expect(missingMaterial('write', applyScores('write', { task: 0.9 }, null))).toBe(false);
+  });
+
+  it('holds a prompt short of done while it stops mid-sentence', () => {
+    for (const category of ['write', 'understand', 'agentic'] as TaskCategory[]) {
+      expect(scoredChecks(category).map(({ id }) => id)).toContain('finished');
+    }
+
+    // "...I need them to contact": all four checks pass on half a sentence.
+    const all = { task: 0.89, subject: 0.9, audience: 0.98, preference: 0.6 };
+    const cutOff = applyScores('write', { ...all, finished: 0.1 }, null);
+    expect(unfinished(cutOff)).toBe(true);
+    expect(qualityReadiness('write', cutOff)).toBe(3);
+    // Being mid-sentence is not missing information.
+    expect(missingMaterial('write', cutOff)).toBe(false);
+
+    const complete = applyScores('write', { ...all, finished: 0.9 }, null);
+    expect(unfinished(complete)).toBe(false);
+    expect(qualityReadiness('write', complete)).toBe(4);
+
+    // An unscored gate never blocks.
+    expect(unfinished(applyScores('write', all, null))).toBe(false);
+    expect(qualityReadiness('write', applyScores('write', all, null))).toBe(4);
+    // A fill below the hold is left as it is.
+    expect(qualityReadiness('write', applyScores('write', { task: 0.9, finished: 0.1 }, null))).toBe(1);
   });
 
   it('asks for numbers or for context, depending on the job', () => {

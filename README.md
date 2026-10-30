@@ -56,7 +56,7 @@ runs the unit tests for the guided flow.
 | `lib/guided/` | The logic, with tests: prompt composition, readiness, graduation gate, agent-run state machine |
 | `messages/guided/` | All copy, question options and prompt templates (English only) |
 | `app/api/chat` | The conversation. Jev describes each request (reasoning needed, stakes, structure, rewording) and `lib/guided/routing.ts` picks Haiku, Sonnet or Opus from that. The badge under the answer says which and why |
-| `app/api/readiness` | Scores the prompt in progress against four yes/no checks, so the readiness fill reflects what the prompt says. Jev (TypeSafe AI) first, Claude Haiku as fallback |
+| `app/api/readiness` | Scores the prompt in progress against four yes/no checks, so the readiness fill reflects what the prompt says, and holds it short of done while the prompt stops mid-sentence. Jev (TypeSafe AI) first, Claude Haiku as fallback |
 | `app/api/agent` | "Do things for me" jobs: web research streamed as plain-English steps, with a check-in when the job hits a real fork |
 
 **Rolling back.** The original Ask Away (home page plus `/assist`) is still in the codebase. Set `NEXT_PUBLIC_GUIDED_FLOW=off` and redeploy to switch back. The pre-overhaul version is also preserved as the `v1-askaway` tag and the `legacy/askaway-v1` branch.

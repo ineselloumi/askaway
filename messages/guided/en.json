@@ -65,8 +65,6 @@
     }
   },
   "builder": {
-    "lastTitle": "That's everything I need.",
-    "lastSub": "Anything else worth knowing? Add it below, or send as is.",
     "prefillTitle": "That's a good start.",
     "prefillSub": "Add a detail or two below, or send as is.",
     "typeInstead": "Type instead",
@@ -82,10 +80,9 @@
     "helperBlank": "Type right after the cursor, then press return.",
     "helperLast": "Add anything else. The more detail, the better the answer.",
     "helperEmpty": "Pick an answer above, or type your prompt here first.",
-    "needTitle": "Almost there.",
-    "needSub": "I just need one more thing from you.",
     "needNumbers": "Paste or type your numbers so I have something to work with.",
     "needContext": "Paste or type the context here so I have something to work with.",
+    "needFinish": "Finish your sentence and you're good to go.",
     "promptLabel": "Your prompt",
     "attach": "Attach a spreadsheet (.csv)",
     "attachFile": "Attach a file (.csv or .txt)",

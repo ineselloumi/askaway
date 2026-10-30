@@ -8,7 +8,7 @@ import { builderReducer, builderView, initBuilder } from '@/lib/guided/builder';
 import { asList, opt } from '@/lib/guided/compose';
 import { FLOWS, variantKey } from '@/lib/guided/flows';
 import { chipPool, chooseHint, defaultChips, defaultHint, hintPool, rankChips } from '@/lib/guided/library';
-import { asksForNumbers, missingMaterial, nextHint, qualityReadiness } from '@/lib/guided/quality';
+import { asksForNumbers, missingMaterial, nextHint, qualityReadiness, unfinished } from '@/lib/guided/quality';
 import { readinessStep, type Readiness } from '@/lib/guided/readiness';
 import type { AnswerValue, QuestionDef, Segment, TaskCategory } from '@/lib/guided/types';
 import styles from './guided.module.css';
@@ -69,13 +69,16 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
 
   // Helper line: the decision model's pick for this prompt; failing that, the
   // first unmet check; before any answer, an idea's own hand-written hint.
-  // A hint that mirrors one of the four checks is dropped once that check passes.
+  // A hint that mirrors one of the four checks is dropped once that check passes,
+  // and none shows at "I'm done": not every hint mirrors a check.
   const openHints = met ? pools.hints.filter((id) => !met[id as keyof typeof met]) : pools.hints;
-  const hint = quality.hint
-    ? chooseHint(quality.hint, openHints)
-    : met
-      ? nextHint(category, met)
-      : defaultHint(ideaId);
+  const hint = readiness === 4
+    ? null
+    : quality.hint
+      ? chooseHint(quality.hint, openHints)
+      : met
+        ? nextHint(category, met)
+        : defaultHint(ideaId);
 
   // Chips: the library ranked for this prompt, minus any already used.
   const [usedChips, setUsedChips] = useState<string[]>([]);
@@ -161,23 +164,11 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
 
   const activeQuestion = view.questions.find((q) => q.id === view.activeId);
   // A job that rests on the person's own numbers or notes asks for them as
-  // soon as the check sees the gap; the title joins in once every question has an answer.
+  // soon as the check sees the gap.
   const missing = !!met && missingMaterial(category, met);
-  const needsMaterial = view.ready && missing;
-  const title = needsMaterial
-    ? t('guided.builder.needTitle')
-    : prefill
-    ? t('guided.builder.prefillTitle')
-    : view.ready
-      ? t('guided.builder.lastTitle')
-      : t(`${flowKey}.title`);
-  const sub = needsMaterial
-    ? t('guided.builder.needSub')
-    : prefill
-    ? t('guided.builder.prefillSub')
-    : view.ready
-      ? t('guided.builder.lastSub')
-      : t(`${flowKey}.sub`);
+  // The heading stays put while the prompt is built; the helper line does the talking.
+  const title = prefill ? t('guided.builder.prefillTitle') : t(`${flowKey}.title`);
+  const sub = prefill ? t('guided.builder.prefillSub') : t(`${flowKey}.sub`);
   const helper = nudged
     ? t('guided.builder.helperEmpty')
     : view.blank
@@ -185,7 +176,9 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
       : missing
       ? t(asksForNumbers(view.sendText) ? 'guided.builder.needNumbers' : 'guided.builder.needContext')
       : view.ready
-      ? hint
+      ? met && unfinished(met)
+        ? t('guided.builder.needFinish')
+        : hint
         ? t(`guided.hints.${hint}`)
         : t('guided.builder.helperLast')
       : activeQuestion?.multi
