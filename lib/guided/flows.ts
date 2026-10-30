@@ -45,7 +45,7 @@ export const FLOWS: Record<TaskCategory, FlowDef> = {
   },
   understand: {
     category: 'understand',
-    q1: { id: 'q1', custom: true, options: o('explain', 'summary', 'translate') },
+    q1: { id: 'q1', custom: true, options: o('explain', 'summary', 'notes') },
     variants: {
       explain: {
         questions: [{ id: 'how', custom: true, options: o('plain', 'steps', 'implications') }],
@@ -55,9 +55,9 @@ export const FLOWS: Record<TaskCategory, FlowDef> = {
         questions: [{ id: 'how', custom: true, options: o('takeaways', 'executive', 'actions') }],
         suggestions: ['focus', 'reader', 'skip'],
       },
-      translate: {
-        questions: [{ id: 'lang', custom: true, options: o('english', 'spanish', 'mandarin') }],
-        suggestions: ['register', 'reader', 'keep'],
+      notes: {
+        questions: [{ id: 'how', custom: true, options: o('actions', 'recap', 'decisions') }],
+        suggestions: ['owners', 'attendees', 'focus'],
       },
       custom: {
         questions: [],

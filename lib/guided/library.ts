@@ -33,8 +33,6 @@ export const CHIPS: Record<string, LibraryEntry> = {
   answerLength: { categories: ['understand'], about: "How long the answer should be" },
   reader: { categories: ['understand'], about: "Who will read the result" },
   skip: { categories: ['understand'], about: "What to leave out" },
-  register: { categories: ['understand'], about: "The register or tone of a translation" },
-  keep: { categories: ['understand'], about: "Terms to keep untranslated" },
   question: { categories: ['understand'], about: "The specific question the person wants answered" },
   concern: { categories: ['understand'], about: "What worries the person about it" },
   attendees: { categories: ['understand'], about: "Who was in the meeting" },

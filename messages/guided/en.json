@@ -287,9 +287,9 @@
             "label": "A summary",
             "fragment": "Summarize"
           },
-          "translate": {
-            "label": "A translation",
-            "fragment": "Translate"
+          "notes": {
+            "label": "Meeting notes",
+            "fragment": "Turn"
           }
         },
         "typePlaceholder": "e.g. feedback on my proposal"
@@ -351,31 +351,31 @@
             }
           }
         },
-        "translate": {
-          "frame": "{q1} this",
+        "notes": {
+          "frame": "{q1} my meeting notes",
           "closer": ": ",
           "closerGhost": ": …",
-          "closerHint": "paste the text here …",
+          "closerHint": "paste the meeting notes here …",
           "questions": {
-            "lang": {
-              "label": "Into which language?",
+            "how": {
+              "label": "What should I turn them into?",
               "options": {
-                "english": {
-                  "label": "English",
-                  "fragment": "English"
+                "actions": {
+                  "label": "Action items",
+                  "fragment": "a list of action items with owners"
                 },
-                "spanish": {
-                  "label": "Spanish",
-                  "fragment": "Spanish"
+                "recap": {
+                  "label": "A recap to share",
+                  "fragment": "a recap I can share"
                 },
-                "mandarin": {
-                  "label": "Mandarin Chinese",
-                  "fragment": "Mandarin Chinese"
+                "decisions": {
+                  "label": "The decisions made",
+                  "fragment": "a list of the decisions made"
                 }
               },
               "clause": " into {v}",
               "ghost": " into …",
-              "typePlaceholder": "e.g. German"
+              "typePlaceholder": "e.g. a follow-up email"
             }
           }
         },
@@ -829,14 +829,6 @@
     "skip": {
       "label": "what to leave out",
       "starter": "Leave out "
-    },
-    "register": {
-      "label": "the register I want",
-      "starter": ", in a register that's "
-    },
-    "keep": {
-      "label": "terms to keep as is",
-      "starter": "Keep these terms as they are: "
     },
     "question": {
       "label": "my specific question",
