@@ -13,6 +13,7 @@
   --g-border-light: #e3e0d6;
   --g-hairline: #edeae0;
   --g-hairline-2: #e8e5db;
+  --g-topbar-line: var(--g-border);
   --g-pending: #dedbd0;
   --g-accent: #c96442;
   --g-accent-hover: #ae5630;
@@ -41,6 +42,7 @@
    on cream (see lib/brand.ts). Headings switch to the sans from app/guided/fonts.ts. */
 :global(html[data-brand='chatgpt']) .root {
   --g-ground: #f8f8f6;
+  --g-topbar-line: #dfdfda;
   --font-guided-serif: var(--font-guided-heading-sans);
   --g-accent: #006aff;
   --g-accent-hover: #0058d6;
@@ -82,6 +84,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 12px 20px;
+  border-bottom: 1px solid var(--g-topbar-line);
 }
 .topLeft,
 .topRight {
