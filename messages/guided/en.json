@@ -659,8 +659,8 @@
       "reasoning": "Picked because this needed some careful thinking.",
       "structured": "Picked because this called for a longer, structured piece.",
       "long": "Picked because there was a lot of material to read.",
-      "stakes": "Picked because this is a topic where the answer matters.",
-      "careful": "Picked because this needed deep thinking on something that matters.",
+      "stakes": "Picked because this is important to get right.",
+      "careful": "Picked because this needs deep thinking and is important to get right.",
       "followup": "Kept the same model for your follow-up."
     },
     "copyAnswer": "Copy answer",
