@@ -752,7 +752,7 @@
     },
     "length": {
       "label": "how long it should be",
-      "starter": "It should be about "
+      "starter": "Keep it to "
     },
     "points": {
       "label": "points to cover",
@@ -817,10 +817,6 @@
     "purpose": {
       "label": "what I need it for",
       "starter": "I need it for "
-    },
-    "answerLength": {
-      "label": "how long the answer should be",
-      "starter": "Keep the answer "
     },
     "reader": {
       "label": "who will read it",

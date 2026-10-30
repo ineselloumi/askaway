@@ -11,7 +11,9 @@ import {
   defaultChips,
   defaultHint,
   hintPool,
+  pinLength,
   rankChips,
+  statesLength,
   validIds,
 } from '../library';
 import { CHECKS, SILENT_CHECKS } from '../quality';
@@ -119,5 +121,22 @@ describe('hints that mirror a passed check', () => {
     const pool = ['task', 'preference', 'material'].filter((id) => !met[id as keyof typeof met]);
     expect(chooseHint({ task: 0.6, preference: 0.2, material: 0.15, none: 0.05 }, pool)).toBeNull();
     expect(chooseHint({ task: 0.5, preference: 0.4, material: 0.1 }, pool)).toBe('preference');
+  });
+
+  it('keeps the length chip in the last slot', () => {
+    expect(pinLength(['role', 'purpose', 'skip'])).toEqual(['role', 'purpose', 'length']);
+    // Not repeated when the ranking already picked it.
+    expect(pinLength(['length', 'focus', 'skip'])).toEqual(['focus', 'skip', 'length']);
+    expect(pinLength(['focus'])).toEqual(['focus', 'length']);
+    expect(pinLength([])).toEqual(['length']);
+  });
+
+  it('spots a length the prompt already sets, but not a stray word', () => {
+    for (const text of ['Keep it under 200 words', 'about 2 pages', 'a one-page report', 'in three sentences', 'Keep it short', 'a brief summary of this', 'Be concise.', '5 bullet points']) {
+      expect(statesLength(text), text).toBe(true);
+    }
+    for (const text of ['We had a short delay', 'the shortlist of vendors', 'how long it took', 'page 3 of the deck', 'Write a report on our 2 offices', '']) {
+      expect(statesLength(text), text).toBe(false);
+    }
   });
 });

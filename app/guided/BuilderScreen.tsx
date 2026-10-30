@@ -7,7 +7,7 @@ import { track } from '@/lib/guided/analytics';
 import { builderReducer, builderView, initBuilder } from '@/lib/guided/builder';
 import { asList, opt } from '@/lib/guided/compose';
 import { FLOWS, variantKey } from '@/lib/guided/flows';
-import { chipPool, chooseHint, defaultChips, defaultHint, hintPool, rankChips } from '@/lib/guided/library';
+import { LENGTH_CHIP, chipPool, chooseHint, defaultChips, defaultHint, hintPool, pinLength, rankChips, statesLength } from '@/lib/guided/library';
 import { asksForNumbers, missingMaterial, nextHint, qualityReadiness, unfinished } from '@/lib/guided/quality';
 import { readinessStep, type Readiness } from '@/lib/guided/readiness';
 import type { AnswerValue, QuestionDef, Segment, TaskCategory } from '@/lib/guided/types';
@@ -80,11 +80,15 @@ export default function BuilderScreen({ category, prefill, onSubmit }: Props) {
         ? nextHint(category, met)
         : defaultHint(ideaId);
 
-  // Chips: the library ranked for this prompt, minus any already used.
+  // Chips: the library ranked for this prompt, minus any already used. Length
+  // keeps the last slot on writing and understanding jobs until the prompt sets one.
   const [usedChips, setUsedChips] = useState<string[]>([]);
-  const chipIds = quality.chips
-    ? rankChips(quality.chips, pools.chips.filter((id) => !usedChips.includes(id)))
-    : defaultChips(view.variant?.suggestions ?? [], ideaId).filter((id) => !usedChips.includes(id));
+  const openChip = (id: string) => id !== LENGTH_CHIP && !usedChips.includes(id);
+  const rankedChips = quality.chips
+    ? rankChips(quality.chips, pools.chips.filter(openChip))
+    : defaultChips(view.variant?.suggestions ?? [], ideaId).filter(openChip);
+  const offerLength = category !== 'agentic' && !usedChips.includes(LENGTH_CHIP) && !statesLength(view.sendText);
+  const chipIds = offerLength ? pinLength(rankedChips) : rankedChips;
 
   // On the last step the cursor waits at the end of the prompt (screens 1d / 2c).
   // Skipped on touch screens, where it would open the keyboard over the page.

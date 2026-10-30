@@ -49,7 +49,7 @@ export const FLOWS: Record<TaskCategory, FlowDef> = {
     variants: {
       explain: {
         questions: [{ id: 'how', custom: true, options: o('plain', 'steps', 'implications') }],
-        suggestions: ['role', 'purpose', 'answerLength'],
+        suggestions: ['role', 'purpose', 'length'],
       },
       summary: {
         questions: [{ id: 'how', custom: true, options: o('takeaways', 'executive', 'actions') }],
@@ -61,7 +61,7 @@ export const FLOWS: Record<TaskCategory, FlowDef> = {
       },
       custom: {
         questions: [],
-        suggestions: ['role', 'purpose', 'answerLength'],
+        suggestions: ['role', 'purpose', 'length'],
       },
     },
   },

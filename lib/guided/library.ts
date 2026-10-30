@@ -13,7 +13,7 @@ export const CHIPS: Record<string, LibraryEntry> = {
   deadline: { categories: ['write'], about: "A deadline or date the reader needs to know" },
   ask: { categories: ['write'], about: "What the writer needs the reader to do" },
   tone: { categories: ['write'], about: "The tone of the writing" },
-  length: { categories: ['write'], about: "How long the piece should be" },
+  length: { categories: ['write', 'understand'], about: "How long the result should be" },
   points: { categories: ['write'], about: "The specific points the piece must cover" },
   data: { categories: ['write'], about: "Figures or data the piece should include" },
   focus: { categories: ['write', 'understand'], about: "What to focus on" },
@@ -30,7 +30,6 @@ export const CHIPS: Record<string, LibraryEntry> = {
   upcoming: { categories: ['write'], about: "Plans for the next period" },
   role: { categories: ['understand'], about: "The person's job or role" },
   purpose: { categories: ['understand', 'agentic'], about: "What the result will be used for or which decision it supports" },
-  answerLength: { categories: ['understand'], about: "How long the answer should be" },
   reader: { categories: ['understand'], about: "Who will read the result" },
   skip: { categories: ['understand'], about: "What to leave out" },
   question: { categories: ['understand'], about: "The specific question the person wants answered" },
@@ -84,7 +83,7 @@ export const IDEA_CONTENT: Record<string, { chips: string[]; hints: string[] }> 
   competitors: { chips: ['whoWeAre', 'shortlist', 'compareOn', 'purpose'], hints: ['whoWeAre', 'compareOn'] },
   deck: { chips: ['audience', 'keyMessage', 'metrics', 'presentLength'], hints: ['keyMessage'] },
   sheet: { chips: ['columns', 'decide', 'period', 'when'], hints: ['dataShape'] },
-  contract: { chips: ['role', 'question', 'concern', 'answerLength'], hints: ['contractText', 'question'] },
+  contract: { chips: ['role', 'question', 'concern', 'length'], hints: ['contractText', 'question'] },
   notes: { chips: ['attendees', 'owners', 'focus', 'skip'], hints: ['notesText'] },
   plan: { chips: ['goal', 'timeline', 'methods', 'context'], hints: ['researchGoal'] },
 };
@@ -128,6 +127,23 @@ export function rankChips(probabilities: Record<string, number>, pool: string[],
     .sort((a, b) => b.p - a.p || a.index - b.index)
     .slice(0, count)
     .map(({ id }) => id);
+}
+
+/** Always offered on writing and understanding jobs, because the ranking alone rarely picks it. */
+export const LENGTH_CHIP = 'length';
+
+/** Keeps the length chip in the last slot, after the best of the others. */
+export function pinLength(chips: string[], count = 3): string[] {
+  return [...chips.filter((id) => id !== LENGTH_CHIP).slice(0, count - 1), LENGTH_CHIP];
+}
+
+// Only phrases that set a length, so a stray "short" in pasted notes does not count.
+const LENGTH_SETTING =
+  /\b(\d+|a few|a couple of|one|two|three|four|five|six|seven|eight|nine|ten)[ -](short )?(words?|pages?|paragraphs?|sentences?|lines?|bullets?|bullet points?)\b|\b(keep (it|this) (short|brief|concise)|be (brief|concise)|(short|brief|concise) (summary|email|report|answer|explanation|recap|overview|version))\b/i;
+
+/** Whether the prompt already says how long the result should be. */
+export function statesLength(text: string): boolean {
+  return LENGTH_SETTING.test(text);
 }
 
 /** Below this, the model's top pick is too unsure to show; the default helper line shows instead. */
