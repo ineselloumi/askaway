@@ -526,54 +526,56 @@ function PromptEditor({ ref, text, segments, ghost, label, onChange, onSubmit, o
   const growForNewLine = () => flushSync(() => setLineAhead(true));
   return (
     <div className={styles.editor}>
-      <div className={styles.mirror} aria-hidden="true">
-        {segments.length > 0 ? (
-          <>
-            {segments.map((segment, i) => (
-              <span key={i} className={segment.kind === 'answer' ? styles.frag : undefined}>
-                {segment.text}
-              </span>
-            ))}
-            {text.slice(composedLength)}
-          </>
-        ) : (
-          text
-        )}
-        <span className={styles.ghost}>{ghost}</span>
-        {lineAhead ? '\n​' : '​'}
+      <div className={styles.editorStack}>
+        <div className={styles.mirror} aria-hidden="true">
+          {segments.length > 0 ? (
+            <>
+              {segments.map((segment, i) => (
+                <span key={i} className={segment.kind === 'answer' ? styles.frag : undefined}>
+                  {segment.text}
+                </span>
+              ))}
+              {text.slice(composedLength)}
+            </>
+          ) : (
+            text
+          )}
+          <span className={styles.ghost}>{ghost}</span>
+          {lineAhead ? '\n​' : '​'}
+        </div>
+        <textarea
+          ref={ref}
+          className={styles.editorInput}
+          value={text}
+          aria-label={label}
+          spellCheck
+          maxLength={20000}
+          onChange={(e) => {
+            setLineAhead(false);
+            onChange(e.target.value);
+          }}
+          onBlur={() => {
+            setLineAhead(false);
+            onBlur();
+          }}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter' || e.nativeEvent.isComposing) {
+              if (!['Shift', 'Meta', 'Control', 'Alt'].includes(e.key)) onOtherKey();
+              return;
+            }
+            if (e.metaKey || e.ctrlKey) {
+              e.preventDefault();
+              onSubmit();
+            } else if (!e.shiftKey) {
+              if (onReturn()) e.preventDefault();
+              else growForNewLine();
+            } else {
+              growForNewLine();
+              onOtherKey();
+            }
+          }}
+        />
       </div>
-      <textarea
-        ref={ref}
-        className={styles.editorInput}
-        value={text}
-        aria-label={label}
-        spellCheck
-        maxLength={20000}
-        onChange={(e) => {
-          setLineAhead(false);
-          onChange(e.target.value);
-        }}
-        onBlur={() => {
-          setLineAhead(false);
-          onBlur();
-        }}
-        onKeyDown={(e) => {
-          if (e.key !== 'Enter' || e.nativeEvent.isComposing) {
-            if (!['Shift', 'Meta', 'Control', 'Alt'].includes(e.key)) onOtherKey();
-            return;
-          }
-          if (e.metaKey || e.ctrlKey) {
-            e.preventDefault();
-            onSubmit();
-          } else if (!e.shiftKey) {
-            if (onReturn()) e.preventDefault();
-            else growForNewLine();
-          } else {
-            growForNewLine();
-            onOtherKey();
-          }
-        }}
-      />
     </div>
   );
 }

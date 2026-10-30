@@ -649,13 +649,17 @@
   border-color: var(--g-accent);
 }
 .editor {
-  position: relative;
-  /* Room for the fragment underlines, so they never trigger a scrollbar. */
-  padding-bottom: 3px;
   margin-bottom: 12.3px;
   font: 400 17.4px/1.5 var(--g-sans);
   max-height: 34vh;
   overflow-y: auto;
+}
+/* Holds the textarea and its mirror at the full height of the text, so the
+   editor scrolls the two together. */
+.editorStack {
+  position: relative;
+  /* Room for the fragment underlines, so they never trigger a scrollbar. */
+  padding-bottom: 3px;
 }
 .mirror,
 .root .editorInput {
