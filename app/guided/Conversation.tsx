@@ -31,9 +31,12 @@ export default function Conversation(props: Props) {
   const { items, busy, run, meta, progress, showGraduation } = props;
   const { t } = useLocale();
   const endRef = useRef<HTMLDivElement>(null);
+  const answerRef = useRef<HTMLDivElement>(null);
 
+  // A new answer is read from the top, so it comes into view at its start, not its end.
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'end' });
+    if (items[items.length - 1]?.role === 'assistant') answerRef.current?.scrollIntoView({ block: 'start' });
+    else endRef.current?.scrollIntoView({ block: 'end' });
   }, [items.length, busy, run?.status, run?.currentStep, run?.searches.length]);
 
   const working = !!run && ['running', 'paused', 'blocked', 'error'].includes(run.status);
@@ -83,7 +86,9 @@ export default function Conversation(props: Props) {
               </p>
             );
           }
-          if (item.role === 'assistant') return <Answer key={item.id} item={item} agentic={meta.agentic} />;
+          if (item.role === 'assistant') {
+            return <Answer key={item.id} ref={index === items.length - 1 ? answerRef : undefined} item={item} agentic={meta.agentic} />;
+          }
           if (item.guided && index === 0) {
             return compact ? (
               <div key={item.id} className={styles.miniAsk}>
@@ -263,7 +268,7 @@ function duration(ms: number, t: Translate) {
   return seconds < 60 ? t('guided.agent.seconds', { n: seconds }) : t('guided.agent.minutes', { n: Math.round(seconds / 60) });
 }
 
-function Answer({ item, agentic }: { item: ThreadItem; agentic: boolean }) {
+function Answer({ ref, item, agentic }: { ref?: React.Ref<HTMLDivElement>; item: ThreadItem; agentic: boolean }) {
   const { t } = useLocale();
   const parsed = parseAnswer(item.text);
   const { copied, copy } = useCopy(parsed.body);
@@ -279,7 +284,7 @@ function Answer({ item, agentic }: { item: ThreadItem; agentic: boolean }) {
   }
 
   return (
-    <div className={styles.answer}>
+    <div ref={ref} className={styles.answer}>
       {parsed.lead && <p className={styles.lead}>{parsed.lead}</p>}
       <div className={styles.rail}>
         <Rich text={parsed.body} />

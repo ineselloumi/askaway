@@ -939,6 +939,8 @@
 }
 .answer {
   margin-bottom: 28.9px;
+  /* Clears the sticky top bar when an answer scrolls to its start. */
+  scroll-margin-top: 80px;
 }
 .lead {
   font: 700 15.7px/1.3 var(--g-sans);
